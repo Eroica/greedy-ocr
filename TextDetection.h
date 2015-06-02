@@ -83,30 +83,6 @@ typedef struct _Point3dFloat Point3dFloat;
 }
 @end
 
-// Others.
-@interface Ray : NSObject {
-
-}
-
-@property (nonatomic, assign) Point2d p;
-@property (nonatomic, assign) Point2d q;
-@property (nonatomic, assign) NSMutableArray *points;
-
-@end
-
-@interface Chain : NSObject {
-
-}
-
-@property (nonatomic, assign) int p;
-@property (nonatomic, assign) int q;
-@property (nonatomic, assign) float dist;
-@property (nonatomic, assign) bool merged;
-@property (nonatomic, assign) Point2dFloat direction;
-@property (nonatomic, assign) NSMutableArray *components;
-
-@end
-
 bool
 Point2dSort(const Point2d *lhs,
             const Point2d *rhs);

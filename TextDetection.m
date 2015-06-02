@@ -17,6 +17,7 @@
 
 #include <assert.h>
 #include <math.h>
+#include <stdbool.h>
 
 #include <opencv/cv.h>
 #include <opencv/highgui.h>
@@ -26,7 +27,9 @@
 // #include <utility>
 // #include <algorithm>
 // #include <vector>
-#include "TextDetection.h"
+#import "TextDetection.h"
+#import "ray.h"
+#import "chain.h"
 
 #define PI 3.14159265
 
@@ -363,21 +366,29 @@ textDetection(IplImage *input,
     cvReleaseImage(&gaussianImage);
     cvReleaseImage(&grayImage);
 
-    // // Create gradient X, gradient Y
-    // IplImage * gaussianImage =
-    //         cvCreateImage ( cvGetSize(input), IPL_DEPTH_32F, 1);
-    // cvConvertScale (grayImage, gaussianImage, 1./255., 0);
-    // cvSmooth( gaussianImage, gaussianImage, CV_GAUSSIAN, 5, 5);
-    // IplImage * gradientX =
-    //         cvCreateImage ( cvGetSize ( input ), IPL_DEPTH_32F, 1 );
-    // IplImage * gradientY =
-    //         cvCreateImage ( cvGetSize ( input ), IPL_DEPTH_32F, 1 );
-    // cvSobel(gaussianImage, gradientX , 1, 0, CV_SCHARR);
-    // cvSobel(gaussianImage, gradientY , 0, 1, CV_SCHARR);
-    // cvSmooth(gradientX, gradientX, 3, 3);
-    // cvSmooth(gradientY, gradientY, 3, 3);
-    // cvReleaseImage ( &gaussianImage );
-    // cvReleaseImage ( &grayImage );
+    // Calculate SWT and return ray vectors.
+    NSMutableArray *rays = [[NSMutableArray alloc] init];
+    // NSMutableArray *rays = nil;
+    IplImage *SWTImage = cvCreateImage(cvGetSize(input),
+                                       IPL_DEPTH_32F,
+                                       1);
+
+    for (int row = 0; row < input->height; row++)
+    {
+        float *ptr = (float *)(SWTImage->imageData + row * SWTImage->widthStep);
+        for (int col = 0; col < input->width; col++)
+        {
+            *ptr++ = -1;
+        }
+    }
+
+    strokeWidthTransform(edgeImage,
+                         gradientX,
+                         gradientY,
+                         dark_on_light,
+                         SWTImage,
+                         rays);
+    // SWTMedianFilter ( SWTImage, rays );
 
     // // Calculate SWT and return ray vectors
     // std::vector<Ray> rays;
@@ -447,95 +458,131 @@ textDetection(IplImage *input,
     return grayImage;
 }
 
-// void strokeWidthTransform (IplImage * edgeImage,
-//                            IplImage * gradientX,
-//                            IplImage * gradientY,
-//                            bool dark_on_light,
-//                            IplImage * SWTImage,
-//                            std::vector<Ray> & rays) {
-//     // First pass
-//     float prec = .05;
-//     for( int row = 0; row < edgeImage->height; row++ ){
-//         const uchar* ptr = (const uchar*)(edgeImage->imageData + row * edgeImage->widthStep);
-//         for ( int col = 0; col < edgeImage->width; col++ ){
-//             if (*ptr > 0) {
-//                 Ray r;
+void
+strokeWidthTransform(IplImage *edgeImage,
+                     IplImage *gradientX,
+                     IplImage *gradientY,
+                     bool dark_on_light,
+                     IplImage *SWTImage,
+                     NSMutableArray *rays)
+{
+    // First pass
+    float prec = .05;
 
-//                 Point2d p;
-//                 p.x = col;
-//                 p.y = row;
-//                 r.p = p;
-//                 std::vector<Point2d> points;
-//                 points.push_back(p);
+    for (int row = 0; row < edgeImage->height; row++)
+    {
+        const uchar *ptr = (const uchar *)(edgeImage->imageData + row * edgeImage->widthStep);
 
-//                 float curX = (float)col + 0.5;
-//                 float curY = (float)row + 0.5;
-//                 int curPixX = col;
-//                 int curPixY = row;
-//                 float G_x = CV_IMAGE_ELEM ( gradientX, float, row, col);
-//                 float G_y = CV_IMAGE_ELEM ( gradientY, float, row, col);
-//                 // normalize gradient
-//                 float mag = sqrt( (G_x * G_x) + (G_y * G_y) );
-//                 if (dark_on_light){
-//                     G_x = -G_x/mag;
-//                     G_y = -G_y/mag;
-//                 } else {
-//                     G_x = G_x/mag;
-//                     G_y = G_y/mag;
+        for (int col = 0; col < edgeImage->width; col++ )
+        {
+            if (*ptr > 0) {
+                Ray *r = [[Ray alloc] init];
 
-//                 }
-//                 while (true) {
-//                     curX += G_x*prec;
-//                     curY += G_y*prec;
-//                     if ((int)(floor(curX)) != curPixX || (int)(floor(curY)) != curPixY) {
-//                         curPixX = (int)(floor(curX));
-//                         curPixY = (int)(floor(curY));
-//                         // check if pixel is outside boundary of image
-//                         if (curPixX < 0 || (curPixX >= SWTImage->width) || curPixY < 0 || (curPixY >= SWTImage->height)) {
-//                             break;
-//                         }
-//                         Point2d pnew;
-//                         pnew.x = curPixX;
-//                         pnew.y = curPixY;
-//                         points.push_back(pnew);
+                Point2d p;
+                p.x = col;
+                p.y = row;
+                r.p = p;
 
-//                         if (CV_IMAGE_ELEM ( edgeImage, uchar, curPixY, curPixX) > 0) {
-//                             r.q = pnew;
-//                             // dot product
-//                             float G_xt = CV_IMAGE_ELEM(gradientX,float,curPixY,curPixX);
-//                             float G_yt = CV_IMAGE_ELEM(gradientY,float,curPixY,curPixX);
-//                             mag = sqrt( (G_xt * G_xt) + (G_yt * G_yt) );
-//                             if (dark_on_light){
-//                                 G_xt = -G_xt/mag;
-//                                 G_yt = -G_yt/mag;
-//                             } else {
-//                                 G_xt = G_xt/mag;
-//                                 G_yt = G_yt/mag;
+                NSMutableArray *points = [[NSMutableArray alloc] init];
+                NSValue *p_value = [NSValue valueWithPoint2d:p];
+                // NSValue *p_value = [NSValue valueWithBytes:&p objCType:@encode(Point2d)];
 
-//                             }
+                [points addObject:p_value];
 
-//                             if (acos(G_x * -G_xt + G_y * -G_yt) < PI/2.0 ) {
-//                                 float length = sqrt( ((float)r.q.x - (float)r.p.x)*((float)r.q.x - (float)r.p.x) + ((float)r.q.y - (float)r.p.y)*((float)r.q.y - (float)r.p.y));
-//                                 for (std::vector<Point2d>::iterator pit = points.begin(); pit != points.end(); pit++) {
-//                                     if (CV_IMAGE_ELEM(SWTImage, float, pit->y, pit->x) < 0) {
-//                                         CV_IMAGE_ELEM(SWTImage, float, pit->y, pit->x) = length;
-//                                     } else {
-//                                         CV_IMAGE_ELEM(SWTImage, float, pit->y, pit->x) = std::min(length, CV_IMAGE_ELEM(SWTImage, float, pit->y, pit->x));
-//                                     }
-//                                 }
-//                                 r.points = points;
-//                                 rays.push_back(r);
-//                             }
-//                             break;
-//                         }
-//                     }
-//                 }
-//             }
-//             ptr++;
-//         }
-//     }
+                float curX = (float)col + 0.5;
+                float curY = (float)row + 0.5;
 
-// }
+                int curPixX = col;
+                int curPixY = row;
+
+                float G_x = CV_IMAGE_ELEM ( gradientX, float, row, col);
+                float G_y = CV_IMAGE_ELEM ( gradientY, float, row, col);
+
+                // normalize gradient
+                float mag = sqrt((G_x * G_x) + (G_y * G_y));
+                if (dark_on_light)
+                {
+                    G_x = -G_x/mag;
+                    G_y = -G_y/mag;
+                } else
+                {
+                    G_x = G_x/mag;
+                    G_y = G_y/mag;
+
+                }
+
+                while (true) {
+                    curX += G_x * prec;
+                    curY += G_y * prec;
+
+                    if ((int)(floor(curX)) != curPixX || (int)(floor(curY)) != curPixY)
+                    {
+                        curPixX = (int)(floor(curX));
+                        curPixY = (int)(floor(curY));
+
+                        // check if pixel is outside boundary of image
+                        if (curPixX < 0 || (curPixX >= SWTImage->width) || curPixY < 0 || (curPixY >= SWTImage->height))
+                        {
+                            break;
+                        }
+
+                        Point2d pnew;
+                        pnew.x = curPixX;
+                        pnew.y = curPixY;
+
+                        // NSValue *pnew_value = [NSValue valueWithBytes:&pnew objCType:@encode(Point2d)];
+                        NSValue *pnew_value = [NSValue valueWithPoint2d:pnew];
+                        [points addObject:pnew_value];
+
+                        if (CV_IMAGE_ELEM (edgeImage, uchar, curPixY, curPixX) > 0)
+                        {
+                            r.q = pnew;
+
+                            // dot product
+                            float G_xt = CV_IMAGE_ELEM(gradientX, float, curPixY, curPixX);
+                            float G_yt = CV_IMAGE_ELEM(gradientY, float, curPixY, curPixX);
+                            mag = sqrt((G_xt * G_xt) + (G_yt * G_yt));
+
+                            if (dark_on_light)
+                            {
+                                G_xt = -G_xt/mag;
+                                G_yt = -G_yt/mag;
+                            } else
+                            {
+                                G_xt = G_xt/mag;
+                                G_yt = G_yt/mag;
+
+                            }
+
+                            if (acos(G_x * -G_xt + G_y * -G_yt) < PI/2.0 )
+                            {
+                                float length = sqrt(((float)r.q.x - (float)r.p.x)*((float)r.q.x - (float)r.p.x) + ((float)r.q.y - (float)r.p.y)*((float)r.q.y - (float)r.p.y));
+
+                                for (id obj in points)
+                                {
+                                    if (CV_IMAGE_ELEM(SWTImage, float, [obj point2dValue].y, [obj point2dValue].x) < 0)
+                                    {
+                                        CV_IMAGE_ELEM(SWTImage, float, [obj point2dValue].y, [obj point2dValue].x) = length;
+                                    } else
+                                    {
+                                        // CV_IMAGE_ELEM(SWTImage, float, [obj point2dValue]y, obj->x) = fmin(length, CV_IMAGE_ELEM(SWTImage, float, pit->y, pit->x));
+                                    }
+                                }
+
+                                r.points = points;
+                                [rays addObject:r];
+                            }
+
+                            break;
+                        }
+                    }
+                }
+            }
+
+            ptr++;
+        }
+    }
+}
 
 // void SWTMedianFilter (IplImage * SWTImage,
 //                      std::vector<Ray> & rays) {
