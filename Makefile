@@ -2,11 +2,12 @@ CC=clang
 
 FRAMEWORKS:= -framework Foundation
 LIBRARIES:= -lobjc `pkg-config --libs --cflags opencv`
+#LIBRARIES:= -lopencv_core -lopencv_highgui -lopencv_imgproc
 
-SOURCE=TextDetection.m main.m ray.m chain.m
+SOURCE=TextDetection.m main.m ray.m chain.m points.m
 
 # CFLAGS=-Wall -Werror -g -v $(SOURCE)
-CFLAGS=-Wall -Werror -Wno-unused-function
+ CFLAGS=-Wall -Werror -Wno-unused-function
 LDFLAGS=$(LIBRARIES) $(FRAMEWORKS)
 OUT=-o main
 

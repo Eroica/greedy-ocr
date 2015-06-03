@@ -1,13 +1,12 @@
 #import <Foundation/Foundation.h>
-#include "points.h"
+#import "points.h"
 
-// Others.
 @interface Ray : NSObject {
 
 }
 
-@property (nonatomic, assign) Point2d p;
-@property (nonatomic, assign) Point2d q;
-@property (nonatomic, assign) NSMutableArray *points;
+@property (nonatomic, retain) Point2D *p;
+@property (nonatomic, retain) Point2D *q;
+@property (nonatomic, retain) NSMutableArray *points;
 
 @end

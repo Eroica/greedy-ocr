@@ -15,6 +15,7 @@ typedef struct _Point2d Point2d;
 
 + (id)valueWithPoint2d:(Point2d)point2d;
 - (Point2d)point2dValue;
+
 @end
 
 @implementation NSValue (Point2d)
@@ -52,7 +53,7 @@ typedef struct _Point2dFloat Point2dFloat;
     return [NSValue value:&point2dFloat withObjCType:@encode(Point2dFloat)];
 }
 
-- (Point2dFloat)point2dFloatValu {
+- (Point2dFloat)point2dFloatValue {
     Point2dFloat point2dFloat;
     [self getValue:&point2dFloat];
     return point2dFloat;
@@ -88,5 +89,37 @@ typedef struct _Point3dFloat Point3dFloat;
     return point3dFloat;
 }
 @end
+
+
+
+
+struct _ray {
+    Point2d p;
+    Point2d q;
+    NSMutableArray *points;
+};
+typedef struct _ray Ray;
+
+@interface NSValue (Ray)
+
++ (id)valueWithRay:(Ray)ray;
+- (Ray)rayValue;
+
+@end
+
+@implementation NSValue (Ray)
+
++ (id)valueWithRay:(Ray)ray {
+    return [NSValue value:&ray withObjCType:@encode(Ray)];
+}
+
+- (Ray)rayValue {
+    Ray ray;
+    [self getValue:&ray];
+    return ray;
+}
+
+@end
+
 
 #endif // POINTS_H

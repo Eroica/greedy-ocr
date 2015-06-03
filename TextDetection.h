@@ -4,9 +4,12 @@
 #include "opencv/cv.h"
 #include "points.h"
 
-bool
-Point2dSort(const Point2d *lhs,
-            const Point2d *rhs);
+// bool
+// Point2dSort(const Point2d *lhs,
+//             const Point2d *rhs);
+
+NSInteger
+Point2dSort(id val1, id val2, void *context);
 
 IplImage *
 textDetection(IplImage *float_input,

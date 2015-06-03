@@ -128,40 +128,46 @@
 //     return bb;
 // }
 
-// void normalizeImage (IplImage * input, IplImage * output) {
-//     assert ( input->depth == IPL_DEPTH_32F );
-//     assert ( input->nChannels == 1 );
-//     assert ( output->depth == IPL_DEPTH_32F );
-//     assert ( output->nChannels == 1 );
-//     float maxVal = 0;
-//     float minVal = 1e100;
-//     for( int row = 0; row < input->height; row++ ){
-//         const float* ptr = (const float*)(input->imageData + row * input->widthStep);
-//         for ( int col = 0; col < input->width; col++ ){
-//             if (*ptr < 0) { }
-//             else {
-//                 maxVal = std::max(*ptr, maxVal);
-//                 minVal = std::min(*ptr, minVal);
-//             }
-//             ptr++;
-//         }
-//     }
+void
+normalizeImage(IplImage *input,
+               IplImage *output)
+{
+    assert(input->depth == IPL_DEPTH_32F);
+    assert(input->nChannels == 1);
+    assert(output->depth == IPL_DEPTH_32F);
+    assert(output->nChannels == 1);
 
-//     float difference = maxVal - minVal;
-//     for( int row = 0; row < input->height; row++ ){
-//         const float* ptrin = (const float*)(input->imageData + row * input->widthStep);\
-//         float* ptrout = (float*)(output->imageData + row * output->widthStep);\
-//         for ( int col = 0; col < input->width; col++ ){
-//             if (*ptrin < 0) {
-//                 *ptrout = 1;
-//             } else {
-//                 *ptrout = ((*ptrin) - minVal)/difference;
-//             }
-//             ptrout++;
-//             ptrin++;
-//         }
-//     }
-// }
+    float maxVal = 0;
+    float minVal = 1e100;
+
+    for (int row = 0; row < input->height; row++) {
+        const float* ptr = (const float*)(input->imageData + row * input->widthStep);
+
+        for (int col = 0; col < input->width; col++) {
+            if (*ptr < 0) { }
+            else {
+                maxVal = fmax(*ptr, maxVal);
+                minVal = fmin(*ptr, minVal);
+            }
+            ptr++;
+        }
+    }
+
+    float difference = maxVal - minVal;
+    for (int row = 0; row < input->height; row++ ) {
+        const float* ptrin = (const float*)(input->imageData + row * input->widthStep);\
+        float* ptrout = (float*)(output->imageData + row * output->widthStep);\
+        for (int col = 0; col < input->width; col++) {
+            if (*ptrin < 0) {
+                *ptrout = 1;
+            } else {
+                *ptrout = ((*ptrin) - minVal)/difference;
+            }
+            ptrout++;
+            ptrin++;
+        }
+    }
+}
 
 // void renderComponents (IplImage * SWTImage, std::vector<std::vector<Point2d> > & components, IplImage * output) {
 //     cvZero(output);
@@ -319,7 +325,8 @@
 
 IplImage *
 textDetection(IplImage *input,
-              bool dark_on_light) {
+              bool dark_on_light)
+{
     assert(input->depth == IPL_DEPTH_8U);
     assert(input->nChannels == 3);
 
@@ -368,7 +375,6 @@ textDetection(IplImage *input,
 
     // Calculate SWT and return ray vectors.
     NSMutableArray *rays = [[NSMutableArray alloc] init];
-    // NSMutableArray *rays = nil;
     IplImage *SWTImage = cvCreateImage(cvGetSize(input),
                                        IPL_DEPTH_32F,
                                        1);
@@ -389,21 +395,26 @@ textDetection(IplImage *input,
 
     SWTMedianFilter(SWTImage, rays);
 
+    IplImage *output2 = cvCreateImage(cvGetSize(input),
+                                      IPL_DEPTH_32F,
+                                      1);
+    normalizeImage(SWTImage, output2);
+    IplImage *saveSWT = cvCreateImage(cvGetSize(input),
+                                      IPL_DEPTH_8U,
+                                      1);
 
-    // IplImage * output2 =
-    //         cvCreateImage ( cvGetSize ( input ), IPL_DEPTH_32F, 1 );
-    // normalizeImage (SWTImage, output2);
-    // IplImage * saveSWT =
-    //         cvCreateImage ( cvGetSize ( input ), IPL_DEPTH_8U, 1 );
-    // cvConvertScale(output2, saveSWT, 255, 0);
-    // cvSaveImage ( "SWT.png", saveSWT);
-    // cvReleaseImage ( &output2 );
-    // cvReleaseImage( &saveSWT );
+    cvConvertScale(output2, saveSWT, 255, 0);
+    // cvSaveImage("SWT.png", saveSWT);
+    cvSaveImage("SWT.png", saveSWT, 0);
+    cvReleaseImage(&output2);
+    cvReleaseImage(&saveSWT);
 
-    // // Calculate legally connect components from SWT and gradient image.
-    // // return type is a vector of vectors, where each outer vector is a component and
-    // // the inner vector contains the (y,x) of each pixel in that component.
-    // std::vector<std::vector<Point2d> > components = findLegallyConnectedComponents(SWTImage, rays);
+    // Calculate legally connect components from SWT and gradient image.
+    // return type is a vector of vectors, where each outer vector is a component and
+    // the inner vector contains the (y,x) of each pixel in that component.
+    NSMutableArray *components = [[NSMutableArray alloc] init];
+
+    std::vector<std::vector<Point2d> > components = findLegallyConnectedComponents(SWTImage, rays);
 
     // // Filter the components
     // std::vector<std::vector<Point2d> > validComponents;
@@ -462,17 +473,14 @@ strokeWidthTransform(IplImage *edgeImage,
         for (int col = 0; col < edgeImage->width; col++ ) {
             if (*ptr > 0) {
                 Ray *r = [[Ray alloc] init];
-
-                Point2d p;
+                Point2D *p = [[Point2D alloc] init];
                 p.x = col;
                 p.y = row;
                 r.p = p;
 
                 NSMutableArray *points = [[NSMutableArray alloc] init];
-                NSValue *p_value = [NSValue valueWithPoint2d:p];
-                // NSValue *p_value = [NSValue valueWithBytes:&p objCType:@encode(Point2d)];
 
-                [points addObject:p_value];
+                [points addObject:p];
 
                 float curX = (float)col + 0.5;
                 float curY = (float)row + 0.5;
@@ -507,13 +515,11 @@ strokeWidthTransform(IplImage *edgeImage,
                             break;
                         }
 
-                        Point2d pnew;
+                        Point2D *pnew = [[Point2D alloc] init];
                         pnew.x = curPixX;
                         pnew.y = curPixY;
 
-                        // NSValue *pnew_value = [NSValue valueWithBytes:&pnew objCType:@encode(Point2d)];
-                        NSValue *pnew_value = [NSValue valueWithPoint2d:pnew];
-                        [points addObject:pnew_value];
+                        [points addObject:pnew];
 
                         if (CV_IMAGE_ELEM (edgeImage, uchar, curPixY, curPixX) > 0) {
                             r.q = pnew;
@@ -535,11 +541,11 @@ strokeWidthTransform(IplImage *edgeImage,
                             if (acos(G_x * -G_xt + G_y * -G_yt) < PI/2.0 ) {
                                 float length = sqrt(((float)r.q.x - (float)r.p.x)*((float)r.q.x - (float)r.p.x) + ((float)r.q.y - (float)r.p.y)*((float)r.q.y - (float)r.p.y));
 
-                                for (id point in points) {
-                                    if (CV_IMAGE_ELEM(SWTImage, float, [point point2dValue].y, [point point2dValue].x) < 0) {
-                                        CV_IMAGE_ELEM(SWTImage, float, [point point2dValue].y, [point point2dValue].x) = length;
+                                for (Point2D *point in points) {
+                                    if (CV_IMAGE_ELEM(SWTImage, float, point.y, point.x) < 0) {
+                                        CV_IMAGE_ELEM(SWTImage, float, point.y, point.x) = length;
                                     } else {
-                                        CV_IMAGE_ELEM(SWTImage, float, [point point2dValue].y, [point point2dValue].x) = fmin(length, CV_IMAGE_ELEM(SWTImage, float, [point point2dValue].y, [point point2dValue].x));
+                                        CV_IMAGE_ELEM(SWTImage, float, point.y, point.x) = fmin(length, CV_IMAGE_ELEM(SWTImage, float, point.y, point.x));
                                     }
                                 }
 
@@ -558,38 +564,44 @@ strokeWidthTransform(IplImage *edgeImage,
     }
 }
 
+NSComparisonResult
+compare(Point2D *point1, Point2D *point2, void *context)
+{
+    if(point1.SWT < point2.SWT) {
+       return NSOrderedAscending ;
+    } else if(point1.SWT > point2.SWT) {
+        return NSOrderedDescending;
+    }
+
+    return NSOrderedSame;
+}
+
 void
 SWTMedianFilter(IplImage *SWTImage,
                 NSMutableArray *rays)
 {
-    for (id ray in rays) {
-        for (id point in ray.points) {
-            [point point2dValue].SWT = CV_IMAGE_ELEM(SWTImage, float, [point point2dValue].y, [point point2dValue].x);
+    for (Ray *ray in rays) {
+        for (Point2D *point in ray.points) {
+            point.SWT = CV_IMAGE_ELEM(SWTImage, float, point.y, point.x);
         }
-        [rays sortUsingFunction:Point2dSortX context:NULL];
-    }
 
-    // for (std::vector<Ray>::iterator rit = rays.begin(); rit != rays.end(); rit++) {
-    //     for (std::vector<Point2d>::iterator pit = rit->points.begin(); pit != rit->points.end(); pit++) {
-    //         pit->SWT = CV_IMAGE_ELEM(SWTImage, float, pit->y, pit->x);
-    //     }
-    //     std::sort(rit->points.begin(), rit->points.end(), &Point2dSort);
-    //     float median = (rit->points[rit->points.size()/2]).SWT;
-    //     for (std::vector<Point2d>::iterator pit = rit->points.begin(); pit != rit->points.end(); pit++) {
-    //         CV_IMAGE_ELEM(SWTImage, float, pit->y, pit->x) = std::min(pit->SWT, median);
-    //     }
-    // }
+        [ray.points sortUsingFunction:compare context:NULL];
+
+        Point2D *returnedObject = [[ray points] objectAtIndex:[ray.points count]/2];
+        float median = returnedObject.SWT;
+
+        for (Point2D *point in ray.points) {
+            CV_IMAGE_ELEM(SWTImage, float, point.y, point.x) = fmin(point.SWT, median);
+        }
+    }
 }
 
 NSInteger
-Point2dSortX(id val1, id val2, void *context)
+Point2dSort(Point2D *val1, Point2D *val2, void *context)
 {
-    Point2d p1 = [val1 point2dValue];
-    Point2d p2 = [val2 point2dValue];
-
-    if(p1.SWT < p2.SWT) {
+    if(val1.SWT < val2.SWT) {
         return NSOrderedAscending ;
-    } else if(p1.SWT > p2.SWT) {
+    } else if(val1.SWT > val2.SWT) {
         return NSOrderedDescending;
     }
 
@@ -603,82 +615,106 @@ Point2dSortX(id val1, id val2, void *context)
 //     return lhs.SWT < rhs.SWT;
 // }
 
-// std::vector< std::vector<Point2d> >
-// findLegallyConnectedComponents (IplImage * SWTImage,
-//                                 std::vector<Ray> & rays)
-// {
-//         boost::unordered_map<int, int> map;
-//         boost::unordered_map<int, Point2d> revmap;
+NSMutableArray *
+findLegallyConnectedComponents(IplImage *SWTImage,
+                               NSMutableArray *rays)
+{
 
-//         typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS> Graph;
-//         int num_vertices = 0;
-//         // Number vertices for graph.  Associate each point with number
-//         for( int row = 0; row < SWTImage->height; row++ ){
-//             float * ptr = (float*)(SWTImage->imageData + row * SWTImage->widthStep);
-//             for (int col = 0; col < SWTImage->width; col++ ){
-//                 if (*ptr > 0) {
-//                     map[row * SWTImage->width + col] = num_vertices;
-//                     Point2d p;
-//                     p.x = col;
-//                     p.y = row;
-//                     revmap[num_vertices] = p;
-//                     num_vertices++;
-//                 }
-//                 ptr++;
-//             }
-//         }
+    NSMutableDictionary *map = [[NSMutableDictionary alloc] init];
+    NSMutableDictionary *revmap = [[NSMutableDictionary alloc] init];
 
-//         Graph g(num_vertices);
 
-//         for( int row = 0; row < SWTImage->height; row++ ){
-//             float * ptr = (float*)(SWTImage->imageData + row * SWTImage->widthStep);
-//             for (int col = 0; col < SWTImage->width; col++ ){
-//                 if (*ptr > 0) {
-//                     // check pixel to the right, right-down, down, left-down
-//                     int this_pixel = map[row * SWTImage->width + col];
-//                     if (col+1 < SWTImage->width) {
-//                         float right = CV_IMAGE_ELEM(SWTImage, float, row, col+1);
-//                         if (right > 0 && ((*ptr)/right <= 3.0 || right/(*ptr) <= 3.0))
-//                             boost::add_edge(this_pixel, map.at(row * SWTImage->width + col + 1), g);
-//                     }
-//                     if (row+1 < SWTImage->height) {
-//                         if (col+1 < SWTImage->width) {
-//                             float right_down = CV_IMAGE_ELEM(SWTImage, float, row+1, col+1);
-//                             if (right_down > 0 && ((*ptr)/right_down <= 3.0 || right_down/(*ptr) <= 3.0))
-//                                 boost::add_edge(this_pixel, map.at((row+1) * SWTImage->width + col + 1), g);
-//                         }
-//                         float down = CV_IMAGE_ELEM(SWTImage, float, row+1, col);
-//                         if (down > 0 && ((*ptr)/down <= 3.0 || down/(*ptr) <= 3.0))
-//                             boost::add_edge(this_pixel, map.at((row+1) * SWTImage->width + col), g);
-//                         if (col-1 >= 0) {
-//                             float left_down = CV_IMAGE_ELEM(SWTImage, float, row+1, col-1);
-//                             if (left_down > 0 && ((*ptr)/left_down <= 3.0 || left_down/(*ptr) <= 3.0))
-//                                 boost::add_edge(this_pixel, map.at((row+1) * SWTImage->width + col - 1), g);
-//                         }
-//                     }
-//                 }
-//                 ptr++;
-//             }
-//         }
+    int num_vertices = 0;
 
-//         std::vector<int> c(num_vertices);
+    for (int row = 0; row < SWTImage->height; row++) {
+        float * ptr = (float*)(SWTImage->imageData + row * SWTImage->widthStep);
+        for (int col = 0; col < SWTImage->width; col++) {
+            if (*ptr > 0) {
+                [map setObject:[NSNumber numberWithInt:num_vertices] forKey:[NSNumber numberWithInt:(row * SWTImage->width + col)];
+                Point2D *p = [[Point2D alloc] init];
+                p.x = col;
+                p.y = row;
+                [revmap setObject:p forKey:[NSNumber numberWithInt:num_vertices]];
+                num_vertices++;
+            }
+            ptr++;
+        }
+    }
 
-//         int num_comp = connected_components(g, &c[0]);
+    NSMutableDictionary *Graph = [NSMutableDictionary arrayWithCapacity:num_vertices];
 
-//         std::vector<std::vector<Point2d> > components;
-//         components.reserve(num_comp);
-//         std::cout << "Before filtering, " << num_comp << " components and " << num_vertices << " vertices" << std::endl;
-//         for (int j = 0; j < num_comp; j++) {
-//             std::vector<Point2d> tmp;
-//             components.push_back( tmp );
-//         }
-//         for (int j = 0; j < num_vertices; j++) {
-//             Point2d p = revmap[j];
-//             (components[c[j]]).push_back(p);
-//         }
+    boost::unordered_map<int, int> map;
+    boost::unordered_map<int, Point2d> revmap;
 
-//         return components;
-// }
+    typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS> Graph;
+    int num_vertices = 0;
+    // Number vertices for graph.  Associate each point with number
+    for( int row = 0; row < SWTImage->height; row++ ){
+        float * ptr = (float*)(SWTImage->imageData + row * SWTImage->widthStep);
+        for (int col = 0; col < SWTImage->width; col++ ){
+            if (*ptr > 0) {
+                map[row * SWTImage->width + col] = num_vertices;
+                Point2d p;
+                p.x = col;
+                p.y = row;
+                revmap[num_vertices] = p;
+                num_vertices++;
+            }
+            ptr++;
+        }
+    }
+
+    Graph g(num_vertices);
+
+    for( int row = 0; row < SWTImage->height; row++ ){
+        float * ptr = (float*)(SWTImage->imageData + row * SWTImage->widthStep);
+        for (int col = 0; col < SWTImage->width; col++ ){
+            if (*ptr > 0) {
+                // check pixel to the right, right-down, down, left-down
+                int this_pixel = map[row * SWTImage->width + col];
+                if (col+1 < SWTImage->width) {
+                    float right = CV_IMAGE_ELEM(SWTImage, float, row, col+1);
+                    if (right > 0 && ((*ptr)/right <= 3.0 || right/(*ptr) <= 3.0))
+                        boost::add_edge(this_pixel, map.at(row * SWTImage->width + col + 1), g);
+                }
+                if (row+1 < SWTImage->height) {
+                    if (col+1 < SWTImage->width) {
+                        float right_down = CV_IMAGE_ELEM(SWTImage, float, row+1, col+1);
+                        if (right_down > 0 && ((*ptr)/right_down <= 3.0 || right_down/(*ptr) <= 3.0))
+                            boost::add_edge(this_pixel, map.at((row+1) * SWTImage->width + col + 1), g);
+                    }
+                    float down = CV_IMAGE_ELEM(SWTImage, float, row+1, col);
+                    if (down > 0 && ((*ptr)/down <= 3.0 || down/(*ptr) <= 3.0))
+                        boost::add_edge(this_pixel, map.at((row+1) * SWTImage->width + col), g);
+                    if (col-1 >= 0) {
+                        float left_down = CV_IMAGE_ELEM(SWTImage, float, row+1, col-1);
+                        if (left_down > 0 && ((*ptr)/left_down <= 3.0 || left_down/(*ptr) <= 3.0))
+                            boost::add_edge(this_pixel, map.at((row+1) * SWTImage->width + col - 1), g);
+                    }
+                }
+            }
+            ptr++;
+        }
+    }
+
+    std::vector<int> c(num_vertices);
+
+    int num_comp = connected_components(g, &c[0]);
+
+    std::vector<std::vector<Point2d> > components;
+    components.reserve(num_comp);
+    std::cout << "Before filtering, " << num_comp << " components and " << num_vertices << " vertices" << std::endl;
+    for (int j = 0; j < num_comp; j++) {
+        std::vector<Point2d> tmp;
+        components.push_back( tmp );
+    }
+    for (int j = 0; j < num_vertices; j++) {
+        Point2d p = revmap[j];
+        (components[c[j]]).push_back(p);
+    }
+
+    return components;
+}
 
 // std::vector< std::vector<Point2d> >
 // findLegallyConnectedComponentsRAY (IplImage * SWTImage,
