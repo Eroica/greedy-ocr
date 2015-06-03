@@ -1,5 +1,5 @@
 #import <Foundation/Foundation.h>
-#include "TextDetection.h"
+#include "points.h"
 
 @interface Chain : NSObject {
 

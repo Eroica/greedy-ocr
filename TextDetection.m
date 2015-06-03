@@ -28,6 +28,7 @@
 // #include <algorithm>
 // #include <vector>
 #import "TextDetection.h"
+#include "points.h"
 #import "ray.h"
 #import "chain.h"
 
@@ -43,14 +44,14 @@
 //     // std::vector<std::pair<CvPoint,CvPoint> > bb;
 //     // bb.reserve(chains.size());
 
-//     for (id obj in chains)
+//     for (id chain in chains)
 //     {
 //         int minx = output->width;
 //         int miny = output->height;
 //         int maxx = 0;
 //         int maxy = 0;
 
-//         for(id obj in components)
+//         for(id component in components)
 //         {
 //             miny = fmin(miny, compBB[*cit].first.y);
 //             minx = fmin(minx, compBB[*cit].first.x);
@@ -318,8 +319,7 @@
 
 IplImage *
 textDetection(IplImage *input,
-              bool dark_on_light)
-{
+              bool dark_on_light) {
     assert(input->depth == IPL_DEPTH_8U);
     assert(input->nChannels == 3);
 
@@ -373,11 +373,9 @@ textDetection(IplImage *input,
                                        IPL_DEPTH_32F,
                                        1);
 
-    for (int row = 0; row < input->height; row++)
-    {
+    for (int row = 0; row < input->height; row++) {
         float *ptr = (float *)(SWTImage->imageData + row * SWTImage->widthStep);
-        for (int col = 0; col < input->width; col++)
-        {
+        for (int col = 0; col < input->width; col++) {
             *ptr++ = -1;
         }
     }
@@ -388,20 +386,9 @@ textDetection(IplImage *input,
                          dark_on_light,
                          SWTImage,
                          rays);
-    // SWTMedianFilter ( SWTImage, rays );
 
-    // // Calculate SWT and return ray vectors
-    // std::vector<Ray> rays;
-    // IplImage * SWTImage =
-    //         cvCreateImage ( cvGetSize ( input ), IPL_DEPTH_32F, 1 );
-    // for( int row = 0; row < input->height; row++ ){
-    //     float* ptr = (float*)(SWTImage->imageData + row * SWTImage->widthStep);
-    //     for ( int col = 0; col < input->width; col++ ){
-    //         *ptr++ = -1;
-    //     }
-    // }
-    // strokeWidthTransform ( edgeImage, gradientX, gradientY, dark_on_light, SWTImage, rays );
-    // SWTMedianFilter ( SWTImage, rays );
+    SWTMedianFilter(SWTImage, rays);
+
 
     // IplImage * output2 =
     //         cvCreateImage ( cvGetSize ( input ), IPL_DEPTH_32F, 1 );
@@ -455,7 +442,7 @@ textDetection(IplImage *input,
     // cvReleaseImage ( &edgeImage );
     // return output5;
 
-    return grayImage;
+    return SWTImage;
 }
 
 void
@@ -469,12 +456,10 @@ strokeWidthTransform(IplImage *edgeImage,
     // First pass
     float prec = .05;
 
-    for (int row = 0; row < edgeImage->height; row++)
-    {
+    for (int row = 0; row < edgeImage->height; row++) {
         const uchar *ptr = (const uchar *)(edgeImage->imageData + row * edgeImage->widthStep);
 
-        for (int col = 0; col < edgeImage->width; col++ )
-        {
+        for (int col = 0; col < edgeImage->width; col++ ) {
             if (*ptr > 0) {
                 Ray *r = [[Ray alloc] init];
 
@@ -500,12 +485,10 @@ strokeWidthTransform(IplImage *edgeImage,
 
                 // normalize gradient
                 float mag = sqrt((G_x * G_x) + (G_y * G_y));
-                if (dark_on_light)
-                {
+                if (dark_on_light) {
                     G_x = -G_x/mag;
                     G_y = -G_y/mag;
-                } else
-                {
+                } else {
                     G_x = G_x/mag;
                     G_y = G_y/mag;
 
@@ -515,14 +498,12 @@ strokeWidthTransform(IplImage *edgeImage,
                     curX += G_x * prec;
                     curY += G_y * prec;
 
-                    if ((int)(floor(curX)) != curPixX || (int)(floor(curY)) != curPixY)
-                    {
+                    if ((int)(floor(curX)) != curPixX || (int)(floor(curY)) != curPixY) {
                         curPixX = (int)(floor(curX));
                         curPixY = (int)(floor(curY));
 
                         // check if pixel is outside boundary of image
-                        if (curPixX < 0 || (curPixX >= SWTImage->width) || curPixY < 0 || (curPixY >= SWTImage->height))
-                        {
+                        if (curPixX < 0 || (curPixX >= SWTImage->width) || curPixY < 0 || (curPixY >= SWTImage->height)) {
                             break;
                         }
 
@@ -534,8 +515,7 @@ strokeWidthTransform(IplImage *edgeImage,
                         NSValue *pnew_value = [NSValue valueWithPoint2d:pnew];
                         [points addObject:pnew_value];
 
-                        if (CV_IMAGE_ELEM (edgeImage, uchar, curPixY, curPixX) > 0)
-                        {
+                        if (CV_IMAGE_ELEM (edgeImage, uchar, curPixY, curPixX) > 0) {
                             r.q = pnew;
 
                             // dot product
@@ -543,29 +523,23 @@ strokeWidthTransform(IplImage *edgeImage,
                             float G_yt = CV_IMAGE_ELEM(gradientY, float, curPixY, curPixX);
                             mag = sqrt((G_xt * G_xt) + (G_yt * G_yt));
 
-                            if (dark_on_light)
-                            {
+                            if (dark_on_light) {
                                 G_xt = -G_xt/mag;
                                 G_yt = -G_yt/mag;
-                            } else
-                            {
+                            } else {
                                 G_xt = G_xt/mag;
                                 G_yt = G_yt/mag;
 
                             }
 
-                            if (acos(G_x * -G_xt + G_y * -G_yt) < PI/2.0 )
-                            {
+                            if (acos(G_x * -G_xt + G_y * -G_yt) < PI/2.0 ) {
                                 float length = sqrt(((float)r.q.x - (float)r.p.x)*((float)r.q.x - (float)r.p.x) + ((float)r.q.y - (float)r.p.y)*((float)r.q.y - (float)r.p.y));
 
-                                for (id obj in points)
-                                {
-                                    if (CV_IMAGE_ELEM(SWTImage, float, [obj point2dValue].y, [obj point2dValue].x) < 0)
-                                    {
-                                        CV_IMAGE_ELEM(SWTImage, float, [obj point2dValue].y, [obj point2dValue].x) = length;
-                                    } else
-                                    {
-                                        // CV_IMAGE_ELEM(SWTImage, float, [obj point2dValue]y, obj->x) = fmin(length, CV_IMAGE_ELEM(SWTImage, float, pit->y, pit->x));
+                                for (id point in points) {
+                                    if (CV_IMAGE_ELEM(SWTImage, float, [point point2dValue].y, [point point2dValue].x) < 0) {
+                                        CV_IMAGE_ELEM(SWTImage, float, [point point2dValue].y, [point point2dValue].x) = length;
+                                    } else {
+                                        CV_IMAGE_ELEM(SWTImage, float, [point point2dValue].y, [point point2dValue].x) = fmin(length, CV_IMAGE_ELEM(SWTImage, float, [point point2dValue].y, [point point2dValue].x));
                                     }
                                 }
 
@@ -584,22 +558,48 @@ strokeWidthTransform(IplImage *edgeImage,
     }
 }
 
-// void SWTMedianFilter (IplImage * SWTImage,
-//                      std::vector<Ray> & rays) {
-//     for (std::vector<Ray>::iterator rit = rays.begin(); rit != rays.end(); rit++) {
-//         for (std::vector<Point2d>::iterator pit = rit->points.begin(); pit != rit->points.end(); pit++) {
-//             pit->SWT = CV_IMAGE_ELEM(SWTImage, float, pit->y, pit->x);
-//         }
-//         std::sort(rit->points.begin(), rit->points.end(), &Point2dSort);
-//         float median = (rit->points[rit->points.size()/2]).SWT;
-//         for (std::vector<Point2d>::iterator pit = rit->points.begin(); pit != rit->points.end(); pit++) {
-//             CV_IMAGE_ELEM(SWTImage, float, pit->y, pit->x) = std::min(pit->SWT, median);
-//         }
-//     }
+void
+SWTMedianFilter(IplImage *SWTImage,
+                NSMutableArray *rays)
+{
+    for (id ray in rays) {
+        for (id point in ray.points) {
+            [point point2dValue].SWT = CV_IMAGE_ELEM(SWTImage, float, [point point2dValue].y, [point point2dValue].x);
+        }
+        [rays sortUsingFunction:Point2dSortX context:NULL];
+    }
 
-// }
+    // for (std::vector<Ray>::iterator rit = rays.begin(); rit != rays.end(); rit++) {
+    //     for (std::vector<Point2d>::iterator pit = rit->points.begin(); pit != rit->points.end(); pit++) {
+    //         pit->SWT = CV_IMAGE_ELEM(SWTImage, float, pit->y, pit->x);
+    //     }
+    //     std::sort(rit->points.begin(), rit->points.end(), &Point2dSort);
+    //     float median = (rit->points[rit->points.size()/2]).SWT;
+    //     for (std::vector<Point2d>::iterator pit = rit->points.begin(); pit != rit->points.end(); pit++) {
+    //         CV_IMAGE_ELEM(SWTImage, float, pit->y, pit->x) = std::min(pit->SWT, median);
+    //     }
+    // }
+}
 
-// bool Point2dSort (const Point2d &lhs, const Point2d &rhs) {
+NSInteger
+Point2dSortX(id val1, id val2, void *context)
+{
+    Point2d p1 = [val1 point2dValue];
+    Point2d p2 = [val2 point2dValue];
+
+    if(p1.SWT < p2.SWT) {
+        return NSOrderedAscending ;
+    } else if(p1.SWT > p2.SWT) {
+        return NSOrderedDescending;
+    }
+
+    return NSOrderedSame;
+}
+
+// bool
+// Point2dSort(const Point2d &lhs,
+//             const Point2d &rhs)
+// {
 //     return lhs.SWT < rhs.SWT;
 // }
 
