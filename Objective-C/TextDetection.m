@@ -31,6 +31,7 @@
 #include "points.h"
 #import "ray.h"
 #import "chain.h"
+#include "graph.h"
 
 #define PI 3.14159265
 
@@ -412,9 +413,9 @@ textDetection(IplImage *input,
     // Calculate legally connect components from SWT and gradient image.
     // return type is a vector of vectors, where each outer vector is a component and
     // the inner vector contains the (y,x) of each pixel in that component.
-    NSMutableArray *components = [[NSMutableArray alloc] init];
+    NSMutableArray *components = findLegallyConnectedComponents(SWTImage, rays);
 
-    std::vector<std::vector<Point2d> > components = findLegallyConnectedComponents(SWTImage, rays);
+    NSLog(@"%@", components);
 
     // // Filter the components
     // std::vector<std::vector<Point2d> > validComponents;
@@ -499,7 +500,6 @@ strokeWidthTransform(IplImage *edgeImage,
                 } else {
                     G_x = G_x/mag;
                     G_y = G_y/mag;
-
                 }
 
                 while (true) {
@@ -535,7 +535,6 @@ strokeWidthTransform(IplImage *edgeImage,
                             } else {
                                 G_xt = G_xt/mag;
                                 G_yt = G_yt/mag;
-
                             }
 
                             if (acos(G_x * -G_xt + G_y * -G_yt) < PI/2.0 ) {
@@ -630,7 +629,7 @@ findLegallyConnectedComponents(IplImage *SWTImage,
         float * ptr = (float*)(SWTImage->imageData + row * SWTImage->widthStep);
         for (int col = 0; col < SWTImage->width; col++) {
             if (*ptr > 0) {
-                [map setObject:[NSNumber numberWithInt:num_vertices] forKey:[NSNumber numberWithInt:(row * SWTImage->width + col)];
+                [map setObject:[NSNumber numberWithInt:num_vertices] forKey:[NSNumber numberWithInt:(row * SWTImage->width + col)]];
                 Point2D *p = [[Point2D alloc] init];
                 p.x = col;
                 p.y = row;
@@ -641,55 +640,48 @@ findLegallyConnectedComponents(IplImage *SWTImage,
         }
     }
 
-    NSMutableDictionary *Graph = [NSMutableDictionary arrayWithCapacity:num_vertices];
+    Graph *graph = graph_create();
 
-    boost::unordered_map<int, int> map;
-    boost::unordered_map<int, Point2d> revmap;
+    // NSMutableDictionary *Graph = [NSMutableDictionary arrayWithCapacity:num_vertices];
 
-    typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS> Graph;
-    int num_vertices = 0;
-    // Number vertices for graph.  Associate each point with number
-    for( int row = 0; row < SWTImage->height; row++ ){
+    for (int row = 0; row < SWTImage->height; row++) {
         float * ptr = (float*)(SWTImage->imageData + row * SWTImage->widthStep);
-        for (int col = 0; col < SWTImage->width; col++ ){
-            if (*ptr > 0) {
-                map[row * SWTImage->width + col] = num_vertices;
-                Point2d p;
-                p.x = col;
-                p.y = row;
-                revmap[num_vertices] = p;
-                num_vertices++;
-            }
-            ptr++;
-        }
-    }
-
-    Graph g(num_vertices);
-
-    for( int row = 0; row < SWTImage->height; row++ ){
-        float * ptr = (float*)(SWTImage->imageData + row * SWTImage->widthStep);
-        for (int col = 0; col < SWTImage->width; col++ ){
+        for (int col = 0; col < SWTImage->width; col++) {
             if (*ptr > 0) {
                 // check pixel to the right, right-down, down, left-down
-                int this_pixel = map[row * SWTImage->width + col];
+                NSInteger this_pixel = (NSInteger)[map objectForKey:[NSNumber numberWithInt:row * SWTImage->width + col]];
+
                 if (col+1 < SWTImage->width) {
                     float right = CV_IMAGE_ELEM(SWTImage, float, row, col+1);
-                    if (right > 0 && ((*ptr)/right <= 3.0 || right/(*ptr) <= 3.0))
-                        boost::add_edge(this_pixel, map.at(row * SWTImage->width + col + 1), g);
-                }
-                if (row+1 < SWTImage->height) {
-                    if (col+1 < SWTImage->width) {
-                        float right_down = CV_IMAGE_ELEM(SWTImage, float, row+1, col+1);
-                        if (right_down > 0 && ((*ptr)/right_down <= 3.0 || right_down/(*ptr) <= 3.0))
-                            boost::add_edge(this_pixel, map.at((row+1) * SWTImage->width + col + 1), g);
+                    if (right > 0 && ((*ptr)/right <= 3.0 || right/(*ptr) <= 3.0)) {
+                        Vertex *v = vertex_create(NULL);
+                        Edge *a = edge_create(v, this_pixel);
+                        Edge *b = edge_create(v, row * SWTImage->width + col + 1);
+                        vertex_add_edge(v, a);
+                        vertex_add_edge(v, b);
+
+                        graph_add_vertex(graph, v);
                     }
+
                     float down = CV_IMAGE_ELEM(SWTImage, float, row+1, col);
-                    if (down > 0 && ((*ptr)/down <= 3.0 || down/(*ptr) <= 3.0))
-                        boost::add_edge(this_pixel, map.at((row+1) * SWTImage->width + col), g);
+                    if (down > 0 && ((*ptr)/down <= 3.0 || down/(*ptr) <= 3.0)) {
+                        Vertex *v = vertex_create(NULL);
+                        Edge *a = edge_create(v, this_pixel);
+                        Edge *b = edge_create(v, (row+1) * SWTImage->width + col);
+                        vertex_add_edge(v, a);
+                        vertex_add_edge(v, b);
+                        graph_add_vertex(graph, v);
+                    }
                     if (col-1 >= 0) {
                         float left_down = CV_IMAGE_ELEM(SWTImage, float, row+1, col-1);
-                        if (left_down > 0 && ((*ptr)/left_down <= 3.0 || left_down/(*ptr) <= 3.0))
-                            boost::add_edge(this_pixel, map.at((row+1) * SWTImage->width + col - 1), g);
+                        if (left_down > 0 && ((*ptr)/left_down <= 3.0 || left_down/(*ptr) <= 3.0)) {
+                            Vertex *v = vertex_create(NULL);
+                            Edge *a = edge_create(v, this_pixel);
+                            Edge *b = edge_create(v, (row+1) * SWTImage->width + col - 1);
+                            vertex_add_edge(v, a);
+                            vertex_add_edge(v, b);
+                            graph_add_vertex(graph, v);
+                        }
                     }
                 }
             }
@@ -697,21 +689,23 @@ findLegallyConnectedComponents(IplImage *SWTImage,
         }
     }
 
-    std::vector<int> c(num_vertices);
 
+    NSMutableArray *c = [NSMutableArray arrayWithCapacity:num_vertices];
     int num_comp = connected_components(g, &c[0]);
 
-    std::vector<std::vector<Point2d> > components;
-    components.reserve(num_comp);
-    std::cout << "Before filtering, " << num_comp << " components and " << num_vertices << " vertices" << std::endl;
-    for (int j = 0; j < num_comp; j++) {
-        std::vector<Point2d> tmp;
-        components.push_back( tmp );
-    }
-    for (int j = 0; j < num_vertices; j++) {
-        Point2d p = revmap[j];
-        (components[c[j]]).push_back(p);
-    }
+    // std::vector<std::vector<Point2d> > components;
+    // components.reserve(num_comp);
+    // std::cout << "Before filtering, " << num_comp << " components and " << num_vertices << " vertices" << std::endl;
+    // for (int j = 0; j < num_comp; j++) {
+    //     std::vector<Point2d> tmp;
+    //     components.push_back( tmp );
+    // }
+    // for (int j = 0; j < num_vertices; j++) {
+    //     Point2d p = revmap[j];
+    //     (components[c[j]]).push_back(p);
+    // }
+
+    NSMutableArray *components = [[NSMutableArray alloc] init];
 
     return components;
 }
