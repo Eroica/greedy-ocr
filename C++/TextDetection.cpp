@@ -355,6 +355,62 @@ IplImage * textDetection (IplImage * input, bool dark_on_light)
     IplImage * output3 =
             cvCreateImage ( cvGetSize ( input ), 8U, 3 );
     renderComponentsWithBoxes (SWTImage, validComponents, compBB, output3);
+
+
+    std::vector<std::pair<CvPoint,CvPoint> > bb;
+    bb.reserve(compBB.size());
+    for (std::vector<std::pair<Point2d,Point2d> >::iterator it=compBB.begin(); it != compBB.end(); it++ ) {
+        CvPoint p0 = cvPoint(it->first.x,it->first.y);
+        CvPoint p1 = cvPoint(it->second.x,it->second.y);
+        std::pair<CvPoint,CvPoint> pair(p0,p1);
+        bb.push_back(pair);
+    }
+
+    int count = 0;
+    for (std::vector<std::pair<CvPoint,CvPoint> >::iterator it= bb.begin(); it != bb.end(); it++) {
+        count++;
+
+        if(count == 10) {
+
+
+            unsigned int width = abs(it->second.x - it->first.x);
+            unsigned int height = abs(it->second.y - it->first.y);
+
+            CvRect cropRect = cvRect(it->first.x, it->first.y, width, height); // ROI in source image
+            IplImage *tmp = cvCreateImage(cvSize(width, height),
+                                   input->depth,
+                                   input->nChannels);
+
+            cvSetImageROI(input, cropRect);
+
+            cvCopy(input, tmp, NULL);
+            cvResetImageROI(input);
+
+            // input = cvCloneImage(tmp);
+            // printf("Orig dimensions after crop: %dx%d\n", orig->width, orig->height);
+
+            cvSaveImage("test.png", tmp);
+
+            // cvNamedWindow( "result", CV_WINDOW_AUTOSIZE );
+            // cvShowImage( "result", tmp);
+            // cvWaitKey( 0 );
+            // cvDestroyWindow( "result" );
+
+        }
+
+
+    }
+
+
+
+
+
+
+
+
+
+
+
     cvSaveImage ( "components.png",output3);
     //cvReleaseImage ( &output3 );
 
