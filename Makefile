@@ -17,6 +17,6 @@ OUT=-o main
 
 all:
 #	$(CC) $(CFLAGS) $(LDFLAGS) -ObjC $(SOURCE) $(OUT)
-	$(CC) $(CFLAGS) $(OUT) $(SOURCE) $(LDFLAGS) -I.
+	$(CC) $(CFLAGS) $(OUT) $(SOURCE) $(LDFLAGS) -I. -std=c++11
 
 #clang -o main TextDetection.m main.m -fobjc-arc -framework Foundation `pkg-config --libs --cflags opencv`

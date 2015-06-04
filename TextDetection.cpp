@@ -256,6 +256,14 @@ void renderChains (IplImage * SWTImage,
     for (unsigned int i = 0; i != components.size(); i++) {
         included.push_back(false);
     }
+
+    std::vector<Point2d> first_vector = components[0];
+    for (auto point : first_vector) {
+        std::cout << "X: " << point.x << std::endl;
+        std::cout << "Y: " << point.y << std::endl;
+        std::cout << "_______" << std::endl;
+    }
+
     for (std::vector<Chain>::iterator it = chains.begin(); it != chains.end();it++) {
         for (std::vector<int>::iterator cit = it->components.begin(); cit != it->components.end(); cit++) {
             included[*cit] = true;
@@ -357,7 +365,7 @@ IplImage * textDetection (IplImage * input, bool dark_on_light)
     IplImage * output4 =
             cvCreateImage ( cvGetSize ( input ), IPL_DEPTH_8U, 1 );
     renderChains ( SWTImage, validComponents, chains, output4 );
-    //cvSaveImage ( "text.png", output4);
+    cvSaveImage ( "text.png", output4);
 
     IplImage * output5 =
             cvCreateImage ( cvGetSize ( input ), IPL_DEPTH_8U, 3 );
