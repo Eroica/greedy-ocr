@@ -1,7 +1,25 @@
+/*
+    Copyright 2012 Andrew Perrault and Saurav Kumar.
+
+    This file is part of DetectText.
+
+    DetectText is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    DetectText is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with DetectText.  If not, see <http://www.gnu.org/licenses/>.
+*/
 #ifndef TEXTDETECTION_H
 #define TEXTDETECTION_H
 
-#include "opencv2/core/core.hpp"
+#include <opencv/cv.h>
 
 struct Point2d {
     int x;
@@ -26,6 +44,7 @@ struct Point3dFloat {
     float z;
 };
 
+
 struct Chain {
     int p;
     int q;
@@ -38,8 +57,8 @@ struct Chain {
 bool Point2dSort (Point2d const & lhs,
                   Point2d const & rhs);
 
-cv::Mat prepareImage(cv::Mat input_image,
-                     bool dark_on_light);
+IplImage * textDetection (IplImage *    float_input,
+                          bool dark_on_light);
 
 void strokeWidthTransform (IplImage * edgeImage,
                            IplImage * gradientX,
