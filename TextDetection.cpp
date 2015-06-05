@@ -178,14 +178,14 @@ extractComponents(IplImage *input,
         cvCopy(input, tmp, NULL);
         cvResetImageROI(input);
 
-            char filename[8];
-            sprintf(filename, "%d.png", count);
-            cvSaveImage(filename, tmp);
+        char filename[8];
+        sprintf(filename, "%d.png", count);
+        cvSaveImage(filename, tmp);
 
-            // cvNamedWindow( "result", CV_WINDOW_AUTOSIZE );
-            // cvShowImage( "result", tmp);
-            // cvWaitKey( 0 );
-            // cvDestroyWindow( "result" );
+        // cvNamedWindow( "result", CV_WINDOW_AUTOSIZE );
+        // cvShowImage( "result", tmp);
+        // cvWaitKey( 0 );
+        // cvDestroyWindow( "result" );
         count++;
     }
 
