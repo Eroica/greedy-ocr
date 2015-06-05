@@ -4,6 +4,12 @@
 #include <utility>
 #include <algorithm>
 #include <vector>
+#include <sstream>
+
+#include <opencv/cv.h>
+#include <opencv/highgui.h>
+#include <opencv/cxcore.h>
+
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/connected_components.hpp>
@@ -11,22 +17,20 @@
 #include <boost/graph/floyd_warshall_shortest.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/io.hpp>
-#include <opencv/cv.h>
-#include <opencv/highgui.h>
-#include <opencv/cxcore.h>
+
 // #include <math.h>
 // #include <time.h>
 #include "TextDetection.hpp"
 
 #define PI 3.14159265
 
-std::vector<std::pair<CvPoint,CvPoint>>
+std::vector<std::pair<CvPoint, CvPoint>>
 findBoundingBoxes(std::vector<std::vector<Point2d>> &components,
-                  std::vector<Chain> & chains,
-                  std::vector<std::pair<Point2d,Point2d> > & compBB,
-                  IplImage * output)
+                  std::vector<Chain> &chains,
+                  std::vector<std::pair<Point2d,Point2d>> &compBB,
+                  IplImage *output)
 {
-    std::vector<std::pair<CvPoint,CvPoint>> bb;
+    std::vector<std::pair<CvPoint, CvPoint>> bb;
     bb.reserve(chains.size());
     for(std::vector<Chain>::iterator chainit = chains.begin(); chainit != chains.end(); chainit++) {
         int minx = output->width;
@@ -47,11 +51,11 @@ findBoundingBoxes(std::vector<std::vector<Point2d>> &components,
     return bb;
 }
 
-std::vector<std::pair<CvPoint,CvPoint>>
+std::vector<std::pair<CvPoint, CvPoint>>
 findBoundingBoxes(std::vector<std::vector<Point2d>> &components,
                   IplImage *output)
 {
-    std::vector<std::pair<CvPoint,CvPoint> > bb;
+    std::vector<std::pair<CvPoint, CvPoint>> bb;
     bb.reserve(components.size());
     for(std::vector<std::vector<Point2d>>::iterator compit = components.begin(); compit != components.end(); compit++) {
         int minx = output->width;
@@ -115,7 +119,7 @@ void renderComponents(IplImage *SWTImage,
                       IplImage *output)
 {
     cvZero(output);
-	for(std::vector<std::vector<Point2d> >::iterator it = components.begin(); it != components.end();it++) {
+	for(std::vector<std::vector<Point2d>>::iterator it = components.begin(); it != components.end();it++) {
         for(std::vector<Point2d>::iterator pit = it->begin(); pit != it->end(); pit++) {
             CV_IMAGE_ELEM(output, float, pit->y, pit->x) = CV_IMAGE_ELEM(SWTImage, float, pit->y, pit->x);
         }
@@ -156,18 +160,54 @@ void renderComponents(IplImage *SWTImage,
     }
 }
 
+
+void
+extractComponents(IplImage *input,
+                  std::vector<std::pair<Point2d, Point2d>> &compBB)
+{
+    int count = 0;
+
+    for(auto comp : compBB) {
+        unsigned int width = abs(comp.second.x - comp.first.x);
+        unsigned int height = abs(comp.second.y - comp.first.y);
+
+        CvRect cropRect = cvRect(comp.first.x, comp.first.y, width, height);
+        IplImage *tmp = cvCreateImage(cvSize(width, height), input->depth, input->nChannels);
+
+        cvSetImageROI(input, cropRect);
+        cvCopy(input, tmp, NULL);
+        cvResetImageROI(input);
+
+            char filename[8];
+            sprintf(filename, "%d.png", count);
+            cvSaveImage(filename, tmp);
+
+            // cvNamedWindow( "result", CV_WINDOW_AUTOSIZE );
+            // cvShowImage( "result", tmp);
+            // cvWaitKey( 0 );
+            // cvDestroyWindow( "result" );
+        count++;
+    }
+
+}
+
+
+
+
+
+
 void
 renderComponentsWithBoxes(IplImage *SWTImage,
-                          std::vector<std::vector<Point2d> > &components,
-                          std::vector<std::pair<Point2d,Point2d> > &compBB,
+                          std::vector<std::vector<Point2d>> &components,
+                          std::vector<std::pair<Point2d,Point2d>> &compBB,
                           IplImage *output)
 {
     IplImage * outTemp = cvCreateImage(cvGetSize(output), IPL_DEPTH_32F, 1);
 
     renderComponents(SWTImage,components,outTemp);
-    std::vector<std::pair<CvPoint,CvPoint> > bb;
+    std::vector<std::pair<CvPoint, CvPoint>> bb;
     bb.reserve(compBB.size());
-    for(std::vector<std::pair<Point2d,Point2d> >::iterator it=compBB.begin(); it != compBB.end(); it++) {
+    for(std::vector<std::pair<Point2d,Point2d>>::iterator it=compBB.begin(); it != compBB.end(); it++) {
         CvPoint p0 = cvPoint(it->first.x,it->first.y);
         CvPoint p1 = cvPoint(it->second.x,it->second.y);
         std::pair<CvPoint,CvPoint> pair(p0,p1);
@@ -182,7 +222,7 @@ renderComponentsWithBoxes(IplImage *SWTImage,
     //cvReleaseImage(&out);
 
     int count = 0;
-    for(std::vector<std::pair<CvPoint,CvPoint> >::iterator it= bb.begin(); it != bb.end(); it++) {
+    for(std::vector<std::pair<CvPoint, CvPoint>>::iterator it= bb.begin(); it != bb.end(); it++) {
         CvScalar c;
         if (count % 3 == 0) c=cvScalar(255,0,0);
         else if (count % 3 == 1) c=cvScalar(0,255,0);
@@ -196,7 +236,7 @@ void
 renderChainsWithBoxes(IplImage *SWTImage,
                       std::vector<std::vector<Point2d>> &components,
                       std::vector<Chain> &chains,
-                      std::vector<std::pair<Point2d,Point2d>> &compBB,
+                      std::vector<std::pair<Point2d, Point2d>> &compBB,
                       IplImage *output)
 {
     // keep track of included components
@@ -210,7 +250,7 @@ renderChainsWithBoxes(IplImage *SWTImage,
             included[*cit] = true;
         }
     }
-    std::vector<std::vector<Point2d> > componentsRed;
+    std::vector<std::vector<Point2d>> componentsRed;
     for(unsigned int i = 0; i != components.size(); i++) {
         if (included[i]) {
             componentsRed.push_back(components[i]);
@@ -221,7 +261,7 @@ renderChainsWithBoxes(IplImage *SWTImage,
 
     std::cout << componentsRed.size() << " components after chaining" << std::endl;
     renderComponents(SWTImage,componentsRed,outTemp);
-    std::vector<std::pair<CvPoint,CvPoint> > bb;
+    std::vector<std::pair<CvPoint, CvPoint>> bb;
     bb = findBoundingBoxes(components, chains, compBB, outTemp);
 
     IplImage * out =
@@ -232,7 +272,7 @@ renderChainsWithBoxes(IplImage *SWTImage,
     cvReleaseImage(&outTemp);
 
     int count = 0;
-    for(std::vector<std::pair<CvPoint,CvPoint> >::iterator it= bb.begin(); it != bb.end(); it++) {
+    for(std::vector<std::pair<CvPoint, CvPoint>>::iterator it= bb.begin(); it != bb.end(); it++) {
         CvScalar c;
         if (count % 3 == 0) c=cvScalar(255,0,0);
         else if (count % 3 == 1) c=cvScalar(0,255,0);
@@ -259,7 +299,7 @@ renderChains(IplImage *SWTImage,
             included[*cit] = true;
         }
     }
-    std::vector<std::vector<Point2d> > componentsRed;
+    std::vector<std::vector<Point2d>> componentsRed;
     for(unsigned int i = 0; i != components.size(); i++) {
         if (included[i]) {
             componentsRed.push_back(components[i]);
@@ -334,11 +374,11 @@ textDetection(IplImage *input,
     // Calculate legally connect components from SWT and gradient image.
     // return type is a vector of vectors, where each outer vector is a component and
     // the inner vector contains the (y,x) of each pixel in that component.
-    std::vector<std::vector<Point2d> > components = findLegallyConnectedComponents(SWTImage, rays);
+    std::vector<std::vector<Point2d>> components = findLegallyConnectedComponents(SWTImage, rays);
 
     // Filter the components
-    std::vector<std::vector<Point2d> > validComponents;
-    std::vector<std::pair<Point2d,Point2d> > compBB;
+    std::vector<std::vector<Point2d>> validComponents;
+    std::vector<std::pair<Point2d, Point2d>> compBB;
     std::vector<Point2dFloat> compCenters;
     std::vector<float> compMedians;
     std::vector<Point2d> compDimensions;
@@ -347,6 +387,9 @@ textDetection(IplImage *input,
     IplImage * output3 =
             cvCreateImage(cvGetSize(input), 8U, 3);
     renderComponentsWithBoxes (SWTImage, validComponents, compBB, output3);
+
+    extractComponents(input, compBB);
+
     cvSaveImage("components.png",output3);
     //cvReleaseImage(&output3);
 
@@ -552,7 +595,7 @@ findLegallyConnectedComponents(IplImage *SWTImage,
 
         int num_comp = connected_components(g, &c[0]);
 
-        std::vector<std::vector<Point2d> > components;
+        std::vector<std::vector<Point2d>> components;
         components.reserve(num_comp);
         std::cout << "Before filtering, " << num_comp << " components and " << num_vertices << " vertices" << std::endl;
         for(int j = 0; j < num_comp; j++) {
@@ -618,7 +661,7 @@ findLegallyConnectedComponentsRAY(IplImage * SWTImage,
 
         int num_comp = connected_components(g, &c[0]);
 
-        std::vector<std::vector<Point2d> > components;
+        std::vector<std::vector<Point2d>> components;
         components.reserve(num_comp);
         std::cout << "Before filtering, " << num_comp << " components and " << num_vertices << " vertices" << std::endl;
         for(int j = 0; j < num_comp; j++) {
@@ -673,7 +716,7 @@ filterComponents(IplImage * SWTImage,
                  std::vector<Point2dFloat> &compCenters,
                  std::vector<float> &compMedians,
                  std::vector<Point2d> &compDimensions,
-                 std::vector<std::pair<Point2d,Point2d>> &compBB)
+                 std::vector<std::pair<Point2d, Point2d>> &compBB)
 {
         validComponents.reserve(components.size());
         compCenters.reserve(components.size());
@@ -681,7 +724,7 @@ filterComponents(IplImage * SWTImage,
         compDimensions.reserve(components.size());
         // bounding boxes
         compBB.reserve(components.size());
-        for(std::vector<std::vector<Point2d> >::iterator it = components.begin(); it != components.end();it++) {
+        for(std::vector<std::vector<Point2d>>::iterator it = components.begin(); it != components.end();it++) {
             // compute the stroke width mean, variance, median
             float mean, variance, median;
             int minx, miny, maxx, maxy;
@@ -736,7 +779,7 @@ filterComponents(IplImage * SWTImage,
 
             // compute the diameter TODO finish
             // compute dense representation of component
-            std::vector <std::vector<float> > denseRepr;
+            std::vector <std::vector<float>> denseRepr;
             denseRepr.reserve(maxx-minx+1);
             for(int i = 0; i < maxx-minx+1; i++) {
                 std::vector<float> tmp;
@@ -783,11 +826,11 @@ filterComponents(IplImage * SWTImage,
             compCenters.push_back(center);
             validComponents.push_back(*it);
         }
-       std::vector<std::vector<Point2d > > tempComp;
+       std::vector<std::vector<Point2d>> tempComp;
        std::vector<Point2d > tempDim;
        std::vector<float > tempMed;
        std::vector<Point2dFloat > tempCenters;
-       std::vector<std::pair<Point2d,Point2d> > tempBB;
+       std::vector<std::pair<Point2d, Point2d>> tempBB;
        tempComp.reserve(validComponents.size());
        tempCenters.reserve(validComponents.size());
        tempDim.reserve(validComponents.size());
@@ -849,17 +892,17 @@ chainSortLength (const Chain &lhs, const Chain &rhs) {
 
 std::vector<Chain>
 makeChains(IplImage *colorImage,
-           std::vector<std::vector<Point2d> > &components,
+           std::vector<std::vector<Point2d>> &components,
            std::vector<Point2dFloat> &compCenters,
            std::vector<float> &compMedians,
            std::vector<Point2d> &compDimensions,
-           std::vector<std::pair<Point2d,Point2d>> &compBB)
+           std::vector<std::pair<Point2d, Point2d>> &compBB)
 {
     assert (compCenters.size() == components.size());
     // make vector of color averages
     std::vector<Point3dFloat> colorAverages;
     colorAverages.reserve(components.size());
-    for(std::vector<std::vector<Point2d> >::iterator it = components.begin(); it != components.end();it++) {
+    for(std::vector<std::vector<Point2d>>::iterator it = components.begin(); it != components.end();it++) {
         Point3dFloat mean;
         mean.x = 0;
         mean.y = 0;

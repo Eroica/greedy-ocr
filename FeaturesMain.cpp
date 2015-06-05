@@ -27,7 +27,7 @@ class FeatureError : public std::exception
 {
     std::string message;
 public:
-    FeatureError(const std::string & msg, const std::string & file)
+    FeatureError(const std::string &msg, const std::string &file)
     {
         std::stringstream ss;
 
