@@ -1,6 +1,7 @@
 #ifndef TEXT_DETECTION_H
 #define TEXT_DETECTION_H
 
+#include <stdbool.h>
 #include <opencv/cv.h>
 #include "vector.h"
 
@@ -36,21 +37,27 @@ struct Chain {
     vector components;
 };
 
+IplImage *
+text_detection(IplImage *input_image,
+               bool dark_on_light);
+
 // bool Point2dSort (Point2d const & lhs,
 //                   Point2d const & rhs);
 
 // IplImage * textDetection (IplImage *    float_input,
 //                           bool dark_on_light);
 
-// void strokeWidthTransform (IplImage * edgeImage,
-//                            IplImage * gradientX,
-//                            IplImage * gradientY,
-//                            bool dark_on_light,
-//                            IplImage * SWTImage,
-//                            std::vector<Ray> & rays);
+void
+strokeWidthTransform(IplImage *edgeImage,
+                     IplImage *gradientX,
+                     IplImage *gradientY,
+                     bool dark_on_light,
+                     IplImage *SWTImage,
+                     vector *rays);
 
-// void SWTMedianFilter (IplImage * SWTImage,
-//                      std::vector<Ray> & rays);
+void
+SWTMedianFilter (IplImage * SWTImage,
+                     vector *rays);
 
 // vector **
 // findLegallyConnectedComponents (IplImage * SWTImage,
