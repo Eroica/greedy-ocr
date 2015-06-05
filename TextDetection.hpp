@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with DetectText.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef TEXTDETECTION_H
-#define TEXTDETECTION_H
+#ifndef TEXTDETECTION_HPP
+#define TEXTDETECTION_HPP
 
 #include <opencv/cv.h>
 
@@ -98,5 +98,4 @@ std::vector<Chain> makeChains( IplImage * colorImage,
                  std::vector<Point2d> & compDimensions,
                  std::vector<std::pair<Point2d,Point2d> > & compBB);
 
-#endif // TEXTDETECTION_H
-
+#endif // TEXTDETECTION_HPP

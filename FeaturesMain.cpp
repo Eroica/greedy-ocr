@@ -19,84 +19,55 @@
 */
 #include <cassert>
 #include <fstream>
-#include "TextDetection.h"
 #include <opencv/highgui.h>
 #include <exception>
-
-void convertToFloatImage ( IplImage * byteImage, IplImage * floatImage )
-{
-  cvConvertScale ( byteImage, floatImage, 1 / 255., 0 );
-}
+#include "TextDetection.hpp"
 
 class FeatureError : public std::exception
 {
-std::string message;
+    std::string message;
 public:
-FeatureError ( const std::string & msg, const std::string & file )
-{
-  std::stringstream ss;
+    FeatureError(const std::string & msg, const std::string & file)
+    {
+        std::stringstream ss;
 
-  ss << msg << " " << file;
-  message = msg.c_str ();
-}
-~FeatureError () throw ( )
-{
-}
+        ss << msg << " " << file;
+        message = msg.c_str();
+    }
+
+    ~FeatureError () throw()
+    {
+    }
 };
 
-IplImage * loadByteImage ( const char * name )
+int
+mainTextDetection(int argc, char *argv[])
 {
-  IplImage * image = cvLoadImage ( name );
+    IplImage * input_image = cvLoadImage(argv[1]);
+    if(!input_image)
+    {
+        printf("couldn't load query image\n");
+        return -1;
+    }
 
-  if ( !image )
-  {
+    // Detect text in the image
+    IplImage *output = textDetection(input_image, atoi(argv[3]));
+    cvReleaseImage(&input_image);
+    cvSaveImage(argv[2], output);
+    cvReleaseImage(&output);
+
     return 0;
-  }
-  cvCvtColor ( image, image, CV_BGR2RGB );
-  return image;
 }
 
-IplImage * loadFloatImage ( const char * name )
+int
+main(int argc, char *argv[])
 {
-  IplImage * image = cvLoadImage ( name );
+    if(argc != 4)
+    {
+        printf("usage: %s imagefile resultImage darkText\n", argv[0]);
 
-  if ( !image )
-  {
-    return 0;
-  }
-  cvCvtColor ( image, image, CV_BGR2RGB );
-  IplImage * floatingImage = cvCreateImage ( cvGetSize ( image ),
-                                             IPL_DEPTH_32F, 3 );
-  cvConvertScale ( image, floatingImage, 1 / 255., 0 );
-  cvReleaseImage ( &image );
-  return floatingImage;
-}
+        return -1;
+    }
 
-int mainTextDetection ( int argc, char * * argv )
-{
-  IplImage * byteQueryImage = loadByteImage ( argv[1] );
-  if ( !byteQueryImage )
-  {
-    printf ( "couldn't load query image\n" );
-    return -1;
-  }
-
-  // Detect text in the image
-  IplImage * output = textDetection ( byteQueryImage, atoi(argv[3]) );
-  cvReleaseImage ( &byteQueryImage );
-  cvSaveImage ( argv[2], output );
-  cvReleaseImage ( &output );
-  return 0;
-}
-
-int main ( int argc, char * * argv )
-{
-  if ( ( argc != 4 ) )
-  {
-    printf ( "usage: %s imagefile resultImage darkText\n",
-             argv[0] );
-
-    return -1;
-  }
-  return mainTextDetection ( argc, argv );
+    return mainTextDetection(argc, argv);
 }
