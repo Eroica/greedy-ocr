@@ -3,6 +3,7 @@
 #include <opencv/highgui.h>
 #include "vector.h"
 #include "text_detection.h"
+#include "component_analysis.h"
 
 int
 mainTextDetection(int argc, char *argv[]) {
@@ -24,12 +25,10 @@ mainTextDetection(int argc, char *argv[]) {
 
 int
 main(int argc, char *argv[]) {
-  if((argc != 4)) {
-    printf ( "usage: %s imagefile resultImage darkText\n",
-             argv[0] );
+    if((argc != 4)) {
+        printf ( "usage: %s imagefile resultImage darkText\n", argv[0] );
+        return -1;
+    }
 
-    return -1;
-  }
-
-  return mainTextDetection ( argc, argv );
+    return mainTextDetection ( argc, argv );
 }

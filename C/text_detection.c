@@ -44,6 +44,7 @@
 #include <opencv/highgui.h>
 #include <opencv/cxcore.h>
 #include "text_detection.h"
+#include "component_analysis.h"
 #include "vector.h"
 
 #define PI 3.14159265
@@ -96,40 +97,44 @@
 //     return bb;
 // }
 
-// void normalizeImage (IplImage * input, IplImage * output) {
-//     assert ( input->depth == IPL_DEPTH_32F );
-//     assert ( input->nChannels == 1 );
-//     assert ( output->depth == IPL_DEPTH_32F );
-//     assert ( output->nChannels == 1 );
-//     float maxVal = 0;
-//     float minVal = 1e100;
-//     for( int row = 0; row < input->height; row++ ){
-//         const float* ptr = (const float*)(input->imageData + row * input->widthStep);
-//         for ( int col = 0; col < input->width; col++ ){
-//             if (*ptr < 0) { }
-//             else {
-//                 maxVal = std::max(*ptr, maxVal);
-//                 minVal = std::min(*ptr, minVal);
-//             }
-//             ptr++;
-//         }
-//     }
+void
+normalizeImage(IplImage *input,
+               IplImage *output)
+{
+    assert(input->depth == IPL_DEPTH_32F);
+    assert(input->nChannels == 1);
+    assert(output->depth == IPL_DEPTH_32F);
+    assert(output->nChannels == 1);
 
-//     float difference = maxVal - minVal;
-//     for( int row = 0; row < input->height; row++ ){
-//         const float* ptrin = (const float*)(input->imageData + row * input->widthStep);\
-//         float* ptrout = (float*)(output->imageData + row * output->widthStep);\
-//         for ( int col = 0; col < input->width; col++ ){
-//             if (*ptrin < 0) {
-//                 *ptrout = 1;
-//             } else {
-//                 *ptrout = ((*ptrin) - minVal)/difference;
-//             }
-//             ptrout++;
-//             ptrin++;
-//         }
-//     }
-// }
+    float maxVal = 0;
+    float minVal = 1e100;
+    for( int row = 0; row < input->height; row++ ){
+        const float* ptr = (const float*)(input->imageData + row * input->widthStep);
+        for ( int col = 0; col < input->width; col++ ){
+            if (*ptr < 0) { }
+            else {
+                maxVal = fmax(*ptr, maxVal);
+                minVal = fmin(*ptr, minVal);
+            }
+            ptr++;
+        }
+    }
+
+    float difference = maxVal - minVal;
+    for( int row = 0; row < input->height; row++ ){
+        const float* ptrin = (const float*)(input->imageData + row * input->widthStep);\
+        float* ptrout = (float*)(output->imageData + row * output->widthStep);\
+        for ( int col = 0; col < input->width; col++ ){
+            if (*ptrin < 0) {
+                *ptrout = 1;
+            } else {
+                *ptrout = ((*ptrin) - minVal)/difference;
+            }
+            ptrout++;
+            ptrin++;
+        }
+    }
+}
 
 // void renderComponents (IplImage * SWTImage, std::vector<std::vector<Point2d> > & components, IplImage * output) {
 //     cvZero(output);
@@ -336,33 +341,18 @@ text_detection(IplImage *input_image, bool dark_on_light) {
     strokeWidthTransform(edge_image, gradientX, gradientY, dark_on_light, SWTImage, &rays);
     SWTMedianFilter(SWTImage, &rays);
 
-//     // Calculate SWT and return ray vectors
-//     std::vector<Ray> rays;
-//     IplImage * SWTImage =
-//             cvCreateImage ( cvGetSize ( input ), IPL_DEPTH_32F, 1 );
-//     for( int row = 0; row < input->height; row++ ){
-//         float* ptr = (float*)(SWTImage->imageData + row * SWTImage->widthStep);
-//         for ( int col = 0; col < input->width; col++ ){
-//             *ptr++ = -1;
-//         }
-//     }
-//     strokeWidthTransform ( edgeImage, gradientX, gradientY, dark_on_light, SWTImage, rays );
-//     SWTMedianFilter ( SWTImage, rays );
+    IplImage *output2 = cvCreateImage ( cvGetSize ( input_image ), IPL_DEPTH_32F, 1 );
+    normalizeImage(SWTImage, output2);
+    IplImage *saveSWT = cvCreateImage ( cvGetSize ( input_image ), IPL_DEPTH_8U, 1 );
+    cvConvertScale(output2, saveSWT, 255, 0);
+    cvSaveImage ( "SWT.png", saveSWT, 0);
+    cvReleaseImage ( &output2 );
+    cvReleaseImage( &saveSWT );
 
-//     IplImage * output2 =
-//             cvCreateImage ( cvGetSize ( input ), IPL_DEPTH_32F, 1 );
-//     normalizeImage (SWTImage, output2);
-//     IplImage * saveSWT =
-//             cvCreateImage ( cvGetSize ( input ), IPL_DEPTH_8U, 1 );
-//     cvConvertScale(output2, saveSWT, 255, 0);
-//     cvSaveImage ( "SWT.png", saveSWT);
-//     cvReleaseImage ( &output2 );
-//     cvReleaseImage( &saveSWT );
-
-//     // Calculate legally connect components from SWT and gradient image.
-//     // return type is a vector of vectors, where each outer vector is a component and
-//     // the inner vector contains the (y,x) of each pixel in that component.
-//     std::vector<std::vector<Point2d> > components = findLegallyConnectedComponents(SWTImage, rays);
+    // Calculate legally connect components from SWT and gradient image.
+    // return type is a vector of vectors, where each outer vector is a component and
+    // the inner vector contains the (y,x) of each pixel in that component.
+    vector components = findLegallyConnectedComponents(SWTImage, &rays);
 
 //     // Filter the components
 //     std::vector<std::vector<Point2d> > validComponents;
@@ -549,148 +539,6 @@ SWTMedianFilter(IplImage * SWTImage,
 //     return lhs.SWT < rhs.SWT;
 // }
 
-// std::vector< std::vector<Point2d> >
-// findLegallyConnectedComponents (IplImage * SWTImage,
-//                                 std::vector<Ray> & rays)
-// {
-//         boost::unordered_map<int, int> map;
-//         boost::unordered_map<int, Point2d> revmap;
-
-//         typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS> Graph;
-//         int num_vertices = 0;
-//         // Number vertices for graph.  Associate each point with number
-//         for( int row = 0; row < SWTImage->height; row++ ){
-//             float * ptr = (float*)(SWTImage->imageData + row * SWTImage->widthStep);
-//             for (int col = 0; col < SWTImage->width; col++ ){
-//                 if (*ptr > 0) {
-//                     map[row * SWTImage->width + col] = num_vertices;
-//                     Point2d p;
-//                     p.x = col;
-//                     p.y = row;
-//                     revmap[num_vertices] = p;
-//                     num_vertices++;
-//                 }
-//                 ptr++;
-//             }
-//         }
-
-//         Graph g(num_vertices);
-
-//         for( int row = 0; row < SWTImage->height; row++ ){
-//             float * ptr = (float*)(SWTImage->imageData + row * SWTImage->widthStep);
-//             for (int col = 0; col < SWTImage->width; col++ ){
-//                 if (*ptr > 0) {
-//                     // check pixel to the right, right-down, down, left-down
-//                     int this_pixel = map[row * SWTImage->width + col];
-//                     if (col+1 < SWTImage->width) {
-//                         float right = CV_IMAGE_ELEM(SWTImage, float, row, col+1);
-//                         if (right > 0 && ((*ptr)/right <= 3.0 || right/(*ptr) <= 3.0))
-//                             boost::add_edge(this_pixel, map.at(row * SWTImage->width + col + 1), g);
-//                     }
-//                     if (row+1 < SWTImage->height) {
-//                         if (col+1 < SWTImage->width) {
-//                             float right_down = CV_IMAGE_ELEM(SWTImage, float, row+1, col+1);
-//                             if (right_down > 0 && ((*ptr)/right_down <= 3.0 || right_down/(*ptr) <= 3.0))
-//                                 boost::add_edge(this_pixel, map.at((row+1) * SWTImage->width + col + 1), g);
-//                         }
-//                         float down = CV_IMAGE_ELEM(SWTImage, float, row+1, col);
-//                         if (down > 0 && ((*ptr)/down <= 3.0 || down/(*ptr) <= 3.0))
-//                             boost::add_edge(this_pixel, map.at((row+1) * SWTImage->width + col), g);
-//                         if (col-1 >= 0) {
-//                             float left_down = CV_IMAGE_ELEM(SWTImage, float, row+1, col-1);
-//                             if (left_down > 0 && ((*ptr)/left_down <= 3.0 || left_down/(*ptr) <= 3.0))
-//                                 boost::add_edge(this_pixel, map.at((row+1) * SWTImage->width + col - 1), g);
-//                         }
-//                     }
-//                 }
-//                 ptr++;
-//             }
-//         }
-
-//         std::vector<int> c(num_vertices);
-
-//         int num_comp = connected_components(g, &c[0]);
-
-//         std::vector<std::vector<Point2d> > components;
-//         components.reserve(num_comp);
-//         std::cout << "Before filtering, " << num_comp << " components and " << num_vertices << " vertices" << std::endl;
-//         for (int j = 0; j < num_comp; j++) {
-//             std::vector<Point2d> tmp;
-//             components.push_back( tmp );
-//         }
-//         for (int j = 0; j < num_vertices; j++) {
-//             Point2d p = revmap[j];
-//             (components[c[j]]).push_back(p);
-//         }
-
-//         return components;
-// }
-
-// std::vector< std::vector<Point2d> >
-// findLegallyConnectedComponentsRAY (IplImage * SWTImage,
-//                                 std::vector<Ray> & rays)
-// {
-//         boost::unordered_map<int, int> map;
-//         boost::unordered_map<int, Point2d> revmap;
-
-//         typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS> Graph;
-//         int num_vertices = 0;
-//         // Number vertices for graph.  Associate each point with number
-//         for( int row = 0; row < SWTImage->height; row++ ){
-//             float * ptr = (float*)(SWTImage->imageData + row * SWTImage->widthStep);
-//             for (int col = 0; col < SWTImage->width; col++ ){
-//                 if (*ptr > 0) {
-//                     map[row * SWTImage->width + col] = num_vertices;
-//                     Point2d p;
-//                     p.x = col;
-//                     p.y = row;
-//                     revmap[num_vertices] = p;
-//                     num_vertices++;
-//                 }
-//                 ptr++;
-//             }
-//         }
-
-//         Graph g(num_vertices);
-
-//         // Traverse and add edges to graph
-//         for (std::vector<Ray>::const_iterator it = rays.begin(); it != rays.end(); it++) {
-//                 float lastSW = 0;
-//                 int lastRow = 0;
-//                 int lastCol = 0;
-//                 for (std::vector<Point2d>::const_iterator it2 = it->points.begin(); it2 != it->points.end(); it2++) {
-//                         float currentSW = CV_IMAGE_ELEM(SWTImage, float, it2->y, it2->x);
-//                         if (lastSW == 0) {}
-//                         else if (lastSW/currentSW<=3.0 || currentSW/lastSW<=3.0){
-//                                 boost::add_edge(map.at(it2->y * SWTImage->width + it2->x), map.at(lastRow * SWTImage->width + lastCol), g);
-//                         }
-//                         lastSW = currentSW;
-//                         lastRow = it2->y;
-//                         lastCol = it2->x;
-//                 }
-//                 lastSW = 0;
-//                 lastRow = 0;
-//                 lastCol = 0;
-//         }
-
-//         std::vector<int> c(num_vertices);
-
-//         int num_comp = connected_components(g, &c[0]);
-
-//         std::vector<std::vector<Point2d> > components;
-//         components.reserve(num_comp);
-//         std::cout << "Before filtering, " << num_comp << " components and " << num_vertices << " vertices" << std::endl;
-//         for (int j = 0; j < num_comp; j++) {
-//             std::vector<Point2d> tmp;
-//             components.push_back( tmp );
-//         }
-//         for (int j = 0; j < num_vertices; j++) {
-//             Point2d p = revmap[j];
-//             (components[c[j]]).push_back(p);
-//         }
-
-//         return components;
-// }
 
 // void componentStats(IplImage * SWTImage,
 //                                         const std::vector<Point2d> & component,

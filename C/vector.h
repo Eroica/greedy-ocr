@@ -18,6 +18,9 @@ typedef struct {
     int capacity;
 }vector;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 int vector_init(vector *v);
 int vector_push_back(vector *v, void *elm);
 int vector_get_size(vector *v);
@@ -27,5 +30,9 @@ void *vector_get(vector *v, int idx);
 void *vector_pop_back(vector *v);
 int vector_remove(vector *v, int idx);
 void vector_destroy(vector *v);
+#ifdef __cplusplus
+}
+#endif
+
 
 #endif

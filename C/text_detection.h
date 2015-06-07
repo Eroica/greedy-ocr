@@ -88,4 +88,3 @@ SWTMedianFilter (IplImage * SWTImage,
 //                  std::vector<std::pair<Point2d,Point2d> > & compBB);
 
 #endif // TEXT_DETECTION_H
-
