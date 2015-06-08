@@ -292,9 +292,10 @@ normalizeImage(IplImage *input,
 
 IplImage *
 text_detection(IplImage *input_image, bool dark_on_light) {
-    // assert(input->depth == IPL_DEPTH_8U);
-    // assert(input->nChannels == 3);
-    // std::cout << "Running textDetection with dark_on_light " << dark_on_light << std::endl;
+    assert(input_image->depth == IPL_DEPTH_8U);
+    assert(input_image->nChannels == 3);
+    printf("Running text_detection with dark_on_light %i\n", dark_on_light);
+
     // Convert to grayscale
     IplImage *gray_image = cvCreateImage(cvGetSize(input_image), IPL_DEPTH_8U, 1);
 
@@ -341,18 +342,35 @@ text_detection(IplImage *input_image, bool dark_on_light) {
     strokeWidthTransform(edge_image, gradientX, gradientY, dark_on_light, SWTImage, &rays);
     SWTMedianFilter(SWTImage, &rays);
 
-    IplImage *output2 = cvCreateImage ( cvGetSize ( input_image ), IPL_DEPTH_32F, 1 );
+    IplImage *output2 = cvCreateImage(cvGetSize(input_image), IPL_DEPTH_32F, 1);
     normalizeImage(SWTImage, output2);
-    IplImage *saveSWT = cvCreateImage ( cvGetSize ( input_image ), IPL_DEPTH_8U, 1 );
+    IplImage *saveSWT = cvCreateImage(cvGetSize (input_image), IPL_DEPTH_8U, 1);
     cvConvertScale(output2, saveSWT, 255, 0);
-    cvSaveImage ( "SWT.png", saveSWT, 0);
-    cvReleaseImage ( &output2 );
-    cvReleaseImage( &saveSWT );
+    cvSaveImage("SWT.png", saveSWT, 0);
+    cvReleaseImage(&output2);
+    cvReleaseImage(&saveSWT);
 
     // Calculate legally connect components from SWT and gradient image.
     // return type is a vector of vectors, where each outer vector is a component and
     // the inner vector contains the (y,x) of each pixel in that component.
     vector components = findLegallyConnectedComponents(SWTImage, &rays);
+
+    // Filter the components
+    vector validComponents;
+    vector compBB;
+    vector compCenters;
+    vector compMedians;
+    vector compDimensions;
+    vector_init(&validComponents);
+    vector_init(&compBB);
+    vector_init(&compCenters);
+    vector_init(&compMedians);
+    vector_init(&compDimensions);
+
+    filterComponents(SWTImage, &components, &validComponents, &compCenters,
+                     &compMedians, &compDimensions, &compBB);
+
+
 
 //     // Filter the components
 //     std::vector<std::vector<Point2d> > validComponents;
