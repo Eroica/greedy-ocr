@@ -108,10 +108,10 @@ normalizeImage(IplImage *input,
 
     float maxVal = 0;
     float minVal = 1e100;
-    for( int row = 0; row < input->height; row++ ){
+    for(int row = 0; row < input->height; row++) {
         const float* ptr = (const float*)(input->imageData + row * input->widthStep);
-        for ( int col = 0; col < input->width; col++ ){
-            if (*ptr < 0) { }
+        for(int col = 0; col < input->width; col++) {
+            if(*ptr < 0) { }
             else {
                 maxVal = fmax(*ptr, maxVal);
                 minVal = fmin(*ptr, minVal);
@@ -121,11 +121,11 @@ normalizeImage(IplImage *input,
     }
 
     float difference = maxVal - minVal;
-    for( int row = 0; row < input->height; row++ ){
+    for(int row = 0; row < input->height; row++) {
         const float* ptrin = (const float*)(input->imageData + row * input->widthStep);\
         float* ptrout = (float*)(output->imageData + row * output->widthStep);\
-        for ( int col = 0; col < input->width; col++ ){
-            if (*ptrin < 0) {
+        for (int col = 0; col < input->width; col++) {
+            if(*ptrin < 0) {
                 *ptrout = 1;
             } else {
                 *ptrout = ((*ptrin) - minVal)/difference;
@@ -136,82 +136,91 @@ normalizeImage(IplImage *input,
     }
 }
 
-// void renderComponents (IplImage * SWTImage, std::vector<std::vector<Point2d> > & components, IplImage * output) {
-//     cvZero(output);
-// 	for (std::vector<std::vector<Point2d> >::iterator it = components.begin(); it != components.end();it++) {
-//         for (std::vector<Point2d>::iterator pit = it->begin(); pit != it->end(); pit++) {
-//             CV_IMAGE_ELEM(output, float, pit->y, pit->x) = CV_IMAGE_ELEM(SWTImage, float, pit->y, pit->x);
-//         }
-//     }
-//     for( int row = 0; row < output->height; row++ ){
-//         float* ptr = (float*)(output->imageData + row * output->widthStep);
-//         for ( int col = 0; col < output->width; col++ ){
-//             if (*ptr == 0) {
-//                 *ptr = -1;
-//             }
-//             ptr++;
-//         }
-//     }
-//     float maxVal = 0;
-//     float minVal = 1e100;
-//     for( int row = 0; row < output->height; row++ ){
-//         const float* ptr = (const float*)(output->imageData + row * output->widthStep);
-//         for ( int col = 0; col < output->width; col++ ){
-//             if (*ptr == 0) { }
-//             else {
-//                 maxVal = std::max(*ptr, maxVal);
-//                 minVal = std::min(*ptr, minVal);
-//             }
-//             ptr++;
-//         }
-//     }
-//     float difference = maxVal - minVal;
-//     for( int row = 0; row < output->height; row++ ){
-//         float* ptr = (float*)(output->imageData + row * output->widthStep);\
-//         for ( int col = 0; col < output->width; col++ ){
-//             if (*ptr < 1) {
-//                 *ptr = 1;
-//             } else {
-//                 *ptr = ((*ptr) - minVal)/difference;
-//             }
-//             ptr++;
-//         }
-//     }
+void
+renderComponents(IplImage *SWTImage,
+                vector *components,
+                IplImage *output)
+{
+    cvZero(output);
 
-// }
+    for(int it = 0; it < vector_get_size(components); it++) {
+        for(int pit = 0; pit < vector_get_size(vector_get(components, it)); pit++) {
+            CV_IMAGE_ELEM(output, float, ((struct Point2d *)vector_get(vector_get(components, it), pit))->y, ((struct Point2d *)vector_get(vector_get(components, it), pit))->x) = CV_IMAGE_ELEM(SWTImage, float, ((struct Point2d *)vector_get(vector_get(components, it), pit))->y, ((struct Point2d *)vector_get(vector_get(components, it), pit))->x);
+        }
+    }
 
-// void renderComponentsWithBoxes (IplImage * SWTImage, std::vector<std::vector<Point2d> > & components,
-//                                 std::vector<std::pair<Point2d,Point2d> > & compBB, IplImage * output) {
-//     IplImage * outTemp =
-//             cvCreateImage ( cvGetSize ( output ), IPL_DEPTH_32F, 1 );
+    for(int row = 0; row < output->height; row++) {
+        float *ptr = (float*)(output->imageData + row * output->widthStep);
+        for(int col = 0; col < output->width; col++) {
+            if(*ptr == 0) {
+                *ptr = -1;
+            }
+            ptr++;
+        }
+    }
 
-//     renderComponents(SWTImage,components,outTemp);
-//     std::vector<std::pair<CvPoint,CvPoint> > bb;
-//     bb.reserve(compBB.size());
-//     for (std::vector<std::pair<Point2d,Point2d> >::iterator it=compBB.begin(); it != compBB.end(); it++ ) {
-//         CvPoint p0 = cvPoint(it->first.x,it->first.y);
-//         CvPoint p1 = cvPoint(it->second.x,it->second.y);
-//         std::pair<CvPoint,CvPoint> pair(p0,p1);
-//         bb.push_back(pair);
-//     }
+    float maxVal = 0;
+    float minVal = 1e100;
+    for(int row = 0; row < output->height; row++) {
+        const float *ptr = (const float *)(output->imageData + row * output->widthStep);
+        for(int col = 0; col < output->width; col++ ) {
+            if(*ptr == 0) { }
+            else {
+                maxVal = fmax(*ptr, maxVal);
+                minVal = fmin(*ptr, minVal);
+            }
+            ptr++;
+        }
+    }
+    float difference = maxVal - minVal;
+    for(int row = 0; row < output->height; row++) {
+        float *ptr = (float*)(output->imageData + row * output->widthStep); \
+        for(int col = 0; col < output->width; col++) {
+            if (*ptr < 1) {
+                *ptr = 1;
+            } else {
+                *ptr = ((*ptr) - minVal)/difference;
+            }
+            ptr++;
+        }
+    }
+}
 
-//     IplImage * out =
-//             cvCreateImage ( cvGetSize ( output ), IPL_DEPTH_8U, 1 );
-//     cvConvertScale(outTemp, out, 255, 0);
-//     cvCvtColor (out, output, CV_GRAY2RGB);
-//     //cvReleaseImage ( &outTemp );
-//     //cvReleaseImage ( &out );
+void
+renderComponentsWithBoxes(IplImage *SWTImage,
+                          vector components,
+                          vector compBB,
+                          IplImage *output)
+{
+    IplImage *outTemp = cvCreateImage(cvGetSize(output), IPL_DEPTH_32F, 1);
 
-//     int count = 0;
-//     for (std::vector<std::pair<CvPoint,CvPoint> >::iterator it= bb.begin(); it != bb.end(); it++) {
-//         CvScalar c;
-//         if (count % 3 == 0) c=cvScalar(255,0,0);
-//         else if (count % 3 == 1) c=cvScalar(0,255,0);
-//         else c=cvScalar(0,0,255);
-//         count++;
-//         cvRectangle(output,it->first,it->second,c,2);
-//     }
-// }
+    renderComponents(SWTImage, &components, outTemp);
+    // std::vector<std::pair<CvPoint,CvPoint> > bb;
+    // bb.reserve(compBB.size());
+    // for (std::vector<std::pair<Point2d,Point2d> >::iterator it=compBB.begin(); it != compBB.end(); it++ ) {
+    //     CvPoint p0 = cvPoint(it->first.x,it->first.y);
+    //     CvPoint p1 = cvPoint(it->second.x,it->second.y);
+    //     std::pair<CvPoint,CvPoint> pair(p0,p1);
+    //     bb.push_back(pair);
+    // }
+
+    // IplImage * out =
+    //         cvCreateImage ( cvGetSize ( output ), IPL_DEPTH_8U, 1 );
+    // cvConvertScale(outTemp, out, 255, 0);
+    // cvCvtColor (out, output, CV_GRAY2RGB);
+    // //cvReleaseImage ( &outTemp );
+    // //cvReleaseImage ( &out );
+
+    // int count = 0;
+    // for (std::vector<std::pair<CvPoint,CvPoint> >::iterator it= bb.begin(); it != bb.end(); it++) {
+    //     CvScalar c;
+    //     if (count % 3 == 0) c=cvScalar(255,0,0);
+    //     else if (count % 3 == 1) c=cvScalar(0,255,0);
+    //     else c=cvScalar(0,0,255);
+    //     count++;
+    //     cvRectangle(output,it->first,it->second,c,2);
+    // }
+}
 
 // void renderChainsWithBoxes (IplImage * SWTImage,
 //                    std::vector<std::vector<Point2d> > & components,
@@ -372,19 +381,10 @@ text_detection(IplImage *input_image, bool dark_on_light) {
 
 
 
-//     // Filter the components
-//     std::vector<std::vector<Point2d> > validComponents;
-//     std::vector<std::pair<Point2d,Point2d> > compBB;
-//     std::vector<Point2dFloat> compCenters;
-//     std::vector<float> compMedians;
-//     std::vector<Point2d> compDimensions;
-//     filterComponents(SWTImage, components, validComponents, compCenters, compMedians, compDimensions, compBB );
-
-//     IplImage * output3 =
-//             cvCreateImage ( cvGetSize ( input ), 8U, 3 );
-//     renderComponentsWithBoxes (SWTImage, validComponents, compBB, output3);
-//     cvSaveImage ( "components.png",output3);
-//     //cvReleaseImage ( &output3 );
+    IplImage *output3 = cvCreateImage(cvGetSize(input_image), 8U, 3);
+    renderComponentsWithBoxes(SWTImage, validComponents, compBB, output3);
+    cvSaveImage("components.png", output3, 0);
+    //cvReleaseImage ( &output3 );
 
 //     // Make chains of components
 //     std::vector<Chain> chains;
@@ -423,9 +423,9 @@ strokeWidthTransform(IplImage * edge_image,
 {
     // First pass
     float prec = .05;
-    for( int row = 0; row < edge_image->height; row++ ){
+    for(int row = 0; row < edge_image->height; row++) {
         const uchar* ptr = (const uchar*)(edge_image->imageData + row * edge_image->widthStep);
-        for ( int col = 0; col < edge_image->width; col++ ){
+        for(int col = 0; col < edge_image->width; col++) {
             if (*ptr > 0) {
                 struct Ray *r = calloc(1, sizeof(struct Ray));
                 struct Point2d *p = calloc(1, sizeof(struct Point2d));
@@ -452,7 +452,7 @@ strokeWidthTransform(IplImage * edge_image,
                     G_y = G_y/mag;
 
                 }
-                while (true) {
+                while(true) {
                     curX += G_x*prec;
                     curY += G_y*prec;
                     if ((int)(floor(curX)) != curPixX || (int)(floor(curY)) != curPixY) {
@@ -518,14 +518,13 @@ strokeWidthTransform(IplImage * edge_image,
 }
 
 void
-SWTMedianFilter(IplImage * SWTImage,
+SWTMedianFilter(IplImage *SWTImage,
                 vector *rays)
 {
     for(int rit = 0; rit < vector_get_size(rays); rit++) {
         struct Ray *ray = (struct Ray *)vector_get(rays, rit);
         vector *current_points;
         current_points = &ray->points;
-
 
         for(int pit = 0; pit < vector_get_size(&ray->points); pit++) {
             ((struct Point2d *)vector_get(&ray->points, pit))->SWT = CV_IMAGE_ELEM(SWTImage, float, ((struct Point2d *)vector_get(&ray->points, pit))->y, ((struct Point2d *)vector_get(&ray->points, pit))->x);
@@ -537,20 +536,7 @@ SWTMedianFilter(IplImage * SWTImage,
         for (int pit = 0; pit < vector_get_size(&ray->points); pit++) {
             CV_IMAGE_ELEM(SWTImage, float, ((struct Point2d *)vector_get(&ray->points, pit))->y, ((struct Point2d *)vector_get(&ray->points, pit))->x) = fmin(((struct Point2d *)vector_get(&ray->points, pit))->SWT, median);
         }
-
     }
-
-    // for (std::vector<Ray>::iterator rit = rays.begin(); rit != rays.end(); rit++) {
-    //     for (std::vector<Point2d>::iterator pit = rit->points.begin(); pit != rit->points.end(); pit++) {
-    //         pit->SWT = CV_IMAGE_ELEM(SWTImage, float, pit->y, pit->x);
-    //     }
-    //     std::sort(rit->points.begin(), rit->points.end(), &Point2dSort);
-    //     float median = (rit->points[rit->points.size()/2]).SWT;
-    //     for (std::vector<Point2d>::iterator pit = rit->points.begin(); pit != rit->points.end(); pit++) {
-    //         CV_IMAGE_ELEM(SWTImage, float, pit->y, pit->x) = std::min(pit->SWT, median);
-    //     }
-    // }
-
 }
 
 // bool Point2dSort (const Point2d &lhs, const Point2d &rhs) {
@@ -558,196 +544,224 @@ SWTMedianFilter(IplImage * SWTImage,
 // }
 
 
-// void componentStats(IplImage * SWTImage,
-//                                         const std::vector<Point2d> & component,
-//                                         float & mean, float & variance, float & median,
-//                                         int & minx, int & miny, int & maxx, int & maxy)
-// {
-//         std::vector<float> temp;
-//         temp.reserve(component.size());
-//         mean = 0;
-//         variance = 0;
-//         minx = 1000000;
-//         miny = 1000000;
-//         maxx = 0;
-//         maxy = 0;
-//         for (std::vector<Point2d>::const_iterator it = component.begin(); it != component.end(); it++) {
-//                 float t = CV_IMAGE_ELEM(SWTImage, float, it->y, it->x);
-//                 mean += t;
-//                 temp.push_back(t);
-//                 miny = std::min(miny,it->y);
-//                 minx = std::min(minx,it->x);
-//                 maxy = std::max(maxy,it->y);
-//                 maxx = std::max(maxx,it->x);
-//         }
-//         mean = mean / ((float)component.size());
-//         for (std::vector<float>::const_iterator it = temp.begin(); it != temp.end(); it++) {
-//             variance += (*it - mean) * (*it - mean);
-//         }
-//         variance = variance / ((float)component.size());
-//         std::sort(temp.begin(),temp.end());
-//         median = temp[temp.size()/2];
-// }
+void componentStats(IplImage *SWTImage,
+                    vector *component,
+                    float *mean, float *variance, float *median,
+                    int *minx, int *miny, int *maxx, int *maxy)
+{
+    vector temp;
+    vector_init(&temp);
+
+    *mean = 0;
+    *variance = 0;
+    *minx = 1000000;
+    *miny = 1000000;
+    *maxx = 0;
+    *maxy = 0;
+    for(int it = 0; it < vector_get_size(component); it++) {
+        float t = CV_IMAGE_ELEM(SWTImage,
+                                float,
+                                ((struct Point2d *)vector_get(component, it))->y,
+                                ((struct Point2d *)vector_get(component, it))->x);
+        *mean += t;
+        vector_push_back(&temp, &t);
+        *miny = fmin(*miny, ((struct Point2d *)vector_get(component, it))->y);
+        *minx = fmin(*minx, ((struct Point2d *)vector_get(component, it))->x);
+        *maxy = fmax(*maxy, ((struct Point2d *)vector_get(component, it))->y);
+        *maxx = fmax(*maxx, ((struct Point2d *)vector_get(component, it))->x);
+    }
+    *mean = *mean / ((float)vector_get_size(component));
+
+    for(int it = 0; it < vector_get_size(&temp); it++) {
+        *variance = (*(float *)vector_get(&temp, it) - *mean) * (*(float *)vector_get(&temp, it) - *mean);
+    }
+
+    *variance = *variance / ((float)vector_get_size(component));
+    // std::sort(temp.begin(),temp.end());
+    *median = *(float *)vector_get(&temp, vector_get_size(&temp)/2);
+}
 
 
-// void filterComponents(IplImage * SWTImage,
-//                       std::vector<std::vector<Point2d> > & components,
-//                       std::vector<std::vector<Point2d> > & validComponents,
-//                       std::vector<Point2dFloat> & compCenters,
-//                       std::vector<float> & compMedians,
-//                       std::vector<Point2d> & compDimensions,
-//                       std::vector<std::pair<Point2d,Point2d> > & compBB )
-// {
-//         validComponents.reserve(components.size());
-//         compCenters.reserve(components.size());
-//         compMedians.reserve(components.size());
-//         compDimensions.reserve(components.size());
-//         // bounding boxes
-//         compBB.reserve(components.size());
-//         for (std::vector<std::vector<Point2d> >::iterator it = components.begin(); it != components.end();it++) {
-//             // compute the stroke width mean, variance, median
-//             float mean, variance, median;
-//             int minx, miny, maxx, maxy;
-//             componentStats(SWTImage, (*it), mean, variance, median, minx, miny, maxx, maxy);
+void filterComponents(IplImage *SWTImage,
+                      vector *components,
+                      vector *validComponents,
+                      vector *compCenters,
+                      vector *compMedians,
+                      vector *compDimensions,
+                      vector *compBB)
+{
+    // validComponents.reserve(components.size());
+    // compCenters.reserve(components.size());
+    // compMedians.reserve(components.size());
+    // compDimensions.reserve(components.size());
+    // // bounding boxes
+    // compBB.reserve(components.size());
+    for(int it = 0; it < vector_get_size(components); it++) {
+        // compute the stroke width mean, variance, median
+        float mean, variance, median;
+        int minx, miny, maxx, maxy;
+        componentStats(SWTImage,
+                      (vector *)vector_get(components, it),
+                      &mean,
+                      &variance,
+                      &median,
+                      &minx,
+                      &miny,
+                      &maxx,
+                      &maxy);
 
-//             // check if variance is less than half the mean
-//             if (variance > 0.5 * mean) {
-//                  continue;
-//             }
+        // check if variance is less than half the mean
+        if (variance > 0.5 * mean) {
+             continue;
+        }
 
-//             float length = (float)(maxx-minx+1);
-//             float width = (float)(maxy-miny+1);
+        float length = (float)(maxx-minx+1);
+        float width = (float)(maxy-miny+1);
 
-//             // check font height
-//             if (width > 300) {
-//                 continue;
-//             }
+        // check font height
+        if (width > 300) {
+            continue;
+        }
 
-//             float area = length * width;
-//             float rminx = (float)minx;
-//             float rmaxx = (float)maxx;
-//             float rminy = (float)miny;
-//             float rmaxy = (float)maxy;
-//             // compute the rotated bounding box
-//             float increment = 1./36.;
-//             for (float theta = increment * PI; theta<PI/2.0; theta += increment * PI) {
-//                 float xmin,xmax,ymin,ymax,xtemp,ytemp,ltemp,wtemp;
-//                     xmin = 1000000;
-//                     ymin = 1000000;
-//                     xmax = 0;
-//                     ymax = 0;
-//                 for (unsigned int i = 0; i < (*it).size(); i++) {
-//                     xtemp = (*it)[i].x * cos(theta) + (*it)[i].y * -sin(theta);
-//                     ytemp = (*it)[i].x * sin(theta) + (*it)[i].y * cos(theta);
-//                     xmin = std::min(xtemp,xmin);
-//                     xmax = std::max(xtemp,xmax);
-//                     ymin = std::min(ytemp,ymin);
-//                     ymax = std::max(ytemp,ymax);
-//                 }
-//                 ltemp = xmax - xmin + 1;
-//                 wtemp = ymax - ymin + 1;
-//                 if (ltemp*wtemp < area) {
-//                     area = ltemp*wtemp;
-//                     length = ltemp;
-//                     width = wtemp;
-//                 }
-//             }
-//             // check if the aspect ratio is between 1/10 and 10
-//             if (length/width < 1./10. || length/width > 10.) {
-//                 continue;
-//             }
+        float area = length * width;
+        float rminx = (float)minx;
+        float rmaxx = (float)maxx;
+        float rminy = (float)miny;
+        float rmaxy = (float)maxy;
+        // compute the rotated bounding box
+        float increment = 1./36.;
 
-//             // compute the diameter TODO finish
-//             // compute dense representation of component
-//             std::vector <std::vector<float> > denseRepr;
-//             denseRepr.reserve(maxx-minx+1);
-//             for (int i = 0; i < maxx-minx+1; i++) {
-//                 std::vector<float> tmp;
-//                 tmp.reserve(maxy-miny+1);
-//                 denseRepr.push_back(tmp);
-//                 for (int j = 0; j < maxy-miny+1; j++) {\
-//                     denseRepr[i].push_back(0);
-//                 }
-//             }
-//             for (std::vector<Point2d>::iterator pit = it->begin(); pit != it->end(); pit++) {
-//                 (denseRepr[pit->x - minx])[pit->y - miny] = 1;
-//             }
-//             // create graph representing components
-//             const int num_nodes = it->size();
-//             /*
-//             E edges[] = { E(0,2),
-//                           E(1,1), E(1,3), E(1,4),
-//                           E(2,1), E(2,3),
-//                           E(3,4),
-//                           E(4,0), E(4,1) };
+        for(float theta = increment * PI; theta < PI/2.0; theta += increment * PI) {
+            float xmin, xmax, ymin, ymax, xtemp, ytemp, ltemp, wtemp;
+            xmin = 1000000;
+            ymin = 1000000;
+            xmax = 0;
+            ymax = 0;
 
-//             Graph G(edges + sizeof(edges) / sizeof(E), weights, num_nodes);
-//             */
-//             Point2dFloat center;
-//             center.x = ((float)(maxx+minx))/2.0;
-//             center.y = ((float)(maxy+miny))/2.0;
+            for(unsigned int i = 0; i < vector_get_size(vector_get(components, it)); i++) {
+                xtemp = (*(struct Point2d *)vector_get(vector_get(components, it), i)).x * cos(theta) + (*(struct Point2d *)vector_get(vector_get(components, it), i)).y * -sin(theta);
+                ytemp = (*(struct Point2d *)vector_get(vector_get(components, it), i)).x * sin(theta) + (*(struct Point2d *)vector_get(vector_get(components, it), i)).y *  cos(theta);
+                xmin = fmin(xtemp, xmin);
+                xmax = fmax(xtemp, xmax);
+                ymin = fmin(ytemp, ymin);
+                ymax = fmax(ytemp, ymax);
+            }
+            ltemp = xmax - xmin + 1;
+            wtemp = ymax - ymin + 1;
+            if (ltemp*wtemp < area) {
+                area = ltemp*wtemp;
+                length = ltemp;
+                width = wtemp;
+            }
+        }
+        // check if the aspect ratio is between 1/10 and 10
+        if (length/width < 1./10. || length/width > 10.) {
+            continue;
+        }
 
-//             Point2d dimensions;
-//             dimensions.x = maxx - minx + 1;
-//             dimensions.y = maxy - miny + 1;
+        // compute the diameter TODO finish
+        // compute dense representation of component
+        vector denseRepr;
+        vector_init(&denseRepr);
 
-//             Point2d bb1;
-//             bb1.x = minx;
-//             bb1.y = miny;
+        for(int i = 0; i < maxx - minx + 1; i++) {
+            vector tmp;
+            vector_init(&tmp);
+            vector_push_back(&denseRepr, &tmp);
 
-//             Point2d bb2;
-//             bb2.x = maxx;
-//             bb2.y = maxy;
-//             std::pair<Point2d, Point2d> pair(bb1,bb2);
+            for (int j = 0; j < maxy - miny + 1; j++) {
+                vector_push_back(vector_get(&denseRepr, i), 0);
+            }
+        }
 
-//             compBB.push_back(pair);
-//             compDimensions.push_back(dimensions);
-//             compMedians.push_back(median);
-//             compCenters.push_back(center);
-//             validComponents.push_back(*it);
-//         }
-//        std::vector<std::vector<Point2d > > tempComp;
-//        std::vector<Point2d > tempDim;
-//        std::vector<float > tempMed;
-//        std::vector<Point2dFloat > tempCenters;
-//        std::vector<std::pair<Point2d,Point2d> > tempBB;
-//        tempComp.reserve(validComponents.size());
-//        tempCenters.reserve(validComponents.size());
-//        tempDim.reserve(validComponents.size());
-//        tempMed.reserve(validComponents.size());
-//        tempBB.reserve(validComponents.size());
-//        for (unsigned int i = 0; i < validComponents.size(); i++) {
-//             int count = 0;
-//             for (unsigned int j = 0; j < validComponents.size(); j++) {
-//                 if (i != j) {
-//                     if (compBB[i].first.x <= compCenters[j].x && compBB[i].second.x >= compCenters[j].x &&
-//                         compBB[i].first.y <= compCenters[j].y && compBB[i].second.y >= compCenters[j].y) {
-//                         count++;
-//                     }
-//                 }
-//             }
-//             if (count < 2) {
-//                 tempComp.push_back(validComponents[i]);
-//                 tempCenters.push_back(compCenters[i]);
-//                 tempMed.push_back(compMedians[i]);
-//                 tempDim.push_back(compDimensions[i]);
-//                 tempBB.push_back(compBB[i]);
-//             }
-//         }
-//         validComponents = tempComp;
-//         compDimensions = tempDim;
-//         compMedians = tempMed;
-//         compCenters = tempCenters;
-//         compBB = tempBB;
+        for (int pit = 0; pit < vector_get_size(vector_get(vector_get(components, it), pit)); pit++) {
+            vector_get(
+                vector_get(&denseRepr, ((struct Point2d *)vector_get(vector_get(components, it), pit))->x - minx),
+                ((struct Point2d *)vector_get(vector_get(components, it), pit))->y - miny) \
+                = 1;
+        }
+        create graph representing components
+        const int num_nodes = vector_get_size(vector_get(components, it));
 
-//         compDimensions.reserve(tempComp.size());
-//         compMedians.reserve(tempComp.size());
-//         compCenters.reserve(tempComp.size());
-//         validComponents.reserve(tempComp.size());
-//         compBB.reserve(tempComp.size());
+        /*
+        E edges[] = { E(0,2),
+                      E(1,1), E(1,3), E(1,4),
+                      E(2,1), E(2,3),
+                      E(3,4),
+                      E(4,0), E(4,1) };
 
-//         std::cout << "After filtering " << validComponents.size() << " components" << std::endl;
-// }
+        Graph G(edges + sizeof(edges) / sizeof(E), weights, num_nodes);
+        */
+
+        struct Point2dFloat center;
+        center.x = ((float)(maxx+minx))/2.0;
+        center.y = ((float)(maxy+miny))/2.0;
+
+        struct Point2d dimensions;
+        dimensions.x = maxx - minx + 1;
+        dimensions.y = maxy - miny + 1;
+
+        struct Point2d bb1;
+        bb1.x = minx;
+        bb1.y = miny;
+
+        struct Point2d bb2;
+        bb2.x = maxx;
+        bb2.y = maxy;
+        std::pair<Point2d, Point2d> pair(bb1,bb2);
+
+        compBB.push_back(pair);
+        compDimensions.push_back(dimensions);
+        compMedians.push_back(median);
+        compCenters.push_back(center);
+        validComponents.push_back(*it);
+    }
+
+    std::vector<std::vector<Point2d > > tempComp;
+    std::vector<Point2d > tempDim;
+    std::vector<float > tempMed;
+    std::vector<Point2dFloat > tempCenters;
+    std::vector<std::pair<Point2d,Point2d> > tempBB;
+    tempComp.reserve(validComponents.size());
+    tempCenters.reserve(validComponents.size());
+    tempDim.reserve(validComponents.size());
+    tempMed.reserve(validComponents.size());
+    tempBB.reserve(validComponents.size());
+
+    for (unsigned int i = 0; i < validComponents.size(); i++) {
+        int count = 0;
+        for (unsigned int j = 0; j < validComponents.size(); j++) {
+            if (i != j) {
+                if (compBB[i].first.x <= compCenters[j].x && compBB[i].second.x >= compCenters[j].x &&
+                    compBB[i].first.y <= compCenters[j].y && compBB[i].second.y >= compCenters[j].y) {
+                    count++;
+                }
+            }
+        }
+        if (count < 2) {
+            tempComp.push_back(validComponents[i]);
+            tempCenters.push_back(compCenters[i]);
+            tempMed.push_back(compMedians[i]);
+            tempDim.push_back(compDimensions[i]);
+            tempBB.push_back(compBB[i]);
+        }
+    }
+    validComponents = tempComp;
+    compDimensions = tempDim;
+    compMedians = tempMed;
+    compCenters = tempCenters;
+    compBB = tempBB;
+
+    compDimensions.reserve(tempComp.size());
+    compMedians.reserve(tempComp.size());
+    compCenters.reserve(tempComp.size());
+    validComponents.reserve(tempComp.size());
+    compBB.reserve(tempComp.size());
+
+    std::cout << "After filtering " << validComponents.size() << " components" << std::endl;
+}
+
+
 
 // bool sharesOneEnd( Chain c0, Chain c1) {
 //     if (c0.p == c1.p || c0.p == c1.q || c0.q == c1.q || c0.q == c1.p) {

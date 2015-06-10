@@ -72,13 +72,13 @@ SWTMedianFilter (IplImage * SWTImage,
 //                                         float & mean, float & variance, float & median,
 //                                         int & minx, int & miny, int & maxx, int & maxy);
 
-// void filterComponents(IplImage * SWTImage,
-//                       std::vector<std::vector<Point2d> > & components,
-//                       std::vector<std::vector<Point2d> > & validComponents,
-//                       std::vector<Point2dFloat> & compCenters,
-//                       std::vector<float> & compMedians,
-//                       std::vector<Point2d> & compDimensions,
-//                       std::vector<std::pair<Point2d,Point2d> > & compBB );
+void filterComponents(IplImage *SWTImage,
+                      vector *components,
+                      vector *validComponents,
+                      vector *compCenters,
+                      vector *compMedians,
+                      vector *compDimensions,
+                      vector *compBB);
 
 // vector * makeChains( IplImage * colorImage,
 //                  std::vector<std::vector<Point2d> > & components,

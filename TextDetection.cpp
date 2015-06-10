@@ -175,12 +175,18 @@ extractComponents(IplImage *input,
         IplImage *tmp = cvCreateImage(cvSize(width, height), input->depth, input->nChannels);
 
         cvSetImageROI(input, cropRect);
-        cvCopy(input, tmp, NULL);
+
+        if(width > 0 && height > 0) {
+            cvCopy(input, tmp, NULL);
+        }
+
         cvResetImageROI(input);
 
         char filename[8];
-        sprintf(filename, "%d.png", count);
-        cvSaveImage(filename, tmp);
+        sprintf(filename, "%d.jpg", count);
+
+        // if(count <= 10)
+            cvSaveImage(filename, tmp);
 
         // cvNamedWindow( "result", CV_WINDOW_AUTOSIZE );
         // cvShowImage( "result", tmp);
@@ -259,7 +265,7 @@ renderChainsWithBoxes(IplImage *SWTImage,
     IplImage * outTemp =
             cvCreateImage(cvGetSize(output), IPL_DEPTH_32F, 1);
 
-    std::cout << componentsRed.size() << " components after chaining" << std::endl;
+    // std::cout << componentsRed.size() << " components after chaining" << std::endl;
     renderComponents(SWTImage,componentsRed,outTemp);
     std::vector<std::pair<CvPoint, CvPoint>> bb;
     bb = findBoundingBoxes(components, chains, compBB, outTemp);
@@ -319,7 +325,7 @@ textDetection(IplImage *input,
 {
     assert(input->depth == IPL_DEPTH_8U);
     assert(input->nChannels == 3);
-    std::cout << "Running textDetection with dark_on_light " << dark_on_light << std::endl;
+    // std::cout << "Running textDetection with dark_on_light " << dark_on_light << std::endl;
     // Convert to grayscale
     IplImage * grayImage =
             cvCreateImage(cvGetSize(input), IPL_DEPTH_8U, 1);
@@ -597,7 +603,7 @@ findLegallyConnectedComponents(IplImage *SWTImage,
 
         std::vector<std::vector<Point2d>> components;
         components.reserve(num_comp);
-        std::cout << "Before filtering, " << num_comp << " components and " << num_vertices << " vertices" << std::endl;
+        // std::cout << "Before filtering, " << num_comp << " components and " << num_vertices << " vertices" << std::endl;
         for(int j = 0; j < num_comp; j++) {
             std::vector<Point2d> tmp;
             components.push_back( tmp);
@@ -663,7 +669,7 @@ findLegallyConnectedComponentsRAY(IplImage * SWTImage,
 
         std::vector<std::vector<Point2d>> components;
         components.reserve(num_comp);
-        std::cout << "Before filtering, " << num_comp << " components and " << num_vertices << " vertices" << std::endl;
+        // std::cout << "Before filtering, " << num_comp << " components and " << num_vertices << " vertices" << std::endl;
         for(int j = 0; j < num_comp; j++) {
             std::vector<Point2d> tmp;
             components.push_back( tmp);
@@ -866,7 +872,7 @@ filterComponents(IplImage * SWTImage,
         validComponents.reserve(tempComp.size());
         compBB.reserve(tempComp.size());
 
-        std::cout << "After filtering " << validComponents.size() << " components" << std::endl;
+        // std::cout << "After filtering " << validComponents.size() << " components" << std::endl;
 }
 
 bool
@@ -968,7 +974,7 @@ makeChains(IplImage *colorImage,
             }
         }
     }
-    std::cout << chains.size() << " eligible pairs" << std::endl;
+    // std::cout << chains.size() << " eligible pairs" << std::endl;
     std::sort(chains.begin(), chains.end(), &chainSortDist);
 
     std::cerr << std::endl;
@@ -1171,6 +1177,6 @@ makeChains(IplImage *colorImage,
         }
     }
     chains = newchains;
-    std::cout << chains.size() << " chains after merging" << std::endl;
+    // std::cout << chains.size() << " chains after merging" << std::endl;
     return chains;
 }
