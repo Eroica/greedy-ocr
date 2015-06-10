@@ -8,7 +8,7 @@ LIBRARIES:= -lopencv_core -lopencv_highgui -lopencv_imgproc
 
 #SOURCE=TextDetection.m main.m ray.m chain.m points.m graph.c list.c
 
-SOURCE=TextDetection.cpp FeaturesMain.cpp
+SOURCE=text_extraction.cpp main.cpp
 
 # CFLAGS=-Wall -Werror -g -v $(SOURCE)
 CFLAGS=-Wall -Werror -Wno-unused-function -Wno-unused-variable

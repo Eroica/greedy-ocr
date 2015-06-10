@@ -21,7 +21,7 @@
 #include <fstream>
 #include <exception>
 #include <opencv2/highgui/highgui.hpp>
-#include "TextDetection.hpp"
+#include "text_extraction.hpp"
 
 
 class FeatureError : public std::exception
@@ -60,7 +60,6 @@ main(int argc, char *argv[])
     }
 
     // Detect text in the image
-
-    Mat output = textDetection(inputImage, atoi(argv[3]));
-    imwrite(argv[2], output);
+    extract_letters(inputImage, atoi(argv[3]));
+    // imwrite(argv[2], output);
 }
