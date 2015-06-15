@@ -13,8 +13,9 @@
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/io.hpp>
 
-#include <opencv/core/core.hpp>
-#include <opencv/highgui/highgui.hpp>
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
 // #include <math.h>
 // #include <time.h>
 #include "text_extraction.hpp"
@@ -267,125 +268,125 @@
 // }
 
 void
-extract_letters (IplImage * input, bool dark_on_light)
+extract_letters(cv::Mat *input, bool dark_on_light)
 {
-    assert ( input->depth == IPL_DEPTH_8U );
-    assert ( input->nChannels == 3 );
+    // assert ( input->depth == IPL_DEPTH_8U );
+    // assert ( input->nChannels == 3 );
     std::cout << "Running textDetection with dark_on_light " << dark_on_light << std::endl;
+
     // Convert to grayscale
-    IplImage * grayImage =
-            cvCreateImage ( cvGetSize ( input ), IPL_DEPTH_8U, 1 );
-    cvCvtColor ( input, grayImage, CV_RGB2GRAY );
+    cv::Mat grayImage(input->size(), input->type());
+
+    cv::cvtColor(grayImage, grayImage, cv::COLOR_RGB2GRAY);
+
     // Create Canny Image
     double threshold_low = 175;
     double threshold_high = 320;
-    IplImage * edgeImage =
-            cvCreateImage( cvGetSize (input),IPL_DEPTH_8U, 1 );
-    cvCanny(grayImage, edgeImage, threshold_low, threshold_high, 3) ;
-    cvSaveImage ( "canny.png", edgeImage);
+    cv::Mat edgeImage(input->size(), input->type());
+    cv::Canny(*input, edgeImage, threshold_low, threshold_high);
+    cv::imwrite("canny.png", edgeImage);
 
     // Create gradient X, gradient Y
-    IplImage * gaussianImage =
-            cvCreateImage ( cvGetSize(input), IPL_DEPTH_32F, 1);
-    cvConvertScale (grayImage, gaussianImage, 1./255., 0);
-    cvSmooth( gaussianImage, gaussianImage, CV_GAUSSIAN, 5, 5);
-    IplImage * gradientX =
-            cvCreateImage ( cvGetSize ( input ), IPL_DEPTH_32F, 1 );
-    IplImage * gradientY =
-            cvCreateImage ( cvGetSize ( input ), IPL_DEPTH_32F, 1 );
-    cvSobel(gaussianImage, gradientX , 1, 0, CV_SCHARR);
-    cvSobel(gaussianImage, gradientY , 0, 1, CV_SCHARR);
-    cvSmooth(gradientX, gradientX, 3, 3);
-    cvSmooth(gradientY, gradientY, 3, 3);
-    cvReleaseImage ( &gaussianImage );
-    cvReleaseImage ( &grayImage );
+
+
+    cv::Mat gaussianImage(input->size(), input->type(), cv::Scalar(1./255.));
+
+    cv::GaussianBlur(gaussianImage, gaussianImage, cv::Size(3, 3), 5);
+    // cvSmooth( gaussianImage, gaussianImage, CV_GAUSSIAN, 5, 5);
+    cv::Mat gradientX(input->size(), input->type());
+    cv::Mat gradientY(input->size(), input->type());
+    cv::Sobel(gaussianImage, gradientX, gradientX.type(), 1, 0);
+    cv::Sobel(gaussianImage, gradientY, gradientY.type(), 1, 0);
+    // cvSmooth(gradientX, gradientX, 3, 3);
+    // cvSmooth(gradientY, gradientY, 3, 3);
 
     // Calculate SWT and return ray vectors
     std::vector<Ray> rays;
-    IplImage * SWTImage =
-            cvCreateImage ( cvGetSize ( input ), IPL_DEPTH_32F, 1 );
-    for( int row = 0; row < input->height; row++ ){
-        float* ptr = (float*)(SWTImage->imageData + row * SWTImage->widthStep);
-        for ( int col = 0; col < input->width; col++ ){
+    cv::Mat SWTImage(input->size(), input->type());
+
+    IplImage swt_image = SWTImage;
+    IplImage input_image = *input;
+
+    for(int row = 0; row < input_image.height; row++) {
+        float* ptr = (float*)(swt_image.imageData + row * swt_image.widthStep);
+        for ( int col = 0; col < input_image.width; col++ ){
             *ptr++ = -1;
         }
     }
-    strokeWidthTransform ( edgeImage, gradientX, gradientY, dark_on_light, SWTImage, rays );
-    SWTMedianFilter ( SWTImage, rays );
+    // strokeWidthTransform ( edgeImage, gradientX, gradientY, dark_on_light, SWTImage, rays );
+    // SWTMedianFilter ( SWTImage, rays );
 
-    IplImage * output2 =
-            cvCreateImage ( cvGetSize ( input ), IPL_DEPTH_32F, 1 );
-    normalizeImage (SWTImage, output2);
-    IplImage * saveSWT =
-            cvCreateImage ( cvGetSize ( input ), IPL_DEPTH_8U, 1 );
-    cvConvertScale(output2, saveSWT, 255, 0);
-    cvSaveImage ( "SWT.png", saveSWT);
-    cvReleaseImage ( &output2 );
-    cvReleaseImage( &saveSWT );
+    // IplImage * output2 =
+    //         cvCreateImage ( cvGetSize ( input ), IPL_DEPTH_32F, 1 );
+    // normalizeImage (SWTImage, output2);
+    // IplImage * saveSWT =
+    //         cvCreateImage ( cvGetSize ( input ), IPL_DEPTH_8U, 1 );
+    // cvConvertScale(output2, saveSWT, 255, 0);
+    // cvSaveImage ( "SWT.png", saveSWT);
+    // cvReleaseImage ( &output2 );
+    // cvReleaseImage( &saveSWT );
 
-    // Calculate legally connect components from SWT and gradient image.
-    // return type is a vector of vectors, where each outer vector is a component and
-    // the inner vector contains the (y,x) of each pixel in that component.
-    std::vector<std::vector<Point2d> > components = findLegallyConnectedComponents(SWTImage, rays);
+    // // Calculate legally connect components from SWT and gradient image.
+    // // return type is a vector of vectors, where each outer vector is a component and
+    // // the inner vector contains the (y,x) of each pixel in that component.
+    // std::vector<std::vector<Point2d> > components = findLegallyConnectedComponents(SWTImage, rays);
 
-    // Filter the components
-    std::vector<std::vector<Point2d> > validComponents;
-    std::vector<std::pair<Point2d,Point2d> > compBB;
-    std::vector<Point2dFloat> compCenters;
-    std::vector<float> compMedians;
-    std::vector<Point2d> compDimensions;
-    filterComponents(SWTImage, components, validComponents, compCenters, compMedians, compDimensions, compBB );
+    // // Filter the components
+    // std::vector<std::vector<Point2d> > validComponents;
+    // std::vector<std::pair<Point2d,Point2d> > compBB;
+    // std::vector<Point2dFloat> compCenters;
+    // std::vector<float> compMedians;
+    // std::vector<Point2d> compDimensions;
+    // filterComponents(SWTImage, components, validComponents, compCenters, compMedians, compDimensions, compBB );
 
-    IplImage * output3 =
-            cvCreateImage ( cvGetSize ( input ), 8U, 3 );
-    renderComponentsWithBoxes (SWTImage, validComponents, compBB, output3);
-
-
-    std::vector<std::pair<CvPoint,CvPoint> > bb;
-    bb.reserve(compBB.size());
-    for (std::vector<std::pair<Point2d,Point2d> >::iterator it=compBB.begin(); it != compBB.end(); it++ ) {
-        CvPoint p0 = cvPoint(it->first.x,it->first.y);
-        CvPoint p1 = cvPoint(it->second.x,it->second.y);
-        std::pair<CvPoint,CvPoint> pair(p0,p1);
-        bb.push_back(pair);
-    }
-
-    int count = 0;
-    for (std::vector<std::pair<CvPoint,CvPoint> >::iterator it= bb.begin(); it != bb.end(); it++) {
-        count++;
-
-        if(count == 10) {
+    // IplImage * output3 =
+    //         cvCreateImage ( cvGetSize ( input ), 8U, 3 );
+    // renderComponentsWithBoxes (SWTImage, validComponents, compBB, output3);
 
 
-            unsigned int width = abs(it->second.x - it->first.x);
-            unsigned int height = abs(it->second.y - it->first.y);
+    // std::vector<std::pair<CvPoint,CvPoint> > bb;
+    // bb.reserve(compBB.size());
+    // for (std::vector<std::pair<Point2d,Point2d> >::iterator it=compBB.begin(); it != compBB.end(); it++ ) {
+    //     CvPoint p0 = cvPoint(it->first.x,it->first.y);
+    //     CvPoint p1 = cvPoint(it->second.x,it->second.y);
+    //     std::pair<CvPoint,CvPoint> pair(p0,p1);
+    //     bb.push_back(pair);
+    // }
 
-            CvRect cropRect = cvRect(it->first.x, it->first.y, width, height); // ROI in source image
-            IplImage *tmp = cvCreateImage(cvSize(width, height),
-                                   input->depth,
-                                   input->nChannels);
+    // int count = 0;
+    // for (std::vector<std::pair<CvPoint,CvPoint> >::iterator it= bb.begin(); it != bb.end(); it++) {
+    //     count++;
 
-            cvSetImageROI(input, cropRect);
-
-            cvCopy(input, tmp, NULL);
-            cvResetImageROI(input);
-
-            // input = cvCloneImage(tmp);
-            // printf("Orig dimensions after crop: %dx%d\n", orig->width, orig->height);
-
-            cvSaveImage("test.png", tmp);
-
-            // cvNamedWindow( "result", CV_WINDOW_AUTOSIZE );
-            // cvShowImage( "result", tmp);
-            // cvWaitKey( 0 );
-            // cvDestroyWindow( "result" );
-
-        }
+    //     if(count == 10) {
 
 
-    }
+    //         unsigned int width = abs(it->second.x - it->first.x);
+    //         unsigned int height = abs(it->second.y - it->first.y);
+
+    //         CvRect cropRect = cvRect(it->first.x, it->first.y, width, height); // ROI in source image
+    //         IplImage *tmp = cvCreateImage(cvSize(width, height),
+    //                                input->depth,
+    //                                input->nChannels);
+
+    //         cvSetImageROI(input, cropRect);
+
+    //         cvCopy(input, tmp, NULL);
+    //         cvResetImageROI(input);
+
+    //         // input = cvCloneImage(tmp);
+    //         // printf("Orig dimensions after crop: %dx%d\n", orig->width, orig->height);
+
+    //         cvSaveImage("test.png", tmp);
+
+    //         // cvNamedWindow( "result", CV_WINDOW_AUTOSIZE );
+    //         // cvShowImage( "result", tmp);
+    //         // cvWaitKey( 0 );
+    //         // cvDestroyWindow( "result" );
+
+    //     }
 
 
+    // }
 
 
 
@@ -395,31 +396,33 @@ extract_letters (IplImage * input, bool dark_on_light)
 
 
 
-    cvSaveImage ( "components.png",output3);
-    //cvReleaseImage ( &output3 );
 
-    // Make chains of components
-    std::vector<Chain> chains;
-    chains = makeChains(input, validComponents, compCenters, compMedians, compDimensions, compBB);
 
-    IplImage * output4 =
-            cvCreateImage ( cvGetSize ( input ), IPL_DEPTH_8U, 1 );
-    renderChains ( SWTImage, validComponents, chains, output4 );
-    cvSaveImage ( "text.png", output4);
+    // cvSaveImage ( "components.png",output3);
+    // //cvReleaseImage ( &output3 );
 
-    IplImage * output5 =
-            cvCreateImage ( cvGetSize ( input ), IPL_DEPTH_8U, 3 );
-    cvCvtColor (output4, output5, CV_GRAY2RGB);
-    cvReleaseImage ( &output4 );
+    // // Make chains of components
+    // std::vector<Chain> chains;
+    // chains = makeChains(input, validComponents, compCenters, compMedians, compDimensions, compBB);
 
-    /*IplImage * output =
-            cvCreateImage ( cvGetSize ( input ), IPL_DEPTH_8U, 3 );
-    renderChainsWithBoxes ( SWTImage, validComponents, chains, compBB, output); */
-    cvReleaseImage ( &gradientX );
-    cvReleaseImage ( &gradientY );
-    cvReleaseImage ( &SWTImage );
-    cvReleaseImage ( &edgeImage );
-    return output5;
+    // IplImage * output4 =
+    //         cvCreateImage ( cvGetSize ( input ), IPL_DEPTH_8U, 1 );
+    // renderChains ( SWTImage, validComponents, chains, output4 );
+    // cvSaveImage ( "text.png", output4);
+
+    // IplImage * output5 =
+    //         cvCreateImage ( cvGetSize ( input ), IPL_DEPTH_8U, 3 );
+    // cvCvtColor (output4, output5, CV_GRAY2RGB);
+    // cvReleaseImage ( &output4 );
+
+    // /*IplImage * output =
+    //         cvCreateImage ( cvGetSize ( input ), IPL_DEPTH_8U, 3 );
+    // renderChainsWithBoxes ( SWTImage, validComponents, chains, compBB, output); */
+    // cvReleaseImage ( &gradientX );
+    // cvReleaseImage ( &gradientY );
+    // cvReleaseImage ( &SWTImage );
+    // cvReleaseImage ( &edgeImage );
+    // return output5;
 
     // return SWTImage;
 }

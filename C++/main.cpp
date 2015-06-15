@@ -52,7 +52,7 @@ main(int argc, char *argv[])
     return -1;
     }
 
-    Mat inputImage = imread(argv[1]);
+    cv::Mat inputImage = cv::imread(argv[1]);
 
     if(!inputImage.data) {
         printf ( "couldn't load query image\n" );
@@ -60,6 +60,6 @@ main(int argc, char *argv[])
     }
 
     // Detect text in the image
-    extract_letters(inputImage, atoi(argv[3]));
+    extract_letters(&inputImage, atoi(argv[3]));
     // imwrite(argv[2], output);
 }
