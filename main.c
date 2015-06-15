@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <opencv/highgui.h>
-#include "text_detection.h"
+#include "extract_letters.h"
 
 int
 main(int argc, char *argv[]) {

@@ -1,5 +1,5 @@
-#ifndef TEXT_DETECTION_H
-#define TEXT_DETECTION_H
+#ifndef EXTRACT_LETTERS_H
+#define EXTRACT_LETTERS_H
 
 #include <stdbool.h>
 #include <opencv/cv.h>
@@ -16,4 +16,4 @@ extract_letters(IplImage *input_image,
 }
 #endif
 
-#endif // TEXT_DETECTION_H
+#endif // EXTRACT_LETTERS_H

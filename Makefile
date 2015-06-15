@@ -5,8 +5,8 @@ CXXFLAGS=-Wall -Wno-unused-function -Wno-unused-variable -Wreturn-type-c-linkage
 
 LIBRARIES:= -lopencv_core -lopencv_highgui -lopencv_imgproc
 
-DEPS=text_detection.cpp
-OBJ=text_detection.o main.o
+DEPS=extract_letters.cpp
+OBJ=extract_letters.o main.o
 
 RM=rm -f
 
