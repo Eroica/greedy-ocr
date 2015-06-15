@@ -1,22 +1,26 @@
-CC=clang++
+CC=clang
+CXX=clang++
+CFLAGS=-Wall -Wno-unused-function -Wno-unused-variable -Wreturn-type-c-linkage -g
+CXXFLAGS=-Wall -Wno-unused-function -Wno-unused-variable -Wreturn-type-c-linkage -g -std=c++14 -I.
 
-#FRAMEWORKS:= -framework Foundation
-#LIBRARIES:= -lobjc `pkg-config --libs --cflags opencv`
-#LIBRARIES:= -lopencv_core -lopencv_highgui -lopencv_imgproc
 LIBRARIES:= -lopencv_core -lopencv_highgui -lopencv_imgproc
 
+DEPS=text_detection.cpp
+OBJ=text_detection.o main.o
 
-#SOURCE=TextDetection.m main.m ray.m chain.m points.m graph.c list.c
+RM=rm -f
 
-SOURCE=TextDetection.cpp FeaturesMain.cpp
+# compile only, C source
+%.o: %.c
+	$(CC) -c -o $@ $< $(CFLAGS)
 
-# CFLAGS=-Wall -Werror -g -v $(SOURCE)
-CFLAGS=-Wall -Werror -Wno-unused-function -Wno-unused-variable
-LDFLAGS=$(LIBRARIES) $(FRAMEWORKS)
-OUT=-o main
+# compile only, C++ source
+%.o: %.cpp $(DEPS)
+	$(CXX) -c -o $@ $< $(CXXFLAGS)
 
-all:
-#	$(CC) $(CFLAGS) $(LDFLAGS) -ObjC $(SOURCE) $(OUT)
-	$(CC) $(CFLAGS) $(OUT) $(SOURCE) $(LDFLAGS) -I. -std=c++14
+# link
+main: $(OBJ)
+	$(CXX) $(LIBRARIES) -o $@ $^ $(CXXFLAGS)
 
-#clang -o main TextDetection.m main.m -fobjc-arc -framework Foundation `pkg-config --libs --cflags opencv`
+clean:
+	$(RM) $(OBJ)

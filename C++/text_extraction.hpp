@@ -37,21 +37,24 @@ struct Chain {
     std::vector<int> components;
 };
 
-// bool Point2dSort (Point2d const & lhs,
-//                   Point2d const & rhs);
+bool
+Point2dSort(const Point2d &lhs,
+            const Point2d &rhs);
 
 void
-extract_letters(cv::Mat *input, bool dark_on_light);
+extract_letters(cv::Mat &input, bool dark_on_light);
 
-// void strokeWidthTransform (IplImage * edgeImage,
-//                            IplImage * gradientX,
-//                            IplImage * gradientY,
-//                            bool dark_on_light,
-//                            IplImage * SWTImage,
-//                            std::vector<Ray> & rays);
+void
+strokeWidthTransform(cv::Mat &edgeImage,
+                     cv::Mat &gradientX,
+                     cv::Mat &gradientY,
+                     bool dark_on_light,
+                     IplImage &SWTImage,
+                     std::vector<Ray> &rays);
 
-// void SWTMedianFilter (IplImage * SWTImage,
-//                      std::vector<Ray> & rays);
+void
+SWTMedianFilter(IplImage &SWTImage,
+                std::vector<Ray> &rays);
 
 // std::vector< std::vector<Point2d> >
 // findLegallyConnectedComponents (IplImage * SWTImage,

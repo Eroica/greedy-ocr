@@ -16,6 +16,7 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/legacy/legacy.hpp>
 // #include <math.h>
 // #include <time.h>
 #include "text_extraction.hpp"
@@ -70,16 +71,18 @@
 //     return bb;
 // }
 
-// void normalizeImage (IplImage * input, IplImage * output) {
-//     assert ( input->depth == IPL_DEPTH_32F );
-//     assert ( input->nChannels == 1 );
-//     assert ( output->depth == IPL_DEPTH_32F );
-//     assert ( output->nChannels == 1 );
+// void normalizeImage(IplImage &input, cv::Mat &output_image) {
+//     IplImage output = output_image;
+
+//     // assert(input.depth == IPL_DEPTH_32F );
+//     // assert(input.nChannels == 1 );
+//     // assert(output.depth == IPL_DEPTH_32F );
+//     // assert(output.nChannels == 1 );
 //     float maxVal = 0;
 //     float minVal = 1e100;
-//     for( int row = 0; row < input->height; row++ ){
-//         const float* ptr = (const float*)(input->imageData + row * input->widthStep);
-//         for ( int col = 0; col < input->width; col++ ){
+//     for( int row = 0; row < input.height; row++ ){
+//         const float* ptr = (const float*)(input.imageData + row * input.widthStep);
+//         for ( int col = 0; col < input.width; col++ ){
 //             if (*ptr < 0) { }
 //             else {
 //                 maxVal = std::max(*ptr, maxVal);
@@ -90,10 +93,10 @@
 //     }
 
 //     float difference = maxVal - minVal;
-//     for( int row = 0; row < input->height; row++ ){
-//         const float* ptrin = (const float*)(input->imageData + row * input->widthStep);\
-//         float* ptrout = (float*)(output->imageData + row * output->widthStep);\
-//         for ( int col = 0; col < input->width; col++ ){
+//     for( int row = 0; row < input.height; row++ ){
+//         const float* ptrin = (const float*)(input.imageData + row * input.widthStep);\
+//         float* ptrout = (float*)(output.imageData + row * output.widthStep);\
+//         for ( int col = 0; col < input.width; col++ ){
 //             if (*ptrin < 0) {
 //                 *ptrout = 1;
 //             } else {
@@ -268,53 +271,60 @@
 // }
 
 void
-extract_letters(cv::Mat *input, bool dark_on_light)
+extract_letters(cv::Mat &input, bool dark_on_light)
 {
-    // assert ( input->depth == IPL_DEPTH_8U );
-    // assert ( input->nChannels == 3 );
+    // assert(input->depth == IPL_DEPTH_8U);
+    // assert(input->nChannels == 3);
     std::cout << "Running textDetection with dark_on_light " << dark_on_light << std::endl;
 
     // Convert to grayscale
-    cv::Mat grayImage(input->size(), input->type());
+    cv::Mat grayImage(input.size(), input.type());
 
     cv::cvtColor(grayImage, grayImage, cv::COLOR_RGB2GRAY);
 
     // Create Canny Image
     double threshold_low = 175;
     double threshold_high = 320;
-    cv::Mat edgeImage(input->size(), input->type());
-    cv::Canny(*input, edgeImage, threshold_low, threshold_high);
+    cv::Mat edgeImage(input.size(), input.type());
+    cv::Canny(input, edgeImage, threshold_low, threshold_high);
     cv::imwrite("canny.png", edgeImage);
 
     // Create gradient X, gradient Y
-
-
-    cv::Mat gaussianImage(input->size(), input->type(), cv::Scalar(1./255.));
+    cv::Mat gaussianImage(input.size(), input.type(), cv::Scalar(1./255.));
 
     cv::GaussianBlur(gaussianImage, gaussianImage, cv::Size(3, 3), 5);
     // cvSmooth( gaussianImage, gaussianImage, CV_GAUSSIAN, 5, 5);
-    cv::Mat gradientX(input->size(), input->type());
-    cv::Mat gradientY(input->size(), input->type());
-    cv::Sobel(gaussianImage, gradientX, gradientX.type(), 1, 0);
-    cv::Sobel(gaussianImage, gradientY, gradientY.type(), 1, 0);
+    cv::Mat gradientX(input.size(), input.type());
+    cv::Mat gradientY(input.size(), input.type());
+    cv::Sobel(gaussianImage, gradientX, gradientX.depth(), 1, 0);
+    cv::Sobel(gaussianImage, gradientY, gradientY.depth(), 0, 1);
+    cv::blur(gradientX, gradientX, cv::Size(3,3));
+    cv::blur(gradientY, gradientY, cv::Size(3,3));
     // cvSmooth(gradientX, gradientX, 3, 3);
     // cvSmooth(gradientY, gradientY, 3, 3);
 
     // Calculate SWT and return ray vectors
     std::vector<Ray> rays;
-    cv::Mat SWTImage(input->size(), input->type());
+    cv::Mat SWTImage(input.size(), input.type());
 
     IplImage swt_image = SWTImage;
-    IplImage input_image = *input;
+    IplImage input_image = input;
 
-    for(int row = 0; row < input_image.height; row++) {
-        float* ptr = (float*)(swt_image.imageData + row * swt_image.widthStep);
-        for ( int col = 0; col < input_image.width; col++ ){
-            *ptr++ = -1;
-        }
-    }
-    // strokeWidthTransform ( edgeImage, gradientX, gradientY, dark_on_light, SWTImage, rays );
-    // SWTMedianFilter ( SWTImage, rays );
+    // for(int row = 0; row < input_image.height; row++) {
+    //     float* ptr = (float*)(swt_image.imageData + row * swt_image.widthStep);
+    //     for ( int col = 0; col < input_image.width; col++ ){
+    //         *ptr++ = -1;
+    //     }
+    // }
+
+    strokeWidthTransform(edgeImage, gradientX, gradientY, dark_on_light, swt_image, rays);
+    SWTMedianFilter(swt_image, rays);
+
+    cv::Mat output2(input.size(), input.type());
+    // normalizeImage(swt_image, output2);
+    cv::Mat saveSWT(input.size(), input.type(), cv::Scalar(1./255.));
+    SWTImage.copyTo(saveSWT);
+    imwrite("SWT.png", saveSWT);
 
     // IplImage * output2 =
     //         cvCreateImage ( cvGetSize ( input ), IPL_DEPTH_32F, 1 );
@@ -427,17 +437,22 @@ extract_letters(cv::Mat *input, bool dark_on_light)
     // return SWTImage;
 }
 
-// void strokeWidthTransform (IplImage * edgeImage,
-//                            IplImage * gradientX,
-//                            IplImage * gradientY,
-//                            bool dark_on_light,
-//                            IplImage * SWTImage,
-//                            std::vector<Ray> & rays) {
+// void strokeWidthTransform(cv::Mat &edgeImage,
+//                           cv::Mat &gradientX,
+//                           cv::Mat &gradientY,
+//                           bool dark_on_light,
+//                           IplImage &SWTImage,
+//                           std::vector<Ray> & rays)
+// {
+//     IplImage edge_image = edgeImage;
+//     IplImage gradient_x = gradientX;
+//     IplImage gradient_y = gradientY;
+
 //     // First pass
 //     float prec = .05;
-//     for( int row = 0; row < edgeImage->height; row++ ){
-//         const uchar* ptr = (const uchar*)(edgeImage->imageData + row * edgeImage->widthStep);
-//         for ( int col = 0; col < edgeImage->width; col++ ){
+//     for( int row = 0; row < edge_image.height; row++ ){
+//         const uchar* ptr = (const uchar*)(edge_image.imageData + row * edge_image.widthStep);
+//         for ( int col = 0; col < edge_image.width; col++ ){
 //             if (*ptr > 0) {
 //                 Ray r;
 
@@ -452,8 +467,8 @@ extract_letters(cv::Mat *input, bool dark_on_light)
 //                 float curY = (float)row + 0.5;
 //                 int curPixX = col;
 //                 int curPixY = row;
-//                 float G_x = CV_IMAGE_ELEM ( gradientX, float, row, col);
-//                 float G_y = CV_IMAGE_ELEM ( gradientY, float, row, col);
+//                 float G_x = CV_IMAGE_ELEM (&gradient_x, float, row, col);
+//                 float G_y = CV_IMAGE_ELEM (&gradient_y, float, row, col);
 //                 // normalize gradient
 //                 float mag = sqrt( (G_x * G_x) + (G_y * G_y) );
 //                 if (dark_on_light){
@@ -471,7 +486,7 @@ extract_letters(cv::Mat *input, bool dark_on_light)
 //                         curPixX = (int)(floor(curX));
 //                         curPixY = (int)(floor(curY));
 //                         // check if pixel is outside boundary of image
-//                         if (curPixX < 0 || (curPixX >= SWTImage->width) || curPixY < 0 || (curPixY >= SWTImage->height)) {
+//                         if (curPixX < 0 || (curPixX >= SWTImage.width) || curPixY < 0 || (curPixY >= SWTImage.height)) {
 //                             break;
 //                         }
 //                         Point2d pnew;
@@ -479,11 +494,11 @@ extract_letters(cv::Mat *input, bool dark_on_light)
 //                         pnew.y = curPixY;
 //                         points.push_back(pnew);
 
-//                         if (CV_IMAGE_ELEM ( edgeImage, uchar, curPixY, curPixX) > 0) {
+//                         if (CV_IMAGE_ELEM (&edge_image, uchar, curPixY, curPixX) > 0) {
 //                             r.q = pnew;
 //                             // dot product
-//                             float G_xt = CV_IMAGE_ELEM(gradientX,float,curPixY,curPixX);
-//                             float G_yt = CV_IMAGE_ELEM(gradientY,float,curPixY,curPixX);
+//                             float G_xt = CV_IMAGE_ELEM(&gradient_x,float,curPixY,curPixX);
+//                             float G_yt = CV_IMAGE_ELEM(&gradient_y,float,curPixY,curPixX);
 //                             mag = sqrt( (G_xt * G_xt) + (G_yt * G_yt) );
 //                             if (dark_on_light){
 //                                 G_xt = -G_xt/mag;
@@ -497,10 +512,10 @@ extract_letters(cv::Mat *input, bool dark_on_light)
 //                             if (acos(G_x * -G_xt + G_y * -G_yt) < PI/2.0 ) {
 //                                 float length = sqrt( ((float)r.q.x - (float)r.p.x)*((float)r.q.x - (float)r.p.x) + ((float)r.q.y - (float)r.p.y)*((float)r.q.y - (float)r.p.y));
 //                                 for (std::vector<Point2d>::iterator pit = points.begin(); pit != points.end(); pit++) {
-//                                     if (CV_IMAGE_ELEM(SWTImage, float, pit->y, pit->x) < 0) {
-//                                         CV_IMAGE_ELEM(SWTImage, float, pit->y, pit->x) = length;
+//                                     if (CV_IMAGE_ELEM(&SWTImage, float, pit->y, pit->x) < 0) {
+//                                         CV_IMAGE_ELEM(&SWTImage, float, pit->y, pit->x) = length;
 //                                     } else {
-//                                         CV_IMAGE_ELEM(SWTImage, float, pit->y, pit->x) = std::min(length, CV_IMAGE_ELEM(SWTImage, float, pit->y, pit->x));
+//                                         CV_IMAGE_ELEM(&SWTImage, float, pit->y, pit->x) = std::min(length, CV_IMAGE_ELEM(&SWTImage, float, pit->y, pit->x));
 //                                     }
 //                                 }
 //                                 r.points = points;
@@ -514,25 +529,27 @@ extract_letters(cv::Mat *input, bool dark_on_light)
 //             ptr++;
 //         }
 //     }
-
 // }
 
-// void SWTMedianFilter (IplImage * SWTImage,
-//                      std::vector<Ray> & rays) {
-//     for (std::vector<Ray>::iterator rit = rays.begin(); rit != rays.end(); rit++) {
-//         for (std::vector<Point2d>::iterator pit = rit->points.begin(); pit != rit->points.end(); pit++) {
-//             pit->SWT = CV_IMAGE_ELEM(SWTImage, float, pit->y, pit->x);
+// void
+// SWTMedianFilter(IplImage &SWTImage,
+//                 std::vector<Ray> &rays)
+// {
+//     for(auto rit : rays) {
+//         for(auto pit : rit.points) {
+//             pit.SWT = CV_IMAGE_ELEM(&SWTImage, float, pit.y, pit.x);
 //         }
-//         std::sort(rit->points.begin(), rit->points.end(), &Point2dSort);
-//         float median = (rit->points[rit->points.size()/2]).SWT;
-//         for (std::vector<Point2d>::iterator pit = rit->points.begin(); pit != rit->points.end(); pit++) {
-//             CV_IMAGE_ELEM(SWTImage, float, pit->y, pit->x) = std::min(pit->SWT, median);
+//         std::sort(rit.points.begin(), rit.points.end(), &Point2dSort);
+//         float median = (rit.points[rit.points.size()/2]).SWT;
+//         for (auto pit : rit.points) {
+//             CV_IMAGE_ELEM(&SWTImage, float, pit.y, pit.x) = std::min(pit.SWT, median);
 //         }
 //     }
-
 // }
 
-// bool Point2dSort (const Point2d &lhs, const Point2d &rhs) {
+// bool
+// Point2dSort(const Point2d &lhs, const Point2d &rhs)
+// {
 //     return lhs.SWT < rhs.SWT;
 // }
 

@@ -1,3 +1,4 @@
+#include <iostream>
 #include <cassert>
 #include <fstream>
 #include <exception>
@@ -38,6 +39,6 @@ main(int argc, char *argv[])
     }
 
     // Detect text in the image
-    extract_letters(&inputImage, atoi(argv[3]));
+    extract_letters(inputImage, atoi(argv[3]));
     // imwrite(argv[2], output);
 }
