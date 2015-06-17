@@ -4,6 +4,23 @@ import numpy as np
 MINMAX = min
 ALIGN_LETTERS_HEIGHT = False
 
+def hash(img):
+    """Algorithm description: http://www.hackerfactor.com/blog/index.php?/archives/432-Looks-Like-It.html
+    """
+
+    img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    img_8x8 = cv2.resize(img_gray, (8, 8))
+
+    sum_pixel = reduce(lambda x, y: x+y,
+                       (img_8x8.item(p) for p in range(0, 64)))
+    average = sum_pixel/64
+
+    bits = [1 if b_gray.item(x) > average else 0 for x in range(0, 64)]
+
+    return hex(int(''.join(str(b) for b in bits), 2))
+
+
+
 def catImage(img_left, img_right):
     """
     """
