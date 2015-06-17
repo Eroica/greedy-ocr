@@ -350,41 +350,41 @@ void renderChains (IplImage * SWTImage,
 
 
 
-// void
-// extractComponents(IplImage *input,
-//                   std::vector<std::pair<Point2d, Point2d>> &compBB)
-// {
-//     int count = 0;
+void
+extractComponents(IplImage *input,
+                  std::vector<std::pair<Point2d, Point2d>> &compBB)
+{
+    int count = 0;
 
-//     for(auto comp : compBB) {
-//         unsigned int width = abs(comp.second.x - comp.first.x);
-//         unsigned int height = abs(comp.second.y - comp.first.y);
+    for(auto comp : compBB) {
+        unsigned int width = abs(comp.second.x - comp.first.x);
+        unsigned int height = abs(comp.second.y - comp.first.y);
 
-//         CvRect cropRect = cvRect(comp.first.x, comp.first.y, width, height);
-//         IplImage *tmp = cvCreateImage(cvSize(width, height), input->depth, input->nChannels);
+        CvRect cropRect = cvRect(comp.first.x, comp.first.y, width, height);
+        IplImage *tmp = cvCreateImage(cvSize(width, height), input->depth, input->nChannels);
 
-//         cvSetImageROI(input, cropRect);
+        cvSetImageROI(input, cropRect);
 
-//         if(width > 0 && height > 0) {
-//             cvCopy(input, tmp, NULL);
-//         }
+        if(width > 0 && height > 0) {
+            cvCopy(input, tmp, NULL);
+        }
 
-//         cvResetImageROI(input);
+        cvResetImageROI(input);
 
-//         char filename[8];
-//         sprintf(filename, "%d.jpg", count);
+        char filename[8];
+        sprintf(filename, "%d.jpg", count);
 
-//         // if(count <= 10)
-//             cvSaveImage(filename, tmp);
+        if(count <= 100)
+            cvSaveImage(filename, tmp);
 
-//         // cvNamedWindow( "result", CV_WINDOW_AUTOSIZE );
-//         // cvShowImage( "result", tmp);
-//         // cvWaitKey( 0 );
-//         // cvDestroyWindow( "result" );
-//         count++;
-//     }
+        // cvNamedWindow( "result", CV_WINDOW_AUTOSIZE );
+        // cvShowImage( "result", tmp);
+        // cvWaitKey( 0 );
+        // cvDestroyWindow( "result" );
+        count++;
+    }
 
-// }
+}
 
 
 
@@ -471,6 +471,8 @@ extract_letters(IplImage *input_image, bool dark_on_light)
     // Make chains of components
     std::vector<Chain> chains;
     chains = makeChains(input_image, validComponents, compCenters, compMedians, compDimensions, compBB);
+
+    extractComponents(input_image, compBB);
 
     IplImage * output4 =
             cvCreateImage ( cvGetSize ( input_image ), IPL_DEPTH_8U, 1 );

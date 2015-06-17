@@ -15,7 +15,7 @@ def hash(img):
                        (img_8x8.item(p) for p in range(0, 64)))
     average = sum_pixel/64
 
-    bits = [1 if b_gray.item(x) > average else 0 for x in range(0, 64)]
+    bits = [1 if img_8x8.item(x) > average else 0 for x in range(0, 64)]
 
     return hex(int(''.join(str(b) for b in bits), 2))
 
