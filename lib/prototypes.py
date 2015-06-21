@@ -1,8 +1,11 @@
 import cv2
 import numpy as np
+from collections import OrderedDict
+from random import randint, choice
 
 MINMAX = min
-ALIGN_LETTERS_HEIGHT = False
+# ALIGN_COMPONENTS_HEIGHT = False
+# RANDOM = True
 
 def hash(img):
     """Algorithm description: http://www.hackerfactor.com/blog/index.php?/archives/432-Looks-Like-It.html
@@ -19,8 +22,6 @@ def hash(img):
 
     return hex(int(''.join(str(b) for b in bits), 2))
 
-
-
 def catImage(img_left, img_right):
     """
     """
@@ -30,7 +31,7 @@ def catImage(img_left, img_right):
 
     cat_img = np.zeros((height, width, 3), np.uint8)
 
-    if ALIGN_LETTERS_HEIGHT:
+    if ALIGN_COMPONENTS_HEIGHT:
         if img_left.shape[0] > img_right.shape[0]:
             y_offset = (img_left.shape[0] - img_right.shape[0])/2
             smaller_height = y_offset + img_right.shape[0]
@@ -51,79 +52,126 @@ def catImage(img_left, img_right):
     return cat_img
 
 
-class Word(str):
-    _default_image = None
+class Prototype(str):
+    """
 
-    def __init__(self, string, image=_default_image):
-        self.image = image
+    """
 
-    def __new__(cls, string, image=_default_image):
-        return super(Word, cls).__new__(cls, str(string))
+    ALIGN_COMPONENTS_HEIGHTS = False
 
-    def __add__(self, letter_right):
-        width = self.image.shape[1] + letter_right.image.shape[1]
-        height = max(self.image.shape[0], letter_right.image.shape[0])
+    # @property
+    # def image(self):
+    #     return choice(self._image)
+    # @image.setter
+    # def image(self, img):
+    #     # self._image.append(img)
+    #     pass
 
-        word_img = np.zeros((height, width, 3), np.uint8)
+    # @property
+    # def components(self):
+    #     return self._components
+    # @components.setter
+    # def components(self, component):
+    #     self._components.append(component)
 
-        if ALIGN_LETTERS_HEIGHT:
-            if self.image.shape[0] > letter_right.image.shape[0]:
-                y_offset = (self.image.shape[0] - letter_right.image.shape[0])/2
-                smaller_height = y_offset + letter_right.image.shape[0]
+    @classmethod
+    def _from_components(cls, composition, *components):
+        """
+        """
 
-                word_img[0:self.image.shape[0], 0:self.image.shape[1]] = self.image[:]
-                word_img[y_offset:smaller_height, self.image.shape[1]:] = letter_right.image[:]
+        left_image = components[0].random_image()
+        right_image = components[1].random_image()
+
+        width = left_image.shape[1] + right_image.shape[1]
+        height = max(left_image.shape[0], right_image.shape[0])
+
+        composition_img = np.zeros((height, width, 3), np.uint8)
+
+        if Prototype.ALIGN_COMPONENTS_HEIGHTS:
+            if left_image.shape[0] > right_image.shape[0]:
+                y_offset = (left_image.shape[0] - right_image.shape[0])/2
+                smaller_height = y_offset + right_image.shape[0]
+
+                composition_img[0:left_image.shape[0], 0:left_image.shape[1]] = left_image[:]
+                composition_img[y_offset:smaller_height, left_image.shape[1]:] = right_image[:]
             else:
-                y_offset = (letter_right.image.shape[0] - self.image.shape[0])/2
-                smaller_height = y_offset + self.image.shape[0]
+                y_offset = (right_image.shape[0] - left_image.shape[0])/2
+                smaller_height = y_offset + left_image.shape[0]
 
-                word_img[y_offset:smaller_height, 0:self.image.shape[1]] = self.image[:]
-                word_img[0:letter_right.image.shape[0], self.image.shape[1]:] = letter_right.image[:]
-
+                composition_img[y_offset:smaller_height, 0:left_image.shape[1]] = left_image[:]
+                composition_img[0:right_image.shape[0], left_image.shape[1]:] = right_image[:]
         else:
-            word_img[0:self.image.shape[0], 0:self.image.shape[1]] = self.image[:]
-            word_img[0:letter_right.image.shape[0], self.image.shape[1]:] = letter_right.image[:]
+            composition_img[0:left_image.shape[0], 0:left_image.shape[1]] = left_image[:]
+            composition_img[0:right_image.shape[0], left_image.shape[1]:] = right_image[:]
 
-        return Word(str(self) + str(letter_right), word_img)
+        comp_prototype = cls(composition, composition_img)
+
+        comp_prototype.components.append(left_image.shape[:2])
+        comp_prototype.components.append(right_image.shape[:2])
+
+        return comp_prototype
+
+    def __new__(cls, letter, *letter_images):
+        """
+        """
+
+        # assert len(letter) == len(letter_images)
+
+        return super(Prototype, cls).__new__(cls, str(letter))
+
+    def __init__(self, letter, *letter_images):
+        """
+        """
+
+        self.image = []
+        self.components = []
+
+        # if len(letter) == 1:
+        #     self.components.append(self)
+        # self.components = [self]
+
+        for img in letter_images:
+            if isinstance(img, str):
+                self.image.append(cv2.imread(img))
+
+            if isinstance(img, np.ndarray):
+                self.image.append(img)
+
+    def __add__(self, right_component):
+        """
+        """
+
+        return Prototype._from_components(str(self) + str(right_component), self, right_component)
+
+    def random_image(self):
+        """
+        """
+
+        return choice(self.image)
+
+    # # def __getitem__(self, index):
+    # #     if RANDOM:
+    # #         return self.image[randint(0, len(self.image))]
+    # #     else:
+    # #         return self.image[index]
+
+    # #     if isinstance( index, slice ) :
+
+    def write_box_file(self, path=None):
+        """
+        """
+
+        box_file_path = path or (self + '.box')
+        return box_file_path
+
+        # with open(box_file_path, 'w') as box_file:
+        #     for char in self:
+        #         box_file.write(char + ' ' + '0 0 {0} {1}'
+        #                        .format(prototype.image.shape[1],
+        #                                prototype.image.shape[0]))
 
 
-
-class Letter(str):
-    _default_image = None
-
-    def __init__(self, letter, image=_default_image):
-        self.image = cv2.imread(image)
-
-    def __new__(cls, letter, image=_default_image):
-        return super(Letter, cls).__new__(cls, str(letter)[0])
-
-    def __add__(self, letter_right):
-        width = self.image.shape[1] + letter_right.image.shape[1]
-        height = max(self.image.shape[0], letter_right.image.shape[0])
-
-        word_img = np.zeros((height, width, 3), np.uint8)
-
-        if ALIGN_LETTERS_HEIGHT:
-            if self.image.shape[0] > letter_right.image.shape[0]:
-                y_offset = (self.image.shape[0] - letter_right.image.shape[0])/2
-                smaller_height = y_offset + letter_right.image.shape[0]
-
-                word_img[0:self.image.shape[0], 0:self.image.shape[1]] = self.image[:]
-                word_img[y_offset:smaller_height, self.image.shape[1]:] = letter_right.image[:]
-            else:
-                y_offset = (letter_right.image.shape[0] - self.image.shape[0])/2
-                smaller_height = y_offset + self.image.shape[0]
-
-                word_img[y_offset:smaller_height, 0:self.image.shape[1]] = self.image[:]
-                word_img[0:letter_right.image.shape[0], self.image.shape[1]:] = letter_right.image[:]
-
-        else:
-            word_img[0:self.image.shape[0], 0:self.image.shape[1]] = self.image[:]
-            word_img[0:letter_right.image.shape[0], self.image.shape[1]:] = letter_right.image[:]
-
-        return Word(str(self) + str(letter_right), word_img)
-
-
-a = Letter("aaaa", "../share/a.png")
-b = Letter("bbb", "../share/b.png")
-c = Letter("ccc", "../share/c.png")
+a = Prototype("aaaa", "../share/a.png")
+b = Prototype("bbb", "../share/b.png")
+c = Prototype("ccc", "../share/c.png")
+ab = a + b
