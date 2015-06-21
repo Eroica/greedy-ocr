@@ -32,3 +32,9 @@ for letter in letter_images:
 
 Alphabet = prototypes.PrototypeFactory(letters)
 
+a = Alphabet.create_word("""des bibers
+freude ist das
+nagen""")
+if a:
+    cv2.imshow('', a.image)
+    cv2.waitKey(0)

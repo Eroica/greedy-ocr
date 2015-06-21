@@ -5,7 +5,7 @@ from random import randint, choice
 
 MINMAX = min
 DEBUG = True
-BASELINE_HEIGHT = 10
+BASELINE_HEIGHT = -10
 
 def hash(img):
     """Algorithm description: http://www.hackerfactor.com/blog/index.php?/archives/432-Looks-Like-It.html
@@ -56,17 +56,31 @@ class Prototype(str):
         images = [x.image for x in components]
 
         width = reduce(lambda x, y: x + y, (x.shape[1] for x in images))
-        height = reduce(max, (x.shape[0] for x in images))
+
+        base_height = reduce(max, (x.shape[0] for x in images))
+        height = base_height
+
+        newline = filter(lambda x: x == '\n', components)
+        if newline:
+            width /= composition.count('\n')
+            height += composition.count('\n') * newline[0].image.shape[0]
+            # height += 100
 
         composition_img = np.zeros((height, width, 3), np.uint8)
         expanded_width = 0
+        baseline = 0
 
         if Prototype.ALIGN_COMPONENTS_HEIGHTS:
             for i, component in enumerate(components):
-                y_offset = (height - component.image.shape[0])/2
+                y_offset = (base_height - component.image.shape[0])/2
+
+                if component == '\n':
+                    baseline += component.image.shape[0]
+                    expanded_width = 0
+                    continue
 
                 composition_img[
-                    y_offset:component.image.shape[0] + y_offset,
+                    baseline + y_offset:component.image.shape[0] + y_offset + baseline,
                     expanded_width:component.image.shape[1] + expanded_width] \
                 = component.image[:]
 
