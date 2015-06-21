@@ -2,39 +2,33 @@ import os
 import numpy as np
 import cv2
 import prototypes
-
-LETTERS = 'abcdefghijklmnopqrstuvwxyz'
-# FOLDERS = [char for char in LETTERS] + [char + '_' for char in LETTERS]
-LEXICON = 'lexicon.txt'
-EXTENSIONS = ('.jpg', '.png', '.tiff')
-
-FOLDERS = ["a_", "b_", "d_", "e_", "g_", "i_", "n_", "o_", "r_", "s_", "t_", "u_"]
+import config
 
 # assert all(folder in os.listdir('.') for folder in FOLDERS)
 # assert LEXICON in os.listdir('.')
 
-characters = {}
+folders = os.listdir(config.IMAGES_PATH)
+letters = dict((l, []) for l in filter(lambda x: x in folders, config.ALPHABET))
+letter_images = {}
 
-for folder in FOLDERS:
-    char = folder[0]
-    characters[char] = []
+test_phrase = "eine neue"
+test_text = """eine neue
+der die das
+ein einer"""
 
-    for file in os.listdir('../letters/' + folder):
-        if file.endswith(EXTENSIONS):
-            # print file
-            # print '../letters/' + folder + '/' + file
+for letter in letters:
+    letter_images[letter] = []
 
-            prototype = prototypes.Letter(char, '../letters/' + folder + '/' + file)
-            characters[char].append(prototype)
-            # print prototype.image.shape[0]
-            # print prototype.image.shape[1]
-            # cv2.imshow("", prototype.image)
-            # cv2.waitKey(0)
+    for file in os.listdir(config.IMAGES_PATH + '/' + letter):
+        if file.endswith(config.EXTENSIONS):
+            letter_images[letter].append(file)
 
-            box_file_name = '../letters/' + folder + '/' + os.path.splitext(file)[0] + '.box'
-            # print box_file_name
+    # DEBUG
+    letter_images[letter] = letter_images[letter][0]
 
-            with open(box_file_name, 'w') as box_file:
-                box_file.write(char + ' ' + '0 0 {0} {1}'
-                               .format(prototype.image.shape[1],
-                                       prototype.image.shape[0]))
+for letter in letter_images:
+    img = cv2.imread(config.IMAGES_PATH + '/' + letter + '/' + letter_images[letter])
+    letters[letter] = img
+
+Alphabet = prototypes.PrototypeFactory(letters)
+

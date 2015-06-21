@@ -5,6 +5,7 @@ from random import randint, choice
 
 MINMAX = min
 DEBUG = True
+BASELINE_HEIGHT = 10
 
 def hash(img):
     """Algorithm description: http://www.hackerfactor.com/blog/index.php?/archives/432-Looks-Like-It.html
@@ -129,26 +130,71 @@ class Prototype(str):
         components = expand_components(self)
         x_offset = 0
 
+        if DEBUG:
+            for prototype in components:
+                y_offset = (self.image.shape[0] - prototype.image.shape[0])/2
+
+                print '{0} {1} {2} {3} {4}'.format(prototype,
+                                                   x_offset,
+                                                   y_offset,
+                                                   x_offset + prototype.image.shape[1],
+                                                   y_offset + prototype.image.shape[0])
+                x_offset += prototype.image.shape[1]
+            return
+
         with open(box_file_path, 'w') as box_file:
             for prototype in components:
                 y_offset = (self.image.shape[0] - prototype.image.shape[0])/2
-                # print prototype
-                if DEBUG:
-                    print '{0} {1} {2} {3} {4}'.format(prototype,
-                                                       x_offset,
-                                                       y_offset,
-                                                       x_offset + prototype.image.shape[1],
-                                                       y_offset + prototype.image.shape[0])
-                else:
-                    box_file.write('{0} {1} {2} {3} {4}'.format(prototype,
-                                                                x_offset,
-                                                                y_offset,
-                                                                x_offset + prototype.image.shape[1],
-                                                                y_offset + prototype.image.shape[0]))
+
+                box_file.write('{0} {1} {2} {3} {4}'
+                               .format(prototype,
+                                       x_offset,
+                                       y_offset,
+                                       x_offset + prototype.image.shape[1],
+                                       y_offset + prototype.image.shape[0]))
                 x_offset += prototype.image.shape[1]
 
 
 class PrototypeFactory(OrderedDict):
+    """
+
+    """
+
+    def __init__(self, alphabet):
+        """
+        """
+
+        super(PrototypeFactory, self).__init__()
+
+        for letter in alphabet:
+            self[letter] = Prototype(letter, alphabet[letter])
+
+        # DEBUG
+
+        # Create a blank space character.
+        width = reduce(lambda x, y: x + y, (x.image.shape[1] for x in self.values()))
+        width /= len(self.values())
+        height = reduce(lambda x, y: x + y, (x.image.shape[0] for x in self.values()))
+        height /= len(self.values())
+        max_height = reduce(max, (x.image.shape[0] for x in self.values()))
+
+        self[' '] = Prototype(' ', np.zeros((width, height, 3), np.uint8))
+        self['\n'] = Prototype('\n', np.zeros((max_height + BASELINE_HEIGHT, 0, 3), np.uint8))
+
+    def create_word(self, word):
+        """
+        """
+
+        if not all(l in self for l in word):
+            print "Some letters not found!"
+            return
+
+        components = [self[letter] for letter in word]
+
+        return Prototype._from_components(*components)
+
+
+
     def random_image(self):
         """
         """
