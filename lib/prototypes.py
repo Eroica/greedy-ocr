@@ -1,11 +1,10 @@
 import cv2
 import numpy as np
-from collections import OrderedDict
+from collections import OrderedDict, Sequence
 from random import randint, choice
 
 MINMAX = min
-# ALIGN_COMPONENTS_HEIGHT = False
-# RANDOM = True
+DEBUG = True
 
 def hash(img):
     """Algorithm description: http://www.hackerfactor.com/blog/index.php?/archives/432-Looks-Like-It.html
@@ -22,43 +21,14 @@ def hash(img):
 
     return hex(int(''.join(str(b) for b in bits), 2))
 
-def catImage(img_left, img_right):
-    """
-    """
-
-    width = img_left.shape[1] + img_right.shape[1]
-    height = max(img_left.shape[0], img_right.shape[0])
-
-    cat_img = np.zeros((height, width, 3), np.uint8)
-
-    if ALIGN_COMPONENTS_HEIGHT:
-        if img_left.shape[0] > img_right.shape[0]:
-            y_offset = (img_left.shape[0] - img_right.shape[0])/2
-            smaller_height = y_offset + img_right.shape[0]
-
-            cat_img[0:img_left.shape[0], 0:img_left.shape[1]] = img_left[:]
-            cat_img[y_offset:smaller_height, img_left.shape[1]:] = img_right[:]
-        else:
-            y_offset = (img_right.shape[0] - img_left.shape[0])/2
-            smaller_height = y_offset + img_left.shape[0]
-
-            cat_img[y_offset:smaller_height, 0:img_left.shape[1]] = img_left[:]
-            cat_img[0:img_right.shape[0], img_left.shape[1]:] = img_right[:]
-
-    else:
-        cat_img[0:img_left.shape[0], 0:img_left.shape[1]] = img_left[:]
-        cat_img[0:img_right.shape[0], img_left.shape[1]:] = img_right[:]
-
-    return cat_img
-
 
 class Prototype(str):
     """
 
     """
 
-    ALIGN_COMPONENTS_HEIGHTS = False
-
+    ALIGN_COMPONENTS_HEIGHTS = True
+    _default_image = None
     # @property
     # def image(self):
     #     return choice(self._image)
@@ -75,79 +45,116 @@ class Prototype(str):
     #     self._components.append(component)
 
     @classmethod
-    def _from_components(cls, composition, *components):
+    def _from_components(cls, *components):
         """
         """
 
-        left_image = components[0].random_image()
-        right_image = components[1].random_image()
+        assert len(components) > 0
 
-        width = left_image.shape[1] + right_image.shape[1]
-        height = max(left_image.shape[0], right_image.shape[0])
+        composition = ''.join(letter for letter in components)
+        images = [x.image for x in components]
+
+        width = reduce(lambda x, y: x + y, (x.shape[1] for x in images))
+        height = reduce(max, (x.shape[0] for x in images))
 
         composition_img = np.zeros((height, width, 3), np.uint8)
+        expanded_width = 0
 
         if Prototype.ALIGN_COMPONENTS_HEIGHTS:
-            if left_image.shape[0] > right_image.shape[0]:
-                y_offset = (left_image.shape[0] - right_image.shape[0])/2
-                smaller_height = y_offset + right_image.shape[0]
+            for i, component in enumerate(components):
+                y_offset = (height - component.image.shape[0])/2
 
-                composition_img[0:left_image.shape[0], 0:left_image.shape[1]] = left_image[:]
-                composition_img[y_offset:smaller_height, left_image.shape[1]:] = right_image[:]
-            else:
-                y_offset = (right_image.shape[0] - left_image.shape[0])/2
-                smaller_height = y_offset + left_image.shape[0]
+                composition_img[
+                    y_offset:component.image.shape[0] + y_offset,
+                    expanded_width:component.image.shape[1] + expanded_width] \
+                = component.image[:]
 
-                composition_img[y_offset:smaller_height, 0:left_image.shape[1]] = left_image[:]
-                composition_img[0:right_image.shape[0], left_image.shape[1]:] = right_image[:]
-        else:
-            composition_img[0:left_image.shape[0], 0:left_image.shape[1]] = left_image[:]
-            composition_img[0:right_image.shape[0], left_image.shape[1]:] = right_image[:]
+                expanded_width += component.image.shape[1]
 
         comp_prototype = cls(composition, composition_img)
 
-        comp_prototype.components.append(left_image.shape[:2])
-        comp_prototype.components.append(right_image.shape[:2])
+        for comp in components:
+            comp_prototype.components.append(comp)
 
         return comp_prototype
 
-    def __new__(cls, letter, *letter_images):
+    @classmethod
+    def from_image_file(cls, letter, image_file):
         """
         """
 
-        # assert len(letter) == len(letter_images)
+        assert isinstance(image_file, str)
+        image = cv2.imread(image_file)
+
+        return cls(letter, image)
+
+    def __new__(cls, letter, image=_default_image):
+        """
+        """
 
         return super(Prototype, cls).__new__(cls, str(letter))
 
-    def __init__(self, letter, *letter_images):
+    def __init__(self, letter, image=_default_image):
         """
         """
 
-        self.image = []
+        self.image = image
         self.components = []
-
-        # if len(letter) == 1:
-        #     self.components.append(self)
-        # self.components = [self]
-
-        for img in letter_images:
-            if isinstance(img, str):
-                self.image.append(cv2.imread(img))
-
-            if isinstance(img, np.ndarray):
-                self.image.append(img)
 
     def __add__(self, right_component):
         """
         """
 
-        return Prototype._from_components(str(self) + str(right_component), self, right_component)
+        return Prototype._from_components(self, right_component)
 
+
+    def write_box_file(self, path=None):
+        """
+        """
+
+        def expand_components(prot):
+            """
+            """
+
+            if len(prot.components) == 0:
+                return [prot]
+            else:
+                l = []
+                for comp in prot.components:
+                    # l.extend(expand_components(comp))
+                    l += expand_components(comp)
+                return l
+
+        box_file_path = path or (str(self) + '.box')
+        components = expand_components(self)
+        x_offset = 0
+
+        with open(box_file_path, 'w') as box_file:
+            for prototype in components:
+                y_offset = (self.image.shape[0] - prototype.image.shape[0])/2
+                # print prototype
+                if DEBUG:
+                    print '{0} {1} {2} {3} {4}'.format(prototype,
+                                                       x_offset,
+                                                       y_offset,
+                                                       x_offset + prototype.image.shape[1],
+                                                       y_offset + prototype.image.shape[0])
+                else:
+                    box_file.write('{0} {1} {2} {3} {4}'.format(prototype,
+                                                                x_offset,
+                                                                y_offset,
+                                                                x_offset + prototype.image.shape[1],
+                                                                y_offset + prototype.image.shape[0]))
+                x_offset += prototype.image.shape[1]
+
+
+class PrototypeFactory(OrderedDict):
     def random_image(self):
         """
         """
 
         return choice(self.image)
+
 
     # # def __getitem__(self, index):
     # #     if RANDOM:
@@ -157,21 +164,9 @@ class Prototype(str):
 
     # #     if isinstance( index, slice ) :
 
-    def write_box_file(self, path=None):
-        """
-        """
 
-        box_file_path = path or (self + '.box')
-        return box_file_path
-
-        # with open(box_file_path, 'w') as box_file:
-        #     for char in self:
-        #         box_file.write(char + ' ' + '0 0 {0} {1}'
-        #                        .format(prototype.image.shape[1],
-        #                                prototype.image.shape[0]))
-
-
-a = Prototype("aaaa", "../share/a.png")
-b = Prototype("bbb", "../share/b.png")
-c = Prototype("ccc", "../share/c.png")
+a = Prototype.from_image_file("a", "../share/a.png")
+b = Prototype.from_image_file("b", "../share/b.png")
+c = Prototype.from_image_file("c", "../share/c.png")
 ab = a + b
+aba = a + b + a
