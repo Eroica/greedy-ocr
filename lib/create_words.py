@@ -35,6 +35,14 @@ Alphabet = prototypes.PrototypeFactory(letters)
 a = Alphabet.create_word("""ein einer einer abd abd
 ein abd da da da
 ein abd""")
+
+
+a = prototypes.Prototype.from_image_file("a", "../letters/a/3.jpg")
+b = prototypes.Prototype.from_image_file("b", "../letters/b/69.jpg")
+e = prototypes.Prototype.from_image_file("c", "../letters/e/41.jpg")
+ab = a + b
+abe = a + b + e
+
 if a:
     cv2.imshow('', a.image)
     cv2.waitKey(0)

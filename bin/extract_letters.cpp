@@ -374,7 +374,7 @@ extractComponents(IplImage *input,
         char filename[8];
         sprintf(filename, "%d.jpg", count);
 
-        if(count <= 100)
+        // if(count <= 100)
             cvSaveImage(filename, tmp);
 
         // cvNamedWindow( "result", CV_WINDOW_AUTOSIZE );

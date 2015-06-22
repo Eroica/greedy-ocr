@@ -29,6 +29,7 @@ class Prototype(str):
     """
 
     ALIGN_COMPONENTS_HEIGHTS = True
+    DEFAULT_COLOR = [255, 255, 255]
     _default_image = None
     # @property
     # def image(self):
@@ -74,6 +75,7 @@ class Prototype(str):
             height += composition.count('\n') * newline[0].image.shape[0]
 
         composition_img = np.zeros((height, max_width, 3), np.uint8)
+        composition_img[:] = Prototype.DEFAULT_COLOR
         expanded_width = 0
         baseline = 0
 
@@ -200,6 +202,7 @@ class PrototypeFactory(OrderedDict):
         max_height = reduce(max, (x.image.shape[0] for x in self.values()))
 
         self[' '] = Prototype(' ', np.zeros((width, height, 3), np.uint8))
+        self[' '].image[:] = [255, 255, 255]
         self['\n'] = Prototype('\n', np.zeros((max_height + BASELINE_HEIGHT, 0, 3), np.uint8))
 
     def create_word(self, word):
@@ -213,27 +216,3 @@ class PrototypeFactory(OrderedDict):
         components = [self[letter] for letter in word]
 
         return Prototype._from_components(*components)
-
-
-
-    def random_image(self):
-        """
-        """
-
-        return choice(self.image)
-
-
-    # # def __getitem__(self, index):
-    # #     if RANDOM:
-    # #         return self.image[randint(0, len(self.image))]
-    # #     else:
-    # #         return self.image[index]
-
-    # #     if isinstance( index, slice ) :
-
-
-a = Prototype.from_image_file("a", "../letters/a/3.jpg")
-b = Prototype.from_image_file("b", "../letters/b/69.jpg")
-e = Prototype.from_image_file("c", "../letters/e/41.jpg")
-ab = a + b
-abe = a + b + e
