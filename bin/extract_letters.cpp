@@ -58,58 +58,60 @@ struct Chain {
     std::vector<int> components;
 };
 
+bool
+Point2dSort(const Point2d &lhs,
+            const Point2d &rhs);
 
-bool Point2dSort (Point2d const & lhs,
-                  Point2d const & rhs);
+void
+strokeWidthTransform(IplImage *edgeImage,
+                     IplImage *gradientX,
+                     IplImage *gradientY,
+                     bool dark_on_light,
+                     IplImage *SWTImage,
+                     std::vector<Ray> &rays);
 
-
-
-void strokeWidthTransform (IplImage * edgeImage,
-                           IplImage * gradientX,
-                           IplImage * gradientY,
-                           bool dark_on_light,
-                           IplImage * SWTImage,
-                           std::vector<Ray> & rays);
-
-void SWTMedianFilter (IplImage * SWTImage,
-                     std::vector<Ray> & rays);
-
-std::vector< std::vector<Point2d>>
-findLegallyConnectedComponents (IplImage * SWTImage,
-                                std::vector<Ray> & rays);
+void
+SWTMedianFilter(IplImage *SWTImage,
+                std::vector<Ray> &rays);
 
 std::vector< std::vector<Point2d>>
-findLegallyConnectedComponentsRAY (IplImage * SWTImage,
-                                std::vector<Ray> & rays);
+findLegallyConnectedComponents(IplImage *SWTImage,
+                               std::vector<Ray> &rays);
 
-void componentStats(IplImage * SWTImage,
-                                        const std::vector<Point2d> & component,
-                                        float & mean, float & variance, float & median,
-                                        int & minx, int & miny, int & maxx, int & maxy);
+std::vector<std::vector<Point2d>>
+findLegallyConnectedComponentsRAY(IplImage *SWTImage,
+                                  std::vector<Ray> &rays);
 
-void filterComponents(IplImage * SWTImage,
-                      std::vector<std::vector<Point2d>> & components,
-                      std::vector<std::vector<Point2d>> & validComponents,
-                      std::vector<Point2dFloat> & compCenters,
-                      std::vector<float> & compMedians,
-                      std::vector<Point2d> & compDimensions,
-                      std::vector<std::pair<Point2d,Point2d>> & compBB );
+void
+componentStats(IplImage * SWTImage,
+               const std::vector<Point2d> &component,
+               float &mean, float &variance, float &median,
+               int &minx, int &miny, int &maxx, int &maxy);
 
-std::vector<Chain> makeChains( IplImage * colorImage,
-                 std::vector<std::vector<Point2d>> & components,
-                 std::vector<Point2dFloat> & compCenters,
-                 std::vector<float> & compMedians,
-                 std::vector<Point2d> & compDimensions,
-                 std::vector<std::pair<Point2d,Point2d>> & compBB);
+void
+filterComponents(IplImage * SWTImage,
+                 std::vector<std::vector<Point2d>> &components,
+                 std::vector<std::vector<Point2d>> &validComponents,
+                 std::vector<Point2dFloat> &compCenters,
+                 std::vector<float> &compMedians,
+                 std::vector<Point2d> &compDimensions,
+                 std::vector<std::pair<Point2d,Point2d>> &compBB );
+
+std::vector<Chain>
+makeChains(IplImage *colorImage,
+           std::vector<std::vector<Point2d>> &components,
+           std::vector<Point2dFloat> &compCenters,
+           std::vector<float> &compMedians,
+           std::vector<Point2d> &compDimensions,
+           std::vector<std::pair<Point2d, Point2d>> &compBB);
 
 
-
-
-
-std::vector<std::pair<CvPoint,CvPoint>> findBoundingBoxes( std::vector<std::vector<Point2d>> & components,
-                                                           std::vector<Chain> & chains,
-                                                           std::vector<std::pair<Point2d,Point2d>> & compBB,
-                                                           IplImage * output) {
+std::vector<std::pair<CvPoint, CvPoint>>
+findBoundingBoxes(std::vector<std::vector<Point2d>> &components,
+                  std::vector<Chain> &chains,
+                  std::vector<std::pair<Point2d, Point2d>> &compBB,
+                  IplImage *output)
+{
     std::vector<std::pair<CvPoint,CvPoint>> bb;
     bb.reserve(chains.size());
     for(std::vector<Chain>::iterator chainit = chains.begin(); chainit != chains.end(); chainit++) {
@@ -131,8 +133,10 @@ std::vector<std::pair<CvPoint,CvPoint>> findBoundingBoxes( std::vector<std::vect
     return bb;
 }
 
-std::vector<std::pair<CvPoint,CvPoint>> findBoundingBoxes( std::vector<std::vector<Point2d>> & components,
-                                                           IplImage * output) {
+std::vector<std::pair<CvPoint, CvPoint>>
+findBoundingBoxes(std::vector<std::vector<Point2d>> &components,
+                  IplImage *output)
+{
     std::vector<std::pair<CvPoint,CvPoint>> bb;
     bb.reserve(components.size());
     for(std::vector<std::vector<Point2d>>::iterator compit = components.begin(); compit != components.end(); compit++) {
@@ -154,7 +158,10 @@ std::vector<std::pair<CvPoint,CvPoint>> findBoundingBoxes( std::vector<std::vect
     return bb;
 }
 
-void normalizeImage (IplImage * input, IplImage * output) {
+void
+normalizeImage(IplImage *input,
+               IplImage *output)
+{
     assert ( input->depth == IPL_DEPTH_32F );
     assert ( input->nChannels == 1 );
     assert ( output->depth == IPL_DEPTH_32F );
@@ -189,7 +196,11 @@ void normalizeImage (IplImage * input, IplImage * output) {
     }
 }
 
-void renderComponents (IplImage * SWTImage, std::vector<std::vector<Point2d>> & components, IplImage * output) {
+void
+renderComponents(IplImage *SWTImage,
+                 std::vector<std::vector<Point2d>> &components,
+                 IplImage *output)
+{
     cvZero(output);
 	for(std::vector<std::vector<Point2d>>::iterator it = components.begin(); it != components.end();it++) {
         for(std::vector<Point2d>::iterator pit = it->begin(); pit != it->end(); pit++) {
@@ -233,8 +244,12 @@ void renderComponents (IplImage * SWTImage, std::vector<std::vector<Point2d>> & 
 
 }
 
-void renderComponentsWithBoxes (IplImage * SWTImage, std::vector<std::vector<Point2d>> & components,
-                                std::vector<std::pair<Point2d,Point2d>> & compBB, IplImage * output) {
+void
+renderComponentsWithBoxes(IplImage *SWTImage,
+                          std::vector<std::vector<Point2d>> &components,
+                          std::vector<std::pair<Point2d, Point2d>> &compBB,
+                          IplImage *output)
+{
     IplImage * outTemp =
             cvCreateImage ( cvGetSize ( output ), IPL_DEPTH_32F, 1 );
 
@@ -266,11 +281,13 @@ void renderComponentsWithBoxes (IplImage * SWTImage, std::vector<std::vector<Poi
     }
 }
 
-void renderChainsWithBoxes (IplImage * SWTImage,
-                   std::vector<std::vector<Point2d>> & components,
-                   std::vector<Chain> & chains,
-                   std::vector<std::pair<Point2d,Point2d>> & compBB,
-                   IplImage * output) {
+void
+renderChainsWithBoxes(IplImage *SWTImage,
+                      std::vector<std::vector<Point2d>> &components,
+                      std::vector<Chain> &chains,
+                      std::vector<std::pair<Point2d, Point2d>> &compBB,
+                      IplImage *output)
+{
     // keep track of included components
     std::vector<bool> included;
     included.reserve(components.size());
@@ -314,10 +331,12 @@ void renderChainsWithBoxes (IplImage * SWTImage,
     }
 }
 
-void renderChains (IplImage * SWTImage,
-                   std::vector<std::vector<Point2d>> & components,
-                   std::vector<Chain> & chains,
-                   IplImage * output) {
+void
+renderChains(IplImage *SWTImage,
+             std::vector<std::vector<Point2d>> &components,
+             std::vector<Chain> &chains,
+             IplImage *output)
+{
     // keep track of included components
     std::vector<bool> included;
     included.reserve(components.size());
@@ -344,12 +363,6 @@ void renderChains (IplImage * SWTImage,
 }
 
 
-
-
-
-
-
-
 void
 extractComponents(IplImage *input,
                   std::vector<std::pair<Point2d, Point2d>> &compBB)
@@ -365,7 +378,7 @@ extractComponents(IplImage *input,
 
         cvSetImageROI(input, cropRect);
 
-        if(width > 0 && height > 0) {
+        if(width > 0 &&height > 0) {
             cvCopy(input, tmp, NULL);
         }
 
@@ -386,10 +399,9 @@ extractComponents(IplImage *input,
 
 }
 
-
-
 void
-extract_letters(IplImage *input_image, bool dark_on_light)
+extract_letters(IplImage *input_image,
+                bool dark_on_light)
 {
     assert(input_image->depth == IPL_DEPTH_8U);
     assert(input_image->nChannels == 3);
@@ -497,12 +509,14 @@ extract_letters(IplImage *input_image, bool dark_on_light)
     // return SWTImage;
 }
 
-void strokeWidthTransform (IplImage * edgeImage,
-                           IplImage * gradientX,
-                           IplImage * gradientY,
-                           bool dark_on_light,
-                           IplImage * SWTImage,
-                           std::vector<Ray> & rays) {
+void
+strokeWidthTransform(IplImage *edgeImage,
+                     IplImage *gradientX,
+                     IplImage *gradientY,
+                     bool dark_on_light,
+                     IplImage *SWTImage,
+                     std::vector<Ray> &rays)
+{
     // First pass
     float prec = .05;
     for( int row = 0; row < edgeImage->height; row++ ) {
@@ -587,8 +601,10 @@ void strokeWidthTransform (IplImage * edgeImage,
 
 }
 
-void SWTMedianFilter (IplImage * SWTImage,
-                     std::vector<Ray> & rays) {
+void
+SWTMedianFilter(IplImage *SWTImage,
+                std::vector<Ray> &rays)
+{
     for(std::vector<Ray>::iterator rit = rays.begin(); rit != rays.end(); rit++) {
         for(std::vector<Point2d>::iterator pit = rit->points.begin(); pit != rit->points.end(); pit++) {
             pit->SWT = CV_IMAGE_ELEM(SWTImage, float, pit->y, pit->x);
@@ -602,13 +618,16 @@ void SWTMedianFilter (IplImage * SWTImage,
 
 }
 
-bool Point2dSort (const Point2d &lhs, const Point2d &rhs) {
+bool
+Point2dSort(const Point2d &lhs,
+            const Point2d &rhs)
+{
     return lhs.SWT < rhs.SWT;
 }
 
-std::vector< std::vector<Point2d>>
-findLegallyConnectedComponents (IplImage * SWTImage,
-                                std::vector<Ray> & rays)
+std::vector<std::vector<Point2d>>
+findLegallyConnectedComponents(IplImage *SWTImage,
+                               std::vector<Ray> &rays)
 {
         boost::unordered_map<int, int> map;
         boost::unordered_map<int, Point2d> revmap;
@@ -641,21 +660,21 @@ findLegallyConnectedComponents (IplImage * SWTImage,
                     int this_pixel = map[row * SWTImage->width + col];
                     if(col+1 < SWTImage->width) {
                         float right = CV_IMAGE_ELEM(SWTImage, float, row, col+1);
-                        if(right > 0 && ((*ptr)/right <= 3.0 || right/(*ptr) <= 3.0))
+                        if(right > 0 &&((*ptr)/right <= 3.0 || right/(*ptr) <= 3.0))
                             boost::add_edge(this_pixel, map.at(row * SWTImage->width + col + 1), g);
                     }
                     if(row+1 < SWTImage->height) {
                         if(col+1 < SWTImage->width) {
                             float right_down = CV_IMAGE_ELEM(SWTImage, float, row+1, col+1);
-                            if(right_down > 0 && ((*ptr)/right_down <= 3.0 || right_down/(*ptr) <= 3.0))
+                            if(right_down > 0 &&((*ptr)/right_down <= 3.0 || right_down/(*ptr) <= 3.0))
                                 boost::add_edge(this_pixel, map.at((row+1) * SWTImage->width + col + 1), g);
                         }
                         float down = CV_IMAGE_ELEM(SWTImage, float, row+1, col);
-                        if(down > 0 && ((*ptr)/down <= 3.0 || down/(*ptr) <= 3.0))
+                        if(down > 0 &&((*ptr)/down <= 3.0 || down/(*ptr) <= 3.0))
                             boost::add_edge(this_pixel, map.at((row+1) * SWTImage->width + col), g);
                         if(col-1 >= 0) {
                             float left_down = CV_IMAGE_ELEM(SWTImage, float, row+1, col-1);
-                            if(left_down > 0 && ((*ptr)/left_down <= 3.0 || left_down/(*ptr) <= 3.0))
+                            if(left_down > 0 &&((*ptr)/left_down <= 3.0 || left_down/(*ptr) <= 3.0))
                                 boost::add_edge(this_pixel, map.at((row+1) * SWTImage->width + col - 1), g);
                         }
                     }
@@ -684,8 +703,8 @@ findLegallyConnectedComponents (IplImage * SWTImage,
 }
 
 std::vector< std::vector<Point2d>>
-findLegallyConnectedComponentsRAY (IplImage * SWTImage,
-                                std::vector<Ray> & rays)
+findLegallyConnectedComponentsRAY(IplImage *SWTImage,
+                                  std::vector<Ray> &rays)
 {
         boost::unordered_map<int, int> map;
         boost::unordered_map<int, Point2d> revmap;
@@ -749,10 +768,11 @@ findLegallyConnectedComponentsRAY (IplImage * SWTImage,
         return components;
 }
 
-void componentStats(IplImage * SWTImage,
-                                        const std::vector<Point2d> & component,
-                                        float & mean, float & variance, float & median,
-                                        int & minx, int & miny, int & maxx, int & maxy)
+void
+componentStats(IplImage *SWTImage,
+               const std::vector<Point2d> &component,
+               float &mean, float &variance, float &median,
+               int &minx, int &miny, int &maxx, int &maxy)
 {
         std::vector<float> temp;
         temp.reserve(component.size());
@@ -781,13 +801,14 @@ void componentStats(IplImage * SWTImage,
 }
 
 
-void filterComponents(IplImage * SWTImage,
-                      std::vector<std::vector<Point2d>> & components,
-                      std::vector<std::vector<Point2d>> & validComponents,
-                      std::vector<Point2dFloat> & compCenters,
-                      std::vector<float> & compMedians,
-                      std::vector<Point2d> & compDimensions,
-                      std::vector<std::pair<Point2d,Point2d>> & compBB )
+void
+filterComponents(IplImage *SWTImage,
+                 std::vector<std::vector<Point2d>> &components,
+                 std::vector<std::vector<Point2d>> &validComponents,
+                 std::vector<Point2dFloat> &compCenters,
+                 std::vector<float> &compMedians,
+                 std::vector<Point2d> &compDimensions,
+                 std::vector<std::pair<Point2d,Point2d>> &compBB)
 {
         validComponents.reserve(components.size());
         compCenters.reserve(components.size());
@@ -911,8 +932,8 @@ void filterComponents(IplImage * SWTImage,
             int count = 0;
             for(unsigned int j = 0; j < validComponents.size(); j++) {
                 if(i != j) {
-                    if(compBB[i].first.x <= compCenters[j].x && compBB[i].second.x >= compCenters[j].x &&
-                        compBB[i].first.y <= compCenters[j].y && compBB[i].second.y >= compCenters[j].y) {
+                    if(compBB[i].first.x <= compCenters[j].x &&compBB[i].second.x >= compCenters[j].x &&
+                        compBB[i].first.y <= compCenters[j].y &&compBB[i].second.y >= compCenters[j].y) {
                         count++;
                     }
                 }
@@ -940,7 +961,10 @@ void filterComponents(IplImage * SWTImage,
         std::cout << "After filtering " << validComponents.size() << " components" << std::endl;
 }
 
-bool sharesOneEnd( Chain c0, Chain c1) {
+bool
+sharesOneEnd(Chain c0,
+             Chain c1)
+{
     if(c0.p == c1.p || c0.p == c1.q || c0.q == c1.q || c0.q == c1.p) {
         return true;
     }
@@ -949,20 +973,28 @@ bool sharesOneEnd( Chain c0, Chain c1) {
     }
 }
 
-bool chainSortDist (const Chain &lhs, const Chain &rhs) {
+bool
+chainSortDist(const Chain &lhs,
+              const Chain &rhs)
+{
     return lhs.dist < rhs.dist;
 }
 
-bool chainSortLength (const Chain &lhs, const Chain &rhs) {
+bool
+chainSortLength(const Chain &lhs,
+                const Chain &rhs)
+{
     return lhs.components.size() > rhs.components.size();
 }
 
-std::vector<Chain> makeChains( IplImage * colorImage,
-                 std::vector<std::vector<Point2d>> & components,
-                 std::vector<Point2dFloat> & compCenters,
-                 std::vector<float> & compMedians,
-                 std::vector<Point2d> & compDimensions,
-                 std::vector<std::pair<Point2d,Point2d>> & compBB) {
+std::vector<Chain>
+makeChains(IplImage * colorImage,
+           std::vector<std::vector<Point2d>> &components,
+           std::vector<Point2dFloat> &compCenters,
+           std::vector<float> &compMedians,
+           std::vector<Point2d> &compDimensions,
+           std::vector<std::pair<Point2d, Point2d>> &compBB)
+{
     assert (compCenters.size() == components.size());
     // make vector of color averages
     std::vector<Point3dFloat> colorAverages;
@@ -999,7 +1031,7 @@ std::vector<Chain> makeChains( IplImage * colorImage,
                                   (colorAverages[i].z - colorAverages[j].z) * (colorAverages[i].z - colorAverages[j].z);
                 if(dist < 9*(float)(std::max(std::min(compDimensions[i].x,compDimensions[i].y),std::min(compDimensions[j].x,compDimensions[j].y)))
                     *(float)(std::max(std::min(compDimensions[i].x,compDimensions[i].y),std::min(compDimensions[j].x,compDimensions[j].y)))
-                    && colorDist < 1600) {
+                    &&colorDist < 1600) {
                     Chain c;
                     c.p = i;
                     c.q = j;
@@ -1049,14 +1081,14 @@ std::vector<Chain> makeChains( IplImage * colorImage,
         for(unsigned int i = 0; i < chains.size(); i++) {
             for(unsigned int j = 0; j < chains.size(); j++) {
                 if(i != j) {
-                    if(!chains[i].merged && !chains[j].merged && sharesOneEnd(chains[i],chains[j])) {
+                    if(!chains[i].merged &&!chains[j].merged &&sharesOneEnd(chains[i],chains[j])) {
                         if(chains[i].p == chains[j].p) {
                             if(acos(chains[i].direction.x * -chains[j].direction.x + chains[i].direction.y * -chains[j].direction.y) < strictness) {
                                   /*      if(chains[i].p == chains[i].q || chains[j].p == chains[j].q) {
                                             std::cout << "CRAZY ERROR" << std::endl;
-                                        } else if(chains[i].p == chains[j].p && chains[i].q == chains[j].q) {
+                                        } else if(chains[i].p == chains[j].p &&chains[i].q == chains[j].q) {
                                             std::cout << "CRAZY ERROR" << std::endl;
-                                        } else if(chains[i].p == chains[j].q && chains[i].q == chains[j].p) {
+                                        } else if(chains[i].p == chains[j].q &&chains[i].q == chains[j].p) {
                                             std::cout << "CRAZY ERROR" << std::endl;
                                         }
                                         std::cerr << 1 <<std::endl;
@@ -1095,9 +1127,9 @@ std::vector<Chain> makeChains( IplImage * colorImage,
 /*
                                 if(chains[i].p == chains[i].q || chains[j].p == chains[j].q) {
                                     std::cout << "CRAZY ERROR" << std::endl;
-                                } else if(chains[i].p == chains[j].p && chains[i].q == chains[j].q) {
+                                } else if(chains[i].p == chains[j].p &&chains[i].q == chains[j].q) {
                                     std::cout << "CRAZY ERROR" << std::endl;
-                                } else if(chains[i].p == chains[j].q && chains[i].q == chains[j].p) {
+                                } else if(chains[i].p == chains[j].q &&chains[i].q == chains[j].p) {
                                     std::cout << "CRAZY ERROR" << std::endl;
                                 }
                                 std::cerr << 2 <<std::endl;
@@ -1138,9 +1170,9 @@ std::vector<Chain> makeChains( IplImage * colorImage,
                             if(acos(chains[i].direction.x * chains[j].direction.x + chains[i].direction.y * chains[j].direction.y) < strictness) {
      /*                           if(chains[i].p == chains[i].q || chains[j].p == chains[j].q) {
                                     std::cout << "CRAZY ERROR" << std::endl;
-                                } else if(chains[i].p == chains[j].p && chains[i].q == chains[j].q) {
+                                } else if(chains[i].p == chains[j].p &&chains[i].q == chains[j].q) {
                                     std::cout << "CRAZY ERROR" << std::endl;
-                                } else if(chains[i].p == chains[j].q && chains[i].q == chains[j].p) {
+                                } else if(chains[i].p == chains[j].q &&chains[i].q == chains[j].p) {
                                     std::cout << "CRAZY ERROR" << std::endl;
                                 }
                                 std::cerr << 3 <<std::endl;
@@ -1180,9 +1212,9 @@ std::vector<Chain> makeChains( IplImage * colorImage,
                             if(acos(chains[i].direction.x * -chains[j].direction.x + chains[i].direction.y * -chains[j].direction.y) < strictness) {
                      /*           if(chains[i].p == chains[i].q || chains[j].p == chains[j].q) {
                                     std::cout << "CRAZY ERROR" << std::endl;
-                                } else if(chains[i].p == chains[j].p && chains[i].q == chains[j].q) {
+                                } else if(chains[i].p == chains[j].p &&chains[i].q == chains[j].q) {
                                     std::cout << "CRAZY ERROR" << std::endl;
-                                } else if(chains[i].p == chains[j].q && chains[i].q == chains[j].p) {
+                                } else if(chains[i].p == chains[j].q &&chains[i].q == chains[j].p) {
                                     std::cout << "CRAZY ERROR" << std::endl;
                                 }
                                 std::cerr << 4 <<std::endl;
