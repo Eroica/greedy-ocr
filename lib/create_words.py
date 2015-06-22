@@ -7,6 +7,9 @@ import config
 # assert all(folder in os.listdir('.') for folder in FOLDERS)
 # assert LEXICON in os.listdir('.')
 
+lexicon = [line.rstrip('\n') for line in open(config.LEXICON)]
+
+
 folders = os.listdir(config.IMAGES_PATH)
 letters = dict((l, []) for l in filter(lambda x: x in folders, config.ALPHABET))
 letter_images = {}
