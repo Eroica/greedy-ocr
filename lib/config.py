@@ -1,5 +1,5 @@
 ALPHABET = list('abcdefghijklmnopqrstuvwxyz')
-IMAGES_PATH = '../letters'
-LEXICON = 'lexicon.txt'
+IMAGES_PATH = '../share/letters'
+LEXICON = '../share/lexicon.txt'
 EXTENSIONS = ('.jpg', '.png', '.tiff')
 filename = ''

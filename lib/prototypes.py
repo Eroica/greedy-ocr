@@ -31,20 +31,6 @@ class Prototype(str):
     ALIGN_COMPONENTS_HEIGHTS = True
     DEFAULT_COLOR = [255, 255, 255]
     _default_image = None
-    # @property
-    # def image(self):
-    #     return choice(self._image)
-    # @image.setter
-    # def image(self, img):
-    #     # self._image.append(img)
-    #     pass
-
-    # @property
-    # def components(self):
-    #     return self._components
-    # @components.setter
-    # def components(self, component):
-    #     self._components.append(component)
 
     @classmethod
     def _from_components(cls, *components):
@@ -145,7 +131,6 @@ class Prototype(str):
             else:
                 l = []
                 for comp in prot.components:
-                    # l.extend(expand_components(comp))
                     l += expand_components(comp)
                 return l
 
@@ -193,7 +178,6 @@ class PrototypeFactory(OrderedDict):
             self[letter] = Prototype(letter, alphabet[letter])
 
         # DEBUG
-
         # Create a blank space character.
         width = reduce(lambda x, y: x + y, (x.image.shape[1] for x in self.values()))
         width /= len(self.values())

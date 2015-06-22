@@ -11,11 +11,6 @@ folders = os.listdir(config.IMAGES_PATH)
 letters = dict((l, []) for l in filter(lambda x: x in folders, config.ALPHABET))
 letter_images = {}
 
-test_phrase = "eine neue"
-test_text = """eine neue
-der die das
-ein einer"""
-
 for letter in letters:
     letter_images[letter] = []
 
@@ -32,17 +27,24 @@ for letter in letter_images:
 
 Alphabet = prototypes.PrototypeFactory(letters)
 
-a = Alphabet.create_word("""ein einer einer abd abd
-ein abd da da da
-ein abd""")
+text = Alphabet.create_word("""abc
+def
+gh i l m
+m y y y""")
 
-
-a = prototypes.Prototype.from_image_file("a", "../letters/a/3.jpg")
-b = prototypes.Prototype.from_image_file("b", "../letters/b/69.jpg")
-e = prototypes.Prototype.from_image_file("c", "../letters/e/41.jpg")
+a = prototypes.Prototype.from_image_file("a", "../share/letters/a/93.jpg")
+b = prototypes.Prototype.from_image_file("b", "../share/letters/b/155.jpg")
+e = prototypes.Prototype.from_image_file("c", "../share/letters/e/41.jpg")
 ab = a + b
 abe = a + b + e
 
-if a:
-    cv2.imshow('', a.image)
+cv2.imshow('a', a.image)
+cv2.imshow('b', b.image)
+cv2.imshow('e', e.image)
+cv2.imshow('ab', ab.image)
+cv2.imshow('abe', abe.image)
+cv2.waitKey(0)
+
+if text:
+    cv2.imshow('', text.image)
     cv2.waitKey(0)
