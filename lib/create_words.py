@@ -32,8 +32,9 @@ for letter in letter_images:
 
 Alphabet = prototypes.PrototypeFactory(letters)
 
-a = Alphabet.create_word("""ein einer
-ein""")
+a = Alphabet.create_word("""ein einer einer abd abd
+ein abd da da da
+ein abd""")
 if a:
     cv2.imshow('', a.image)
     cv2.waitKey(0)

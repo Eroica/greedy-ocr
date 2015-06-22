@@ -55,18 +55,16 @@ class Prototype(str):
         composition = ''.join(letter for letter in components)
         images = [x.image for x in components]
 
-        widths = []
-        width_sum = 0
+        widths = [0 for i in range(composition.count('\n') + 1)]
+        index = 0
+
         for component in components:
             if component == '\n':
-                widths.append(width_sum)
-                width_sum = 0
-            else:
-                width_sum += component.image.shape[1]
+                index += 1
+
+            widths[index] += component.image.shape[1]
 
         max_width = reduce(max, widths)
-
-        # width = reduce(lambda x, y: x + y, (x.shape[1] for x in images))
 
         base_height = reduce(max, (x.shape[0] for x in images))
         height = base_height
@@ -234,8 +232,8 @@ class PrototypeFactory(OrderedDict):
     # #     if isinstance( index, slice ) :
 
 
-a = Prototype.from_image_file("a", "../share/a.png")
-b = Prototype.from_image_file("b", "../share/b.png")
-c = Prototype.from_image_file("c", "../share/c.png")
-# ab = a + b
-# aba = a + b + a
+a = Prototype.from_image_file("a", "../letters/a/3.jpg")
+b = Prototype.from_image_file("b", "../letters/b/69.jpg")
+e = Prototype.from_image_file("c", "../letters/e/41.jpg")
+ab = a + b
+abe = a + b + e
