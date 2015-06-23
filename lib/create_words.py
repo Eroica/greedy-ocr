@@ -14,29 +14,6 @@ folders = os.listdir(config.IMAGES_PATH)
 letters = dict((l, []) for l in filter(lambda x: x in folders, config.ALPHABET))
 letter_images = {}
 
-for letter in letters:
-    letter_images[letter] = []
-
-    for file in os.listdir(config.IMAGES_PATH + '/' + letter):
-        if file.endswith(config.EXTENSIONS):
-            letter_images[letter].append(file)
-
-    # DEBUG
-    letter_images[letter] = letter_images[letter][0]
-
-for letter in letter_images:
-    img = cv2.imread(config.IMAGES_PATH + '/' + letter + '/' + letter_images[letter])
-    letters[letter] = img
-
-Alphabet = prototypes.PrototypeFactory(letters)
-
-# Randomly select 100 words for a test page
-test_words = []
-while len(test_words) < 100:
-    word = choice(lexicon)
-    if all(char in Alphabet.keys() for char in word):
-        test_words.append(word)
-
 
 
 def chunks(l, n):
@@ -45,26 +22,63 @@ def chunks(l, n):
         yield l[i:i+n]
 
 
-lines = [line for line in chunks(test_words, 5)]
-lines = map(' '.join, lines)
-text = "\n".join(line for line in lines)
+def filter_lexicon_words(lexicon, length=100):
+    """
+    """
 
-text_prototype = Alphabet.create_word(text)
+    # Randomly select 100 words for a test page
+    test_words = []
+    while len(test_words) < length:
+        word = choice(lexicon)
+        if all(char in Alphabet.keys() for char in word):
+            test_words.append(word)
+
+    return test_words
+
+def generate_letter_images(letters):
+    """
+    """
+
+    for letter in letters:
+        letter_images[letter] = []
+
+        for file in os.listdir(config.IMAGES_PATH + '/' + letter):
+            if file.endswith(config.EXTENSIONS):
+                letter_images[letter].append(file)
+
+        # DEBUG
+        letter_images[letter] = letter_images[letter][0]
+
+    for letter in letter_images:
+        img = cv2.imread(config.IMAGES_PATH + '/' + letter + '/' + letter_images[letter])
+        letters[letter] = img
 
 
-# a = prototypes.Prototype.from_image_file("a", "../share/letters/a/93.jpg")
-# b = prototypes.Prototype.from_image_file("b", "../share/letters/b/155.jpg")
-# e = prototypes.Prototype.from_image_file("c", "../share/letters/e/41.jpg")
-# ab = a + b
-# abe = a + b + e
+generate_letter_images(letters)
+Alphabet = prototypes.PrototypeFactory(letters)
 
-# cv2.imshow('a', a.image)
-# cv2.imshow('b', b.image)
-# cv2.imshow('e', e.image)
-# cv2.imshow('ab', ab.image)
-# cv2.imshow('abe', abe.image)
-# cv2.waitKey(0)
 
-# if text:
-#     cv2.imshow('', text.image)
-#     cv2.waitKey(0)
+def generate_text_lines(test_words):
+    """
+    """
+
+    lines = [line for line in chunks(test_words, 5)]
+    lines = map(' '.join, lines)
+    # text = "\n".join(line for line in lines)
+
+    return lines
+
+# text_prototype = Alphabet.create_word(text)
+
+
+if __name__ == '__main__':
+    exps = []
+    for i in range(0, 64):
+        words = filter_lexicon_words(lexicon)
+        line = generate_text_lines(words)[0]
+        line_prototype = Alphabet.create_word(line)
+        exps.append(line_prototype)
+
+        cv2.imwrite(config.LANGUAGE_MODEL + '.' + config.LANGUAGE_NAME + '.' + 'exp' + str(i) + '.tif', line_prototype.image)
+        line_prototype.write_box_file(config.LANGUAGE_MODEL + '.' + config.LANGUAGE_NAME + '.' + 'exp' + str(i) + '.box')
+
