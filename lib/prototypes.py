@@ -165,12 +165,22 @@ class Prototype(str):
             for prototype in components:
                 y_offset = (self.image.shape[0] - prototype.image.shape[0])/2
 
+                if prototype == '\n':
+                    baseline += prototype.image.shape[0]
+                    x_offset = 0
+                    continue
+
+                if prototype == ' ':
+                    x_offset += prototype.image.shape[1]
+                    continue
+
                 box_file.write('{0} {1} {2} {3} {4}\n'
                                .format(prototype,
                                        x_offset,
                                        y_offset,
                                        x_offset + prototype.image.shape[1],
                                        y_offset + prototype.image.shape[0]))
+
                 x_offset += prototype.image.shape[1]
 
 
