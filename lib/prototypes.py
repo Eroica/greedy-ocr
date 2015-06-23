@@ -4,7 +4,7 @@ from collections import OrderedDict, Sequence
 from random import randint, choice
 
 MINMAX = min
-DEBUG = True
+DEBUG = False
 BASELINE_HEIGHT = -10
 
 def hash(img):
@@ -137,16 +137,27 @@ class Prototype(str):
         box_file_path = path or (str(self) + '.box')
         components = expand_components(self)
         x_offset = 0
+        baseline = 0
 
         if DEBUG:
             for prototype in components:
                 y_offset = (self.image.shape[0] - prototype.image.shape[0])/2
 
+                if prototype == '\n':
+                    baseline += prototype.image.shape[0]
+                    x_offset = 0
+                    continue
+
+                if prototype == ' ':
+                    x_offset += prototype.image.shape[1]
+                    continue
+
                 print '{0} {1} {2} {3} {4}'.format(prototype,
                                                    x_offset,
-                                                   y_offset,
+                                                   baseline + y_offset,
                                                    x_offset + prototype.image.shape[1],
-                                                   y_offset + prototype.image.shape[0])
+                                                   baseline + y_offset + prototype.image.shape[0])
+
                 x_offset += prototype.image.shape[1]
             return
 
@@ -154,7 +165,7 @@ class Prototype(str):
             for prototype in components:
                 y_offset = (self.image.shape[0] - prototype.image.shape[0])/2
 
-                box_file.write('{0} {1} {2} {3} {4}'
+                box_file.write('{0} {1} {2} {3} {4}\n'
                                .format(prototype,
                                        x_offset,
                                        y_offset,
@@ -188,6 +199,15 @@ class PrototypeFactory(OrderedDict):
         self[' '] = Prototype(' ', np.zeros((width, height, 3), np.uint8))
         self[' '].image[:] = [255, 255, 255]
         self['\n'] = Prototype('\n', np.zeros((max_height + BASELINE_HEIGHT, 0, 3), np.uint8))
+
+    def write_letter_training(self):
+        for letter in self.keys():
+            if letter != ' ' and letter != '\n':
+                cv2.imwrite(str(self[letter]) + '.png', self[letter].image)
+                self[letter].write_box_file()
+
+
+        print self.keys()
 
     def create_word(self, word):
         """
