@@ -52,19 +52,26 @@ def overlay_images(image, sub_image):
     if image.shape == sub_image.shape:
         return compare_image_region(image, sub_image)
 
-    ratios = [[] for _ in range(image.shape[0])]
+    # ratios = [[] for _ in range(image.shape[0])]
+    ratio_shape = (image.shape[0] - sub_image.shape[0] + 1,
+                   image.shape[1] - sub_image.shape[1] + 1)
+    ratios = np.zeros(ratio_shape)
 
     for i in range(image.shape[0] - sub_image.shape[0] + 1):
         for j in range(image.shape[1] - sub_image.shape[1] + 1):
             cropped_image = image[i:i + sub_image.shape[0], j:j + sub_image.shape[1]]
-            ratios[i].append(compare_image_region(cropped_image, sub_image))
+            # ratios[i].append(compare_image_region(cropped_image, sub_image))
+            ratios[i, j] = compare_image_region(cropped_image, sub_image)
 
-    return max(max(ratios))
+    return ratios
+
+    # return max(max(ratios))
 
 
 img = cv2.imread(IMG_FILE, 0)
 e = cv2.imread(PROTOTYPE_FILES[0], 0)
 n = cv2.imread(PROTOTYPE_FILES[1], 0)
+c = cv2.imread('../share/c.png', 0)
 e_2 = cv2.imread('../share/e_2.png', 0)
 e_3 = cv2.imread('../share/e_3.png', 0)
 ch = cv2.imread('../share/ch.png', 0)
