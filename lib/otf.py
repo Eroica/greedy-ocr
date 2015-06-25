@@ -7,7 +7,7 @@ LEXICON = '../share/lexikon.txt'
 PROTOTYPE_FILES = ['../share/e.png', '../share/n.png']
 
 WORDS_BB = [
-    ((14, 2), (169, 64)),
+    ((14, 2), (199, 64)),
     ((220, 5), (421, 51)),
     ((432, 5), (550, 55)),
     ((562, 2), (677, 56)),
