@@ -82,38 +82,37 @@ class Word(list):
 
         for comp in self:
             if isinstance(comp, Component):
-                # point = (self.box[1][0] - 1, self.box[1][1] - 1)
-                cv2.rectangle(self.image, comp.box[0], comp.box[1], STANDARD_COLOR)
+                cv2.line(self.image, (comp.begin, 0), (comp.begin, self.height()), STANDARD_COLOR)
+                cv2.line(self.image, (comp.end - 1, 0), (comp.end - 1, self.height()), STANDARD_COLOR)
 
-    def create_sub_image(self, box):
+    def create_sub_image(self, min_x, max_x):
         """
         """
 
-        return self.image[box[0][1]:box[1][1], box[0][0]:box[1][0]]
+        assert min_x < self.width() and max_x <= self.width()
 
-    # def parse(self, prototype):
-    #     max_ratio = 0
-    #     max_comp_index = 0
-    #     max_ratio_index = 0
+        sub_image = self.original_image[0:self.height(), min_x:max_x]
 
-    #     for i, comp in enumerate(self):
-    #         ratios = comp.overlay_with(prototype))
+        return sub_image
 
-    #         if ratios.max() > max_ratio:
-    #             max_ratio = ratios.max()
-    #             max_comp_index = i
-    #             max_ratio_index = ratios.argmax()
+    def _split_at(self, min_x, max_x):
+        component_ranges = [(x.begin, x.end) for x in self if isinstance(x, Component)]
 
+        affected_components = []
 
+        for i, comp in enumerate(component_ranges):
+            if min_x in range(comp[0], comp[1]) or max_x in range(comp[0], comp[1]):
+                affected_components.append(i)
 
-    #     max_ratio_index/self[max_comp_index].box[1]
+        left_component = self[affected_components[0]]
+        right_component = self[affected_components[-1]]
 
-    #     split_begin
+        for i in affected_components:
+            self.pop(i)
 
-    #     split_coords =
-
-    #     self._split_at(self, max_comp_index, max_ratio_index)
-
+        self.insert(affected_components[0], Component(self, left_component.begin, min_x))
+        self.insert(affected_components[0] + 1, Component(self, min_x, max_x))
+        self.insert(affected_components[0] + 2, Component(self, max_x, right_component.end))
 
     def split_with(self, prototype):
         """
@@ -143,7 +142,7 @@ class Word(list):
                                     split_coords[1] + prototype.image.shape[1],
                                     split_coords[1] + prototype.image.shape[1] + self[max_comp_index].end)
 
-        print right_component.box
+        # print right_component.box
 
         self.pop(max_comp_index)
         self.insert(max_comp_index, left_component)
@@ -160,11 +159,13 @@ class Component(object):
         """
         """
 
+        self.begin = min_x
         self.end = max_x
-        self.word = word
+        # self.word = word
         self.width = max_x - min_x
-        self.box = ((min_x, 0), (self.width, self.word.height()))
-        self.image = word.create_sub_image(self.box)
+        # self.box = ((min_x, 0), (self.width, self.word.height()))
+        # self.image = word.create_sub_image(self.box)
+        self.image = word.create_sub_image(min_x, max_x)
 
     def find_prototype_region(self, prototype):
         """
@@ -264,5 +265,5 @@ class Prototype(str):
 e = Prototype.from_image_file('e', '../share/e.png')
 ch = Prototype.from_image_file('ch', '../share/ch.png')
 img = cv2.imread('../share/ausschnitt.png', 0)
-indessen = Word(img, ((14, 2), (199, 64)))
+# indessen = Word(img, ((14, 2), (199, 64)))
 etliche = Word(img, ((432, 5), (550, 55)))
