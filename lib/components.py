@@ -2,7 +2,7 @@ import numpy as np
 import cv2
 import otf
 
-SPLIT_THRESHOLD = 0.7
+SPLIT_THRESHOLD = 0.65
 START = '^'
 END = '$'
 UNKNOWN_COMPONENT = '.*'
@@ -89,7 +89,7 @@ class Word(list):
         """
         """
 
-        assert min_x < self.width() and max_x <= self.width()
+        assert min_x <= self.width() and max_x <= self.width()
 
         sub_image = self.original_image[0:self.height(), min_x:max_x]
 
@@ -133,21 +133,43 @@ class Word(list):
                     max_comp_index = i
                     ratio_shape = ratios.shape
 
+        if ratio_shape == (0, 0):
+            return
+
+        print "split_with ratio_shape " + str(ratio_shape)
 
         split_coords = (max_ratio_index / ratio_shape[1],
                         max_ratio_index % ratio_shape[1])
 
-        left_component = Component(self, 0, split_coords[1] - 1)
-        right_component = Component(self,
-                                    split_coords[1] + prototype.image.shape[1],
-                                    split_coords[1] + prototype.image.shape[1] + self[max_comp_index].end)
+        component_ranges = [(x.begin, x.end) for x in self if isinstance(x, Component)]
 
-        # print right_component.box
+        affected_components = []
 
-        self.pop(max_comp_index)
-        self.insert(max_comp_index, left_component)
-        self.insert(max_comp_index + 1, prototype)
-        self.insert(max_comp_index + 2, right_component)
+        for i, comp in enumerate(component_ranges):
+            if split_coords[1] in range(comp[0], comp[1]) or split_coords[1] + prototype.image.shape[1] in range(comp[0], comp[1]):
+                affected_components.append(i)
+
+        left_component = self[affected_components[0]]
+        right_component = self[affected_components[-1]]
+
+        for i in affected_components:
+            self.pop(i)
+
+        self.insert(affected_components[0], Component(self, left_component.begin, split_coords[1]))
+        self.insert(affected_components[0] + 1, prototype)
+        self.insert(affected_components[0] + 2, Component(self, split_coords[1] + prototype.image.shape[1], right_component.end))
+
+        # left_component = Component(self, 0, split_coords[1] - 1)
+        # right_component = Component(self,
+        #                             split_coords[1] + prototype.image.shape[1],
+        #                             split_coords[1] + prototype.image.shape[1] + self[max_comp_index].end)
+
+        # # print right_component.box
+
+        # self.pop(max_comp_index)
+        # self.insert(max_comp_index, left_component)
+        # self.insert(max_comp_index + 1, prototype)
+        # self.insert(max_comp_index + 2, right_component)
 
 
 class Component(object):
@@ -175,6 +197,13 @@ class Component(object):
 
         ratio_shape = (self.image.shape[0] - prototype.image.shape[0] + 1,
                        self.image.shape[1] - prototype.image.shape[1] + 1)
+
+        if self.image.shape[1] - prototype.image.shape[1] + 1 == 0:
+            print self.image.shape[1]
+            print prototype.image.shape[1]
+
+        print "region ratio_shape " + str(ratio_shape)
+
         ratios = np.zeros(ratio_shape)
 
         if self.image.shape == prototype.image.shape:
