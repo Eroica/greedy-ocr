@@ -7,7 +7,7 @@ START = '^'
 END = '$'
 UNKNOWN_COMPONENT = '.*'
 STANDARD_COLOR = (0, 0, 0)
-
+MINIMUM_COMPONENT_WIDTH = 4
 
 def threshold_image(image):
     """
@@ -76,7 +76,7 @@ class Word(list):
         """
         """
 
-        components_image = self.image[:]
+        components_image = self.image.copy()
 
         for comp in self:
             if isinstance(comp, Component):
@@ -91,15 +91,19 @@ class Word(list):
 
         assert min_x <= self.width() and max_x <= self.width()
 
-        sub_image = self.original_image[0:self.height(), min_x:max_x]
+        sub_image = self.image[0:self.height(), min_x:max_x]
 
         return sub_image
 
-    def _split_at(self, min_x, max_x):
+    def _split_at(self, min_x, max_x, with_prototype=None):
+        """
+        """
+
+        assert min_x in range(self.width()) and max_x in range(self.width())
+
         component_ranges = [(x.begin, x.end) for x in self if isinstance(x, Component)]
 
         affected_components = []
-
         for i, comp in enumerate(component_ranges):
             if min_x in range(comp[0], comp[1]) or max_x in range(comp[0], comp[1]):
                 affected_components.append(i)
@@ -110,9 +114,14 @@ class Word(list):
         for i in affected_components:
             self.pop(i)
 
-        self.insert(affected_components[0], Component(self, left_component.begin, min_x))
+
+        if abs(left_component.begin - min_x) >= MINIMUM_COMPONENT_WIDTH:
+            self.insert(affected_components[0], Component(self, left_component.begin, min_x))
+
         self.insert(affected_components[0] + 1, Component(self, min_x, max_x))
-        self.insert(affected_components[0] + 2, Component(self, max_x, right_component.end))
+
+        if abs(right_component.end - max_x) >= MINIMUM_COMPONENT_WIDTH:
+            self.insert(affected_components[0] + 2, Component(self, max_x, right_component.end))
 
     def split_with(self, prototype):
         """
@@ -135,8 +144,6 @@ class Word(list):
 
         if ratio_shape == (0, 0):
             return
-
-        print "split_with ratio_shape " + str(ratio_shape)
 
         split_coords = (max_ratio_index / ratio_shape[1],
                         max_ratio_index % ratio_shape[1])
@@ -290,9 +297,18 @@ class Prototype(str):
 
         return cls(characters, image)
 
+    def resize_to_width(self, width):
+        """
+        """
+
+        aspect_ratio = self.image.shape[0]/self.image.shape[1]
+
+        height = aspect_ratio * width
+
+        return cv2.resize(self.image, (width, height))
 
 e = Prototype.from_image_file('e', '../share/e.png')
 ch = Prototype.from_image_file('ch', '../share/ch.png')
 img = cv2.imread('../share/ausschnitt.png', 0)
-# indessen = Word(img, ((14, 2), (199, 64)))
+indessen = Word(img, ((14, 2), (199, 64)))
 etliche = Word(img, ((432, 5), (550, 55)))
