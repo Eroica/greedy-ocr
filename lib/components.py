@@ -72,6 +72,12 @@ class Word(list):
 
         return self.image.shape[1]
 
+    def to_string(self):
+        """
+        """
+
+        return ''.join(str(comp) for comp in self)
+
     def draw_components(self):
         """
         """
@@ -166,18 +172,6 @@ class Word(list):
         self.insert(affected_components[0] + 1, prototype)
         self.insert(affected_components[0] + 2, Component(self, split_coords[1] + prototype.image.shape[1], right_component.end))
 
-        # left_component = Component(self, 0, split_coords[1] - 1)
-        # right_component = Component(self,
-        #                             split_coords[1] + prototype.image.shape[1],
-        #                             split_coords[1] + prototype.image.shape[1] + self[max_comp_index].end)
-
-        # # print right_component.box
-
-        # self.pop(max_comp_index)
-        # self.insert(max_comp_index, left_component)
-        # self.insert(max_comp_index + 1, prototype)
-        # self.insert(max_comp_index + 2, right_component)
-
 
 class Component(object):
     """
@@ -225,38 +219,6 @@ class Component(object):
                 ratios[i, j] = compare_image_region(cropped_image, prototype.image)
 
         return ratios
-
-
-    # def overlay_with(self, component):
-    #     """
-    #     """
-
-    #     image = self.word.create_sub_image(self.box)
-    #     sub_image = component.word.create_sub_image(component.box)
-
-    #     assert image.shape >= sub_image.shape
-
-    #     if image.shape == sub_image.shape:
-    #         return [compare_image_region(image, sub_image)]
-
-    #     # ratios = [[] for _ in range(image.shape[0])]
-    #     ratio_shape = (image.shape[0] - sub_image.shape[0] + 1,
-    #                    image.shape[1] - sub_image.shape[1] + 1)
-    #     ratios = np.zeros(ratio_shape)
-
-    #     for i in range(image.shape[0] - sub_image.shape[0] + 1):
-    #         for j in range(image.shape[1] - sub_image.shape[1] + 1):
-    #             cropped_image = image[i:i + sub_image.shape[0], j:j + sub_image.shape[1]]
-    #             # ratios[i].append(compare_image_region(cropped_image, sub_image))
-    #             ratios[i, j] = compare_image_region(cropped_image, sub_image)
-
-    #     return ratios
-
-    # def translate_index(self, index):
-    #     """
-    #     """
-
-    #     return (index/self.width, index % self.width)
 
     def __repr__(self):
         return self.__str__()
