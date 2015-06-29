@@ -1,7 +1,7 @@
 import numpy as np
 import cv2
 
-SPLIT_THRESHOLD = 0.63
+SPLIT_THRESHOLD = 0.65
 START = '^'
 END = '$'
 UNKNOWN_COMPONENT = '.*'
