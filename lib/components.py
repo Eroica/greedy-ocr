@@ -1,7 +1,7 @@
 import numpy as np
 import cv2
 
-SPLIT_THRESHOLD = 0.65
+SPLIT_THRESHOLD = 0.63
 START = '^'
 END = '$'
 UNKNOWN_COMPONENT = '.*'
@@ -124,12 +124,27 @@ class Word(list):
         assert min_x in range(self.width() + 1) and max_x in range(self.width() + 1)
         assert max_x - min_x >= MINIMUM_COMPONENT_WIDTH
 
-        component_ranges = [(x.begin, x.end) for x in self if isinstance(x, Component)]
 
         affected_components = []
-        for i, comp in enumerate(component_ranges):
-            if min_x in range(comp[0], comp[1]) or max_x in range(comp[0], comp[1]):
+        for i, comp in enumerate(self):
+            if isinstance(comp, Prototype):
+                continue
+
+            if min_x in range(comp.begin, comp.end) or max_x in range(comp.begin, comp.end):
                 affected_components.append(i)
+
+        print affected_components
+
+        # component_ranges = [(x.begin, x.end) for x in self if isinstance(x, Component)]
+
+        # print component_ranges
+
+        # affected_components = []
+        # for i, comp in enumerate(component_ranges):
+        #     if min_x in range(comp[0], comp[1]) or max_x in range(comp[0], comp[1]):
+        #         affected_components.append(i)
+
+        # print affected_components
 
         left_component = self[affected_components[0]]
         right_component = self[affected_components[-1]]
@@ -160,12 +175,16 @@ class Word(list):
         max_ratio_index = 0
         max_comp_index = 0
         ratio_shape = (0, 0)
+        ratios = 0
 
         for i, comp in enumerate(self):
+
             if isinstance(comp, Component):
-                ratios = comp.find_prototype_region(prototype)
+                print "checking component " + str(i)
+                ratios = comp.find_prototype_region(prototype).copy()
 
                 if ratios.max() > max_ratio and ratios.max() >= SPLIT_THRESHOLD:
+                    print ratios.max()
                     max_ratio = ratios.max()
                     max_ratio_index = ratios.argmax()
                     max_comp_index = i
@@ -178,7 +197,14 @@ class Word(list):
         split_coords = (max_ratio_index / ratio_shape[1],
                         max_ratio_index % ratio_shape[1])
 
-        self._split_at(split_coords[1], split_coords[1] + prototype.image.shape[1], prototype)
+        min_x = self[max_comp_index].begin + split_coords[1] - 1
+        max_x = self[max_comp_index].begin + split_coords[1] + prototype.image.shape[1] - 1
+        if min_x < 0:
+            min_x = 0
+
+        self._split_at(min_x, max_x, prototype)
+
+        # self._split_at(self[max_comp_index].begin + split_coords[1], self[max_comp_index].begin + split_coords[1] + prototype.image.shape[1], prototype)
 
 
 class Component(object):
