@@ -1,6 +1,5 @@
 import numpy as np
 import cv2
-import otf
 
 SPLIT_THRESHOLD = 0.65
 START = '^'
@@ -13,8 +12,8 @@ def threshold_image(image):
     """
     """
 
-    (thresh, im_bw) = cv2.threshold(image, 128, 255, cv2.THRESH_BINARY)
-    return im_bw
+    (thresh, image_bw) = cv2.threshold(image, 128, 255, cv2.THRESH_BINARY)
+    return image_bw
 
 def compare_image_region(image, sub_image):
     """
@@ -36,9 +35,6 @@ def compare_image_region(image, sub_image):
     ratio = nom/float(denom)
 
     return ratio
-
-
-
 
 
 class Word(list):
@@ -101,11 +97,32 @@ class Word(list):
 
         return sub_image
 
-    def _split_at(self, min_x, max_x, with_prototype=None):
+    def iterate_components(self, reverse=False):
         """
         """
 
-        assert min_x in range(self.width()) and max_x in range(self.width())
+        for comp in self:
+            if isinstance(comp, Component):
+                yield comp
+
+        if reverse:
+            for comp in self[::-1]:
+                if isinstance(comp, Component):
+                    yield comp
+
+    def print_components(self):
+        """
+        """
+
+        for comp in self.iterate_components():
+            print comp.begin, comp.end
+
+    def _split_at(self, min_x, max_x, prototype=None):
+        """
+        """
+
+        assert min_x in range(self.width() + 1) and max_x in range(self.width() + 1)
+        assert max_x - min_x >= MINIMUM_COMPONENT_WIDTH
 
         component_ranges = [(x.begin, x.end) for x in self if isinstance(x, Component)]
 
@@ -121,13 +138,19 @@ class Word(list):
             self.pop(i)
 
 
+        new_components = []
         if abs(left_component.begin - min_x) >= MINIMUM_COMPONENT_WIDTH:
-            self.insert(affected_components[0], Component(self, left_component.begin, min_x))
+            new_components.append(Component(self, left_component.begin, min_x))
 
-        self.insert(affected_components[0] + 1, Component(self, min_x, max_x))
+        if prototype is not None:
+            new_components.append(prototype)
+        else:
+            new_components.append(Component(self, min_x, max_x))
 
         if abs(right_component.end - max_x) >= MINIMUM_COMPONENT_WIDTH:
-            self.insert(affected_components[0] + 2, Component(self, max_x, right_component.end))
+            new_components.append(Component(self, max_x, right_component.end))
+
+        self[affected_components[0]:affected_components[0]] = new_components
 
     def split_with(self, prototype):
         """
@@ -151,26 +174,11 @@ class Word(list):
         if ratio_shape == (0, 0):
             return
 
+
         split_coords = (max_ratio_index / ratio_shape[1],
                         max_ratio_index % ratio_shape[1])
 
-        component_ranges = [(x.begin, x.end) for x in self if isinstance(x, Component)]
-
-        affected_components = []
-
-        for i, comp in enumerate(component_ranges):
-            if split_coords[1] in range(comp[0], comp[1]) or split_coords[1] + prototype.image.shape[1] in range(comp[0], comp[1]):
-                affected_components.append(i)
-
-        left_component = self[affected_components[0]]
-        right_component = self[affected_components[-1]]
-
-        for i in affected_components:
-            self.pop(i)
-
-        self.insert(affected_components[0], Component(self, left_component.begin, split_coords[1]))
-        self.insert(affected_components[0] + 1, prototype)
-        self.insert(affected_components[0] + 2, Component(self, split_coords[1] + prototype.image.shape[1], right_component.end))
+        self._split_at(split_coords[1], split_coords[1] + prototype.image.shape[1], prototype)
 
 
 class Component(object):
@@ -178,45 +186,43 @@ class Component(object):
 
     """
 
-    def __init__(self, word, min_x, max_x):
+    def __init__(self, word, min_x, max_x, prototype=None):
         """
         """
 
         self.begin = min_x
         self.end = max_x
-        # self.word = word
         self.width = max_x - min_x
-        # self.box = ((min_x, 0), (self.width, self.word.height()))
-        # self.image = word.create_sub_image(self.box)
         self.image = word.create_sub_image(min_x, max_x)
+        self.prototype = prototype
 
     def find_prototype_region(self, prototype):
         """
         """
 
-        assert self.image.shape >= prototype.image.shape
+        # assert self.image.shape >= prototype.image.shape
 
-        ratio_shape = (self.image.shape[0] - prototype.image.shape[0] + 1,
-                       self.image.shape[1] - prototype.image.shape[1] + 1)
+        if self.image.shape[1] < prototype.image.shape[1]:
+            prototype_image = prototype.resize_to_width(self.image.shape[1])
+        else:
+            prototype_image = prototype.image
 
-        if self.image.shape[1] - prototype.image.shape[1] + 1 == 0:
-            print self.image.shape[1]
-            print prototype.image.shape[1]
 
-        print "region ratio_shape " + str(ratio_shape)
+        ratio_shape = (self.image.shape[0] - prototype_image.shape[0] + 1,
+                       self.image.shape[1] - prototype_image.shape[1] + 1)
 
         ratios = np.zeros(ratio_shape)
 
-        if self.image.shape == prototype.image.shape:
-            ratios[0, 0] = compare_image_region(self.image, prototype.image)
+        if self.image.shape == prototype_image.shape:
+            ratios[0, 0] = compare_image_region(self.image, prototype_image)
             return ratios
 
 
-        for i in range(self.image.shape[0] - prototype.image.shape[0] + 1):
-            for j in range(self.image.shape[1] - prototype.image.shape[1] + 1):
-                cropped_image = self.image[i:i + prototype.image.shape[0], j:j + prototype.image.shape[1]]
-                # ratios[i].append(compare_image_region(cropped_image, prototype.image))
-                ratios[i, j] = compare_image_region(cropped_image, prototype.image)
+        for i in range(self.image.shape[0] - prototype_image.shape[0] + 1):
+            for j in range(self.image.shape[1] - prototype_image.shape[1] + 1):
+                cropped_image = self.image[i:i + prototype_image.shape[0], j:j + prototype_image.shape[1]]
+                # ratios[i].append(compare_image_region(cropped_image, prototype_image))
+                ratios[i, j] = compare_image_region(cropped_image, prototype_image)
 
         return ratios
 
@@ -226,6 +232,9 @@ class Component(object):
     def __str__(self):
         """
         """
+
+        if self.prototype is not None:
+            return self.prototype
 
         return UNKNOWN_COMPONENT
 
@@ -259,15 +268,17 @@ class Prototype(str):
 
         return cls(characters, image)
 
-    def resize_to_width(self, width):
+    def resize_to_width(self, width, keep_aspect_ratio=False):
         """
         """
 
-        aspect_ratio = self.image.shape[0]/self.image.shape[1]
+        if keep_aspect_ratio:
+            aspect_ratio = self.image.shape[0]/self.image.shape[1]
+            height = aspect_ratio * width
+            return cv2.resize(self.image, (width, height))
+        else:
+            return cv2.resize(self.image, (width, self.image.shape[0]))
 
-        height = aspect_ratio * width
-
-        return cv2.resize(self.image, (width, height))
 
 e = Prototype.from_image_file('e', '../share/e.png')
 ch = Prototype.from_image_file('ch', '../share/ch.png')
