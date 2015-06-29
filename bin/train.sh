@@ -1,7 +1,7 @@
-LANGUAGE = "deu-frak"
-LANGUAGE_NAME = "fraktur"
-TESSERACT_OPTIONS = "-psm 7"
-OUTPUT_DIR = "../test"
+LANGUAGE="deu-frak"
+LANGUAGE_NAME="fraktur"
+TESSERACT_OPTIONS="-psm 7"
+OUTPUT_DIR="../test"
 
 cd $OUTPUT_DIR
 
