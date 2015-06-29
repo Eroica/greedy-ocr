@@ -55,8 +55,7 @@ class Word(list):
         point_1 = box[0]
         point_2 = box[1]
 
-        self.original_image = image[point_1[1]:point_2[1], point_1[0]:point_2[0]]
-        self.image = self.original_image[:]
+        self.image = image[point_1[1]:point_2[1], point_1[0]:point_2[0]]
         self.bounding_box = box
 
         self.append(Component(self, 0, self.image.shape[1]))
@@ -77,13 +76,14 @@ class Word(list):
         """
         """
 
-        # Clear display image
-        self.image = self.original_image[:]
+        components_image = self.image[:]
 
         for comp in self:
             if isinstance(comp, Component):
-                cv2.line(self.image, (comp.begin, 0), (comp.begin, self.height()), STANDARD_COLOR)
-                cv2.line(self.image, (comp.end - 1, 0), (comp.end - 1, self.height()), STANDARD_COLOR)
+                cv2.line(components_image, (comp.begin, 0), (comp.begin, self.height()), STANDARD_COLOR)
+                cv2.line(components_image, (comp.end - 1, 0), (comp.end - 1, self.height()), STANDARD_COLOR)
+
+        return components_image
 
     def create_sub_image(self, min_x, max_x):
         """
