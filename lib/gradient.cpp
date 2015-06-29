@@ -8,7 +8,7 @@
 using namespace cv;
 using namespace std;
 
-#define INPUT_FILE              "../share/992520.jpg"
+#define INPUT_FILE              "992520.jpg"
 #define OUTPUT_FOLDER_PATH      string("")
 
 int main(int argc, char* argv[])
