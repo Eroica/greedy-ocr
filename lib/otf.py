@@ -31,6 +31,7 @@ def lexicon_query(word):
 
 
 e = components.Prototype.from_image_file('e', '../share/e.png')
+c = components.Prototype.from_image_file('c', '../share/c.png')
 ch = components.Prototype.from_image_file('ch', '../share/ch.png')
 img = cv2.imread('../share/ausschnitt.png', 0)
 indessen = components.Word(img, ((14, 2), (199, 64)))
