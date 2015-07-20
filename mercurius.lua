@@ -5,11 +5,9 @@ MERCURIUS_FILE = "mercurius.xml"
 local xml_file = io.open(MERCURIUS_FILE, "r")
 local xml_file_content = xml_file:read("*all")
 xml_file:close()
+
 local xml_data = xml.load(xml_file_content)
-
 local xml_body = xml.find(xml_data, "body")
-
-local parsed_sentences = {}
 
 output_file = io.open(arg[1], "w")
 
