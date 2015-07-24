@@ -7,7 +7,7 @@ local UNKNOWN_COMPONENT = '.*'
 
 local Components = {}
 
-local function threshold(x):
+local function threshold(x)
     if x >= 0.5 then return 1.0 else return 0 end
 end
 
@@ -21,8 +21,8 @@ function Components.compare_image_region(image, sub_image)
     image_bw = image:clone():apply(threshold)
     sub_image_bw = sub_image:clone():apply(threshold)
 
-    for i=1, #sub_image_bw:size()[2] do
-        for j=1, #sub_image_bw:size()[3] do
+    for i=1, sub_image_bw:size()[2] do
+        for j=1, sub_image_bw:size()[3] do
             nom = nom + image_bw[{1, i, j}] and sub_image_bw[{1, i, j}]
             denom = denom + image_bw[{1, i, j}] or sub_image_bw[{1, i, j}]
         end
@@ -54,7 +54,8 @@ end
 
 --     return ratio
 
-Components.Word = {}
+local Word = {}
+
 function Word.new(image, bounding_box)
     local top_left = {bounding_box[1] or 0, bounding_box[2] or 0}
     local bottom_right = {bounding_box[3] or 0, bounding_box[4] or 0}
