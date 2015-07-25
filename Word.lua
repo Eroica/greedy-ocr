@@ -45,7 +45,6 @@ function Word:split ()
                 columns[#columns + 1] = i
                 find_white = true
             end
-
         end
         ::continue::
     end
