@@ -1,13 +1,16 @@
 local Prototype = {}
 
-function Prototype:height()
-    return self._image:size()[2]
+function Prototype:height ()
+    return self._image:size(2)
 end
 
-function Prototype:width()
-    return self._image:size()[3]
+function Prototype:width ()
+    return self._image:size(3)
 end
 
+function Prototype:__tostring ()
+    return self._string
+end
 
 function Prototype:new (_image, string)
     local prototype = {}
