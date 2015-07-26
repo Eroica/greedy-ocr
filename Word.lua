@@ -1,11 +1,11 @@
 local Word = {}
 
-function Word:height()
-    return self._image:size()[2]
+function Word:height ()
+    return self._image:size(2)
 end
 
-function Word:width()
-    return self._image:size()[3]
+function Word:width ()
+    return self._image:size(3)
 end
 
 function Word:new (_image, bounding_box)
@@ -25,150 +25,105 @@ function Word:new (_image, bounding_box)
     return word
 end
 
-function Word:split ()
-    local image_bw = self._image:clone():apply(threshold)
-    local columns = {}
-    local find_white = true
+function Word:__tostring ()
+    local str = {}
 
-    for i=1, self:width() do
-        if find_white then
-            if image_bw[{1, {}, i}]:eq(1):all() then
-                goto continue
-            else
-                columns[#columns + 1] = i
-                find_white = false
-            end
-        else
-            if image_bw[{1, {}, i}]:eq(0):any() then
-                goto continue
-            else
-                columns[#columns + 1] = i
-                find_white = true
-            end
-        end
-        ::continue::
+    for i=1, #self do
+        string[#string + 1] = tostring(self[i])
     end
 
-    return columns
+    return table.concat(string)
 end
+
+
+-- function Word:split_into_components ()
+--     local image_bw = self._image:clone():apply(threshold)
+--     local columns = {}
+--     local find_white = true
+
+--     for i=1, self:width() do
+--         if find_white then
+--             if image_bw[{1, {}, i}]:eq(1):all() then
+--                 goto continue
+--             else
+--                 columns[#columns + 1] = i
+--                 find_white = false
+--             end
+--         else
+--             if image_bw[{1, {}, i}]:eq(0):any() then
+--                 goto continue
+--             else
+--                 columns[#columns + 1] = i
+--                 find_white = true
+--             end
+--         end
+--         ::continue::
+--     end
+
+--     for i=1, #columns, 2 do
+--         local e = columns[i+1] or self:width()
+
+--         -- table.insert(self, Component:new(columns[i], e))
+--     end
+--     return columns
+-- end
 
 
 
 function Word:_split_at (s, e)
-    s = math.max(0, s)
-    e = math.min(self:width(), e)
+    local s = math.max(0, s)
+    local e = math.min(self:width(), e)
 
     assert(e - s > 0)
 
-    affected_components = {}
+    local affected_components = {}
     for i=1, #self do
-        if tostring(self[i]) ~= ".*" then
+        local comp = self[i]
+
+        if tostring(comp) ~= ".*" then
             goto continue
         end
 
-        if ((self[i].s <= s) and (s <= self[i].e))
-        or ((self[i].s <= e) and (e <= self[i].e)) then
+        -- check if component is part of split area
+        if ((comp.s >= s and comp.s <= e) or (comp.e >= s and comp.e <= e))
+        -- check if split area is part of component
+        or ((comp.s <= s and s <= comp.e) or (comp.s <= e and e <= comp.e)) then
             table.insert(affected_components, i)
         end
 
         ::continue::
     end
 
-    print(affected_components)
+    local left_component = self[affected_components[1]]
+    local right_component = self[affected_components[#affected_components]]
+
+    for i=#affected_components, 1, -1 do
+        table.remove(self, affected_components[i])
+    end
+
+    local new_components = {}
+    if math.abs(left_component.s - s) >= MINIMUM_COMPONENT_WIDTH then
+        table.insert(new_components, Component:new(self, left_component.s, s))
+    end
+
+    table.insert(new_components, Component:new(self, s, e))
+
+    if math.abs(right_component.e - e) >= MINIMUM_COMPONENT_WIDTH then
+        table.insert(new_components, Component:new(self, e, right_component.e))
+    end
+
+    for i=1, #new_components do
+        table.insert(self, affected_components[1] + i - 1, new_components[i])
+    end
 end
 
 return Word
 
---     def to_string(self):
---         """
---         """
-
---         return ''.join(str(comp) for comp in self)
-
-
---         # component_ranges = [(x.begin, x.end) for x in self if isinstance(x, Component)]
-
---         # print component_ranges
-
---         # affected_components = []
---         # for i, comp in enumerate(component_ranges):
---         #     if min_x in range(comp[0], comp[1]) or max_x in range(comp[0], comp[1]):
---         #         affected_components.append(i)
-
---         # print affected_components
-
---         left_component = self[affected_components[0]]
---         right_component = self[affected_components[-1]]
-
---         for i in affected_components:
---             self.pop(i)
-
-
---         new_components = []
---         if abs(left_component.begin - min_x) >= MINIMUM_COMPONENT_WIDTH:
---             new_components.append(Component(self, left_component.begin, min_x))
-
---         if prototype is not None:
---             new_components.append(prototype)
---         else:
---             new_components.append(Component(self, min_x, max_x))
-
---         if abs(right_component.end - max_x) >= MINIMUM_COMPONENT_WIDTH:
---             new_components.append(Component(self, max_x, right_component.end))
-
---         self[affected_components[0]:affected_components[0]] = new_components
 
 
 
---     def _split_at(self, min_x, max_x, prototype=None):
---         """
---         """
+-- function Word:find_prototype(prototype)
 
---         assert min_x in range(self.width() + 1) and max_x in range(self.width() + 1)
---         assert max_x - min_x >= MINIMUM_COMPONENT_WIDTH
-
-
---         affected_components = []
---         for i, comp in enumerate(self):
---             if isinstance(comp, Prototype):
---                 continue
-
---             if min_x in range(comp.begin, comp.end) or max_x in range(comp.begin, comp.end):
---                 affected_components.append(i)
-
---         print affected_components
-
---         # component_ranges = [(x.begin, x.end) for x in self if isinstance(x, Component)]
-
---         # print component_ranges
-
---         # affected_components = []
---         # for i, comp in enumerate(component_ranges):
---         #     if min_x in range(comp[0], comp[1]) or max_x in range(comp[0], comp[1]):
---         #         affected_components.append(i)
-
---         # print affected_components
-
---         left_component = self[affected_components[0]]
---         right_component = self[affected_components[-1]]
-
---         for i in affected_components:
---             self.pop(i)
-
-
---         new_components = []
---         if abs(left_component.begin - min_x) >= MINIMUM_COMPONENT_WIDTH:
---             new_components.append(Component(self, left_component.begin, min_x))
-
---         if prototype is not None:
---             new_components.append(prototype)
---         else:
---             new_components.append(Component(self, min_x, max_x))
-
---         if abs(right_component.end - max_x) >= MINIMUM_COMPONENT_WIDTH:
---             new_components.append(Component(self, max_x, right_component.end))
-
---         self[affected_components[0]:affected_components[0]] = new_components
 
 --     def split_with(self, prototype):
 --         """
