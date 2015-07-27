@@ -4,6 +4,17 @@ require "image"
 Prototype = require "Prototype"
 Word = require "Word"
 Component = require "Component"
+-- Lexicon = require "Lexicon"
+Lexicon = require "Lexicon"
+
+SPLIT_THRESHOLD = 0.65
+START = '^'
+END = '$'
+UNKNOWN_COMPONENT = '.*'
+--local STANDARD_COLOR = (0, 0, 0)
+MINIMUM_COMPONENT_WIDTH = 4
+LEXICON_FILENAME = "share/lexicon.txt"
+DEBUG = true
 
 ch = Prototype:new_from_image_file("share/ch.png", "ch")
 c = Prototype:new_from_image_file('share/c.png', "c")
@@ -12,20 +23,21 @@ page = image.load("share/page.png", 1)
 ausschnitt = image.load("share/ausschnitt.png", 1)
 indessen = Word:new(ausschnitt, {17, 5, 200, 65})
 etliche = Word:new(ausschnitt, {433, 5, 551, 55})
-
-SPLIT_THRESHOLD = 0.65
-START = '^'
-END = '$'
-UNKNOWN_COMPONENT = '.*'
---local STANDARD_COLOR = (0, 0, 0)
-MINIMUM_COMPONENT_WIDTH = 4
+lexicon = Lexicon.new(LEXICON_FILENAME)
 
 
-function threshold(x)
-    if x >= 0.5 then return 1.0 else return 0 end
+
+-- function threshold(x)
+--     if x >= 0.5 then return 1.0 else return 0 end
+-- end
+
+function threshold (mean)
+    local mean = mean or 0.5
+
+    return function (x)
+        if x >= mean then return 0 else return 1.0 end
+    end
 end
-
-
 
 
 function find_lines(img)
