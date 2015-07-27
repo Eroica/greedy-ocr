@@ -1,0 +1,9 @@
+SPLIT_THRESHOLD = 0.65
+START = '^'
+END = '$'
+UNKNOWN_COMPONENT = '.*'
+STANDARD_COLOR = (0, 0, 0)
+MINIMUM_COMPONENT_WIDTH = 4
+IMG_FILE = '../share/ausschnitt.png'
+LEXICON_FILE = '../share/lexicon.txt'
+DEBUG = True
