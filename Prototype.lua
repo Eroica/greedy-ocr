@@ -1,4 +1,21 @@
 local Prototype = {}
+-- local Image = require "builder"
+
+-- local function init (self, string)
+--     self._string = string
+
+--     -- setmetatable(self, self)
+
+--     function self:__tostring ()
+--         return self._string
+--     end
+
+--     return self
+-- end
+
+-- function Prototype.new (_image, string)
+--     return init(Image.new(_image), string)
+-- end
 
 function Prototype:height ()
     return self._image:size(2)
@@ -8,9 +25,9 @@ function Prototype:width ()
     return self._image:size(3)
 end
 
-function Prototype:__tostring ()
-    return self._string
-end
+-- function Prototype:__tostring ()
+    -- return self._string
+-- end
 
 function Prototype:new (_image, string)
     local prototype = {}

@@ -25,15 +25,15 @@ function Word:new (_image, bounding_box)
     return word
 end
 
-function Word:__tostring ()
-    local str = {}
+-- function Word:__tostring ()
+--     local str = {}
 
-    for i=1, #self do
-        string[#string + 1] = tostring(self[i])
-    end
+--     for i=1, #self do
+--         string[#string + 1] = tostring(self[i])
+--     end
 
-    return table.concat(string)
-end
+--     return table.concat(string)
+-- end
 
 
 -- function Word:split_into_components ()

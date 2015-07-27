@@ -8,9 +8,9 @@ function Component:width ()
     return self._image:size(3)
 end
 
-function Component:__tostring ()
-    return self._string
-end
+-- function Component:__tostring ()
+--     return self._string
+-- end
 
 function Component:new (word, start, e)
     local component = {}
