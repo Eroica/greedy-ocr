@@ -1,4 +1,4 @@
-MERCURIUS_FILENAME = "share/mercurius.txt"
+MERCURIUS_FILENAME = "../share/mercurius.txt"
 MERCURIUS_FILE = io.open(MERCURIUS_FILENAME)
 
 st = {}
@@ -50,17 +50,17 @@ function remove (bag, element)
     bag[element] = (count and count > 1) and count - 1 or nil
 end
 
-local w1, w2 = "", ""
-for w in allletters() do
-    w1 = w2; w2 = w;
+-- local w1, w2 = "", ""
+-- for w in allletters() do
+--     w1 = w2; w2 = w;
 
-    if lt[w1] == nil then
-        lt[w1] = {}
-    else
-        insert(lt[w1], w2)
-    --     table.insert(st[w1], w2)
-    end
-end
+--     if lt[w1] == nil then
+--         lt[w1] = {}
+--     else
+--         insert(lt[w1], w2)
+--     --     table.insert(st[w1], w2)
+--     end
+-- end
 
 
 local w1, w2 = "", ""
