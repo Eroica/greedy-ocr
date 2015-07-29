@@ -7,7 +7,7 @@ import gr_config as CONFIG
 from Component import Component
 from Prototype import Prototype
 from Word import Word
-from LanguageModel import Lexicon
+import LanguageModel
 
 def threshold(image):
     """
@@ -41,4 +41,4 @@ for pair in WORDS_BB:
 etliche._split_at(10, 100)
 etliche._split_at(5, 112)
 
-lexicon = Lexicon(CONFIG.LEXICON_FILE)
+lexicon = LanguageModel.Lexicon(CONFIG.LEXICON_FILE)
