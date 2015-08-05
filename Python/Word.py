@@ -19,29 +19,44 @@ class Word(list):
 
         self._image = image[point_1[1]:point_2[1], point_1[0]:point_2[0]]
         self._bounding_box = bounding_box
+        self._candidates = []
 
+        # subtract 1 because of off-by-one error
         self.append(Component(self, 0, self._image.shape[1] - 1))
 
-    def height(self):
+    def possible_words(self, lexicon):
+        """Queries `lexicon' for the current redacted string and saves
+        all possible words into `self._candidates'.
         """
+
+        self._candidates = lexicon.query(self.to_string())
+
+        if len(self._candidates) == 1:
+            print "Word successfully recognized as `" + self._candidates[0] + "'"
+
+    def height(self):
+        """Returns the height of `self._image', and, by extension, the
+        height of the bounding box that encloses this word.
         """
 
         return self._image.shape[0]
 
     def width(self):
-        """
+        """Returns the width of `self._image', and, by extension, the
+        width of the bounding box that encloses this word.
         """
 
         return self._image.shape[1]
 
-    # def to_string(self):
-    #     """
-    #     """
+    def to_string(self):
+        """
+        """
 
-    #     return ''.join(str(comp) for comp in self)
+        return ''.join(str(comp) for comp in self)
 
     def image(self):
-        """
+        """Returns a copy of `self._image' which shows the position
+        of all current components.
         """
 
         components_image = self._image.copy()
@@ -53,7 +68,9 @@ class Word(list):
         return components_image
 
     def crop_image(self, min_x, max_x):
-        """
+        """Returns a smaller image of self._image, cropped at
+        x-coordinates `min_x' and `max_x'.
+        Height equals to self.height()
         """
 
         assert min_x <= self.width() and max_x <= self.width()
@@ -63,7 +80,7 @@ class Word(list):
         return sub_image
 
     def all_components(self, reverse=False):
-        """
+        """Iterator for all components in self. Prototypes are ignored.
         """
 
         if reverse:
@@ -76,7 +93,8 @@ class Word(list):
                     yield comp
 
     def print_components(self):
-        """
+        """Prints a list of all current component of that word.
+        Prototypes are ignored.
         """
 
         for i, comp in enumerate(self.all_components()):
@@ -84,6 +102,10 @@ class Word(list):
 
 
     def _split_at(self, s, e):
+        """Takes two x-coordinates and creates a new component there.
+        Overlapping components will be shrunken.
+        """
+
         begin = max(0, s)
         end = min(self.width(), e)
 
