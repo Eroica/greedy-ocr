@@ -2,6 +2,7 @@ import os
 import numpy as np
 import cv2
 import re
+import nltk
 
 import gr_config as CONFIG
 from Component import Component
@@ -42,3 +43,7 @@ etliche._split_at(10, 100)
 etliche._split_at(5, 112)
 
 lexicon = LanguageModel.Lexicon(CONFIG.LEXICON_FILE)
+text = [x.strip() for x in open(CONFIG.MERCURIUS_FILE).read().split()]
+freq = nltk.FreqDist(text)
+bi = LanguageModel.NgramModel(text, 2)
+tri = LanguageModel.NgramModel(text, 3)

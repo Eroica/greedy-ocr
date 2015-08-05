@@ -66,7 +66,10 @@ class Lexicon(set):
 
         super(Lexicon, self).__init__()
 
-        self |= set([line.strip() for line in open(lexicon_filename)])
+        try:
+            self |= set([line.strip() for line in open(lexicon_filename)])
+        except IOError:
+            print "File `" + lexicon_filename + "' could not be found!"
 
     def query(self, word):
         """
@@ -75,9 +78,3 @@ class Lexicon(set):
         search_term = '^' + word + '$'
 
         return [word.group(0) for word in (re.search(search_term, l) for l in self) if word]
-
-
-text = [x.strip() for x in open(CONFIG.MERCURIUS_FILE).read().split()]
-freq = nltk.FreqDist(text)
-bi = NgramModel(text, 2)
-tri = NgramModel(text, 3)
