@@ -25,18 +25,21 @@ class NgramModel(dict):
 
 
 class Bag(dict):
-    """
+    """This data structure describes how often a specific word has been
+    seen in a text. Every word is a key and the value a counter starting
+    at `1'. If the word is encountered again, the counter increments.
 
     """
 
     def __init__(self):
-        """
+        """Creates and returns a new `Bag' object.
         """
 
         super(Bag, self).__init__()
 
     def insert(self, key):
-        """
+        """Insert a word into `self'. If the word is already found,
+        increment its counter.
         """
 
         try:
@@ -45,7 +48,8 @@ class Bag(dict):
             self[key] = 1
 
     def remove(self, key):
-        """
+        """Decrement a word's counter. If the counter reaches `0', the
+        word gets deleted from `self'.
         """
 
         count = self[key]
