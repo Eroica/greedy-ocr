@@ -1,6 +1,8 @@
 MERCURIUS_FILENAME = "../share/mercurius.txt"
 MERCURIUS_FILE = io.open(MERCURIUS_FILENAME)
 
+inspect = require "inspect"
+
 st = {}
 lt = {}
 
@@ -69,6 +71,7 @@ for w in allwords() do
 
     if st[w1] == nil then
         st[w1] = {}
+        table.insert(st[w1], w2)
     else
         insert(st[w1], w2)
     --     table.insert(st[w1], w2)
