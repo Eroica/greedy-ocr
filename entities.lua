@@ -1,62 +1,119 @@
 local entities = {}
 
-function entities.newLine(image)
-    local line = ecs.Entity()
-    line.segments = {}
-    line:add(isLine)
-          :add(Image, image)
+entities.Test = class("Test", Entity)
+function entities.Test:__init()
+    self:add(Position(3, 3))
 
-    STATE_MANAGER:current():addEntity(line)
+    self._segments = {}
 
-    return line
+    engine:addEntity(self)
 end
 
-function entities.newSegment(l, t, width, height)
-    local segment = ecs.Entity()
-        :add(isSegment)
-        :add(Position, l, t)
-        :add(Size, width, height)
-
-    segment.components = {}
-    local component = entities.newComponent(0, width - 1)
-    table.insert(segment.components, component)
-
-    STATE_MANAGER:current():addEntity(segment)
-
-    return segment
+function entities.Test:split_at()
+    print "hello"
 end
 
-function entities.newPrototype(literal, image)
-    local prototype = ecs.Entity()
-        :add(isPrototype)
-        :add(String, literal)
-        :add(Image, image)
 
-    create_prototype_system(prototype)
+entities.Line = class("Line", Entity)
+function entities.Line:__init(image, segments)
+    self:add(Image(image))
+    self:add(isLine)
 
-    STATE_MANAGER:current():addEntity(prototype)
+    self._segments = {}
 
-    return prototype
+    for _, segment in ipairs(segments) do
+        local width = segment[2] - segment[1] + 1
+        local seg = entities.Segment(segment[1], segment[2], width, image:getHeight(), self)
+        table.insert(self._segments, seg)
+    end
+
+    engine:addEntity(self)
 end
 
-function entities.newComponent(s, e)
-    local component = ecs.Entity()
-        :add(isComponent)
-        :add(Range, s, e)
-        :add(String)
 
-    STATE_MANAGER:current():addEntity(component)
 
-    return component
+
+entities.Segment = class("Segment", Entity)
+function entities.Segment:__init(l, t, width, height, parent)
+    self:add(isSegment)
+    self:add(Position(l, t))
+    self:add(Size(width, height))
+
+    self._components = {}
+
+    local component = entities.Component(0, width - 1, self)
+    table.insert(self._components, component)
+    self:setParent(parent)
+
+    engine:addEntity(self)
 end
 
-function create_prototype_system(prototype)
-    local x = ecs.System(isComponent)
-        :addEventListener("update", function(entity)
-            print("checking for prototype " .. prototype:get(String).string)
-        end)
 
-    STATE_MANAGER:current():addSystem(x)
+
+function entities.Segment:split_at (start, _end)
+    local s = math.max(0, start)
+    local e = math.min(self:get("Size").width, _end)
+
+    print(s,e)
+
+    assert(e - s > 0)
+
+    local affected_components = {}
+    for i=1, #self._components do
+        local comp = self._components[i]
+        local comp_range = comp:get("Range")
+
+        -- if comp:get("String").string ~= ".*" then
+        --     goto continue
+        -- end
+
+        if ((comp_range.s >= s and comp_range.s <= e) or (comp_range.e >= s and comp_range.e <= e))
+        or ((comp_range.s <= s and s <= comp_range.e) or comp_range.s <= e and e <= comp_range.e) then
+            table.insert(affected_components, i)
+        end
+
+        -- ::continue::
+    end
+
+    --print(inspect(affected_components))
+
+    local left_component = self._components[affected_components[1]]
+    local right_component = self._components[affected_components[#affected_components]]
+
+    for i=#affected_components, 1, -1 do
+        table.remove(self._components, affected_components[i])
+    end
+
+    local new_components = {}
+    if math.abs(left_component:get("Range").s - s) >= MINIMUM_COMPONENT_WIDTH then
+        table.insert(new_components, entities.Component(left_component:get("Range").s, s, self))
+    end
+
+    table.insert(new_components, entities.Component(s, e, self))
+
+    if math.abs(right_component:get("Range").e - e) >= MINIMUM_COMPONENT_WIDTH then
+        table.insert(new_components, entities.Component(e, right_component:get("Range").e, self))
+    end
+
+    for i=1, #new_components do
+        table.insert(self._components, affected_components[1] + i - 1, new_components[i])
+    end
+end
+
+
+
+
+
+
+entities.Component = class("Component", Entity)
+function entities.Component:__init(start, e, parent)
+    self:add(Range(start, e))
+    self:add(String())
+    self:add(isComponent())
+
+    self:setParent(parent)
+
+    engine:addEntity(self)
 end
 
 return entities
