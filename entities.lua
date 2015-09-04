@@ -1,29 +1,25 @@
 local entities = {}
 
-entities.Test = class("Test", Entity)
-function entities.Test:__init()
-    self:add(Position(3, 3))
-
-    self._segments = {}
+entities.Prototype = class("Prototype", Entity)
+function entities.Prototype:__init(literal, image)
+    self:add(isPrototype())
+    self:add(String(literal))
+    self:add(Image(image))
 
     engine:addEntity(self)
-end
-
-function entities.Test:split_at()
-    print "hello"
 end
 
 
 entities.Line = class("Line", Entity)
 function entities.Line:__init(image, segments)
     self:add(Image(image))
-    self:add(isLine)
+    self:add(isLine())
 
     self._segments = {}
 
     for _, segment in ipairs(segments) do
         local width = segment[2] - segment[1] + 1
-        local seg = entities.Segment(segment[1], segment[2], width, image:getHeight(), self)
+        local seg = entities.Segment(segment[1], 0, width, image:getHeight(), self)
         table.insert(self._segments, seg)
     end
 
@@ -31,24 +27,31 @@ function entities.Line:__init(image, segments)
 end
 
 
-
-
 entities.Segment = class("Segment", Entity)
 function entities.Segment:__init(l, t, width, height, parent)
-    self:add(isSegment)
+    self:setParent(parent)
+    self:add(isSegment())
     self:add(Position(l, t))
     self:add(Size(width, height))
+
+    local image_data = love.image.newImageData(width, height)
+    image_data:paste(self:getParent():get("Image").image:getData(), 0, 0, l, t, width, height)
+    local image = love.graphics.newImage(image_data)
+    self:add(Image(image))
 
     self._components = {}
 
     local component = entities.Component(0, width - 1, self)
     table.insert(self._components, component)
-    self:setParent(parent)
 
     engine:addEntity(self)
 end
 
-
+function entities.Segment:copy_image_region (start, e)
+    local image = self:getParent():get("Image").image
+    local size = self:get("Size")
+    local position = self:get("Position")
+end
 
 function entities.Segment:split_at (start, _end)
     local s = math.max(0, start)
@@ -107,11 +110,18 @@ end
 
 entities.Component = class("Component", Entity)
 function entities.Component:__init(start, e, parent)
+    self:setParent(parent)
     self:add(Range(start, e))
     self:add(String())
     self:add(isComponent())
 
-    self:setParent(parent)
+
+    local parent_size = self:getParent():get("Size")
+
+    local image_data = love.image.newImageData(e - start + 1, parent_size.height)
+    image_data:paste(self:getParent():get("Image").image:getData(), 0, 0, start, 0, e - start + 1, parent_size.height)
+    local image = love.graphics.newImage(image_data)
+    self:add(Image(image))
 
     engine:addEntity(self)
 end
