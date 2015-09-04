@@ -10,6 +10,10 @@ isComponent = class("isComponent", Component)
 function isComponent:__init()
 end
 
+isPrototype = class("isPrototype", Component)
+function isPrototype:__init()
+end
+
 
 Position = class("Position", Component)
 function Position:__init(l, t)
@@ -27,9 +31,10 @@ end
 
 Image = class("Image", Component)
 function Image:__init(image)
-    local image_bw = love.image.newImageData(image:getWidth(), image:getHeight())
-    image_bw:paste(image:getData(), 0, 0, 0, 0, image:getWidth(), image:getHeight())
-    image_bw:mapPixel(threshold())
+    local image_bw_data = love.image.newImageData(image:getWidth(), image:getHeight())
+    image_bw_data:paste(image:getData(), 0, 0, 0, 0, image:getWidth(), image:getHeight())
+    image_bw_data:mapPixel(threshold())
+    local image_bw = love.graphics.newImage(image_bw_data)
 
     self.image = image
     self.image_bw = image_bw
