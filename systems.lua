@@ -17,6 +17,10 @@ function SegmentDrawSystem:draw()
 
         love.graphics.setColor(255, 0, 255)
         love.graphics.rectangle("line", position.l, 0, size.width, size.height)
+        -- love.graphics.line(position.l, 0, position.l + size.width, 0)
+        -- love.graphics.line(position.l + size.width, 0, position.l + size.width, size.height)
+        -- love.graphics.line(position.l, size.height, position.l + size.width, size.height)
+        -- love.graphics.line(position.l, 0, position.l, size.height)
         love.graphics.setColor(255, 255, 255)
     end
 end
@@ -28,16 +32,16 @@ end
 
 ComponentsDrawSystem = class("ComponentsDrawSystem", System)
 function ComponentsDrawSystem:draw()
-    love.graphics.setColor(255, 0, 0)
+    love.graphics.setColor(0, 255, 0)
     for i, v in pairs(self.targets) do
         local parent_position = v:getParent():get("Position")
         local parent_size = v:getParent():get("Size")
         local range = v:get("Range")
 
         love.graphics.push()
-        love.graphics.translate(parent_position.l, 0)
-        love.graphics.line(range.s, 0, range.s, parent_size.height)
-        love.graphics.line(range.e, 0, range.e, parent_size.height)
+            love.graphics.translate(parent_position.l, 0)
+            love.graphics.line(range.s, 0, range.s, parent_size.height)
+            love.graphics.line(range.e, 0, range.e, parent_size.height)
         love.graphics.pop()
     end
     love.graphics.setColor(255, 255, 255)

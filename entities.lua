@@ -1,3 +1,5 @@
+MINIMUM_COMPONENT_WIDTH = 10
+
 local entities = {}
 
 entities.Prototype = class("Prototype", Entity)
@@ -47,17 +49,9 @@ function entities.Segment:__init(l, t, width, height, parent)
     engine:addEntity(self)
 end
 
-function entities.Segment:copy_image_region (start, e)
-    local image = self:getParent():get("Image").image
-    local size = self:get("Size")
-    local position = self:get("Position")
-end
-
 function entities.Segment:split_at (start, _end)
     local s = math.max(0, start)
     local e = math.min(self:get("Size").width, _end)
-
-    print(s,e)
 
     assert(e - s > 0)
 
@@ -66,19 +60,17 @@ function entities.Segment:split_at (start, _end)
         local comp = self._components[i]
         local comp_range = comp:get("Range")
 
-        -- if comp:get("String").string ~= ".*" then
-        --     goto continue
-        -- end
+        if comp:has("isPrototype") then
+            goto continue
+        end
 
         if ((comp_range.s >= s and comp_range.s <= e) or (comp_range.e >= s and comp_range.e <= e))
         or ((comp_range.s <= s and s <= comp_range.e) or comp_range.s <= e and e <= comp_range.e) then
             table.insert(affected_components, i)
         end
 
-        -- ::continue::
+        ::continue::
     end
-
-    --print(inspect(affected_components))
 
     local left_component = self._components[affected_components[1]]
     local right_component = self._components[affected_components[#affected_components]]
@@ -124,6 +116,50 @@ function entities.Component:__init(start, e, parent)
     self:add(Image(image))
 
     engine:addEntity(self)
+end
+
+function entities.Component:overlay(sub_image)
+    local image = self:get("Image").image_bw
+
+    assert(image:getWidth() >= sub_image:getWidth())
+    assert(image:getHeight() >= sub_image:getHeight())
+
+    local ratios = {}
+    local max_y = image:getHeight() - sub_image:getHeight() + 1
+    local max_x = image:getWidth() - sub_image:getWidth() + 1
+
+    local wie_oft_hoch = math.floor(image:getHeight() / sub_image:getHeight())
+    local wie_oft_breit = math.floor(image:getWidth() / sub_image:getWidth())
+
+    local image_data = image:getData()
+    local sub_image_data = sub_image:getData()
+    local sub_width, sub_height = sub_image:getWidth(), sub_image:getHeight()
+    print(sub_width, sub_height)
+
+    for j=0, max_y - 1 do
+        for i=0, max_x - 1 do
+            local sum_and, sum_or = 0, 0
+
+            for k=0, sub_width - 1 do
+                for l=0, sub_height - 1 do
+                    -- print("i+k: " .. tostring(i+k))
+                    -- print("k: " .. tostring(k))
+                    -- print("j+l: " .. tostring(j+l))
+                    -- print("l: " .. tostring(l))
+                    -- print("#####")
+
+                    local image_pixel = image_data:getPixel(i+k, j+l)
+                    local sub_image_pixel = sub_image_data:getPixel(k, l)
+
+                    sum_and = sum_and + bit.band(image_pixel, sub_image_pixel)
+                    sum_or = sum_or + bit.bor(image_pixel, sub_image_pixel)
+                end
+            end
+            table.insert(ratios, sum_and/sum_or)
+        end
+    end
+
+    return ratios
 end
 
 return entities
