@@ -16,12 +16,17 @@ entities.Line = class("Line", Entity)
 function entities.Line:__init(image, segments)
     self:add(Image(image))
     self:add(isLine())
+    self:add(Position(0, 0))
 
     self._segments = {}
 
     for _, segment in ipairs(segments) do
-        local width = segment[2] - segment[1] + 1
-        local seg = entities.Segment(segment[1], 0, width, image:getHeight(), self)
+        local start = segment[1]
+        local e = segment[2]
+
+        local width = e[1] - start[1]
+        local height = e[2] - start[2]
+        local seg = entities.Segment(start[1], start[2], width, height, self)
         table.insert(self._segments, seg)
     end
 

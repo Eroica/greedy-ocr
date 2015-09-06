@@ -1,7 +1,7 @@
 LineDrawSystem = class("LineDrawSystem", System)
 function LineDrawSystem:draw()
     for i, v in pairs(self.targets) do
-        love.graphics.draw(v:get("Image").image, 0, 0)
+        love.graphics.draw(v:get("Image").image, v:get("Position").l, v:get("Position").t)
     end
 end
 
@@ -16,7 +16,7 @@ function SegmentDrawSystem:draw()
         local size = v:get("Size")
 
         love.graphics.setColor(255, 0, 255)
-        love.graphics.rectangle("line", position.l, 0, size.width, size.height)
+        love.graphics.rectangle("line", position.l, position.t, size.width, size.height)
         -- love.graphics.line(position.l, 0, position.l + size.width, 0)
         -- love.graphics.line(position.l + size.width, 0, position.l + size.width, size.height)
         -- love.graphics.line(position.l, size.height, position.l + size.width, size.height)
@@ -39,7 +39,7 @@ function ComponentsDrawSystem:draw()
         local range = v:get("Range")
 
         love.graphics.push()
-            love.graphics.translate(parent_position.l, 0)
+            love.graphics.translate(parent_position.l, parent_position.t)
             love.graphics.line(range.s, 0, range.s, parent_size.height)
             love.graphics.line(range.e, 0, range.e, parent_size.height)
         love.graphics.pop()
