@@ -5,6 +5,7 @@ lurker = require "lib/lurker"
 
 
 entities = require "entities"
+LanguageModel = require "LanguageModel"
 require "components"
 --require "engines"
 require "systems"
@@ -29,6 +30,10 @@ end
 
 function love.load()
     engine = Engine()
+
+    lexicon = LanguageModel.Lexicon("share/lexicon.txt")
+    bigram_words = LanguageModel.Ngram("share/mercurius.txt")
+    bigram_letters = LanguageModel.Ngram("share/mercurius.txt", true)
 
     load_image()
     load_prototypes()
