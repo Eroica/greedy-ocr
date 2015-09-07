@@ -6,13 +6,26 @@
 
 ]]
 
-function rgb2grey(r, g, b)
-    -- http://www.johndcook.com/blog/2009/08/24/algorithms-convert-color-grayscale/
-    return 0.21*r + 0.72*g + 0.07*b
+-- rgb2grey:
+-- Takes an RGB color value and converts it to a greyscale value
+-- (from 0 to 255). Based on the article at
+-- http://www.johndcook.com/blog/2009/08/24/algorithms-convert-color-grayscale/
+-- (last retrieved: September 1st, 2015)
+--
+-- @params: r, g, b : numbers
+-- @returns: A number from 0 to 255.
+function rgb2grey (r, g, b)
+    return math.ceil(0.21*r + 0.72*g + 0.07*b)
 end
 
-function threshold(value)
-    -- this creates a clojure
+-- threshold:
+-- Used by `:mapPixel' to convert an image to a binary image.
+-- A color value over `value' will get converted to white (255).
+-- `value' can be specified when calling `threshold'. This creates a
+-- closure!
+--
+-- @params: value : number
+function threshold (value)
     local value = value or 127
 
     return function (x, y, r, g, b, a)
@@ -26,12 +39,16 @@ function threshold(value)
     end
 end
 
-
-function max_value(t)
+-- max_value:
+-- Deprecated.
+function max_value (t)
     return math.max(unpack(t))
 end
 
-function max_pair(t)
+-- max_pair:
+-- Traverses a table and looks for the highest value. Returns this
+-- value and the corresponding index (key).
+function max_pair (t)
     local key, max = 1, t[1]
 
     for k, v in ipairs(t) do
@@ -43,7 +60,9 @@ function max_pair(t)
     return key, max
 end
 
-function invert_table(t)
+-- invert_table:
+-- Deprecated.
+function invert_table (t)
     local s = {}
     for k, v in pairs(t) do
         s[v] = k
@@ -52,21 +71,31 @@ function invert_table(t)
     return s
 end
 
-function get_index(t, index)
+-- get_index:
+-- Deprecated.
+function get_index (t, index)
     local inverted_t = invert_table(t)
     return inverted_t[index]
 end
 
-
+-- explode:
+-- Takes a string and splits it into segments. Similar to Python's
+-- `split()' method.
 -- Source: http://lua-users.org/wiki/MakingLuaLikePhp
 -- Credit: http://richard.warburton.it/
-function explode(div,str)
-    if (div=='') then return false end
-    local pos,arr = 0,{}
-    for st,sp in function() return string.find(str,div,pos,true) end do
-        table.insert(arr,string.sub(str,pos,st-1))
+-- (last retrieved: September 1st, 2015)
+--
+-- @params: div, str : string
+--     div: The dividing string.
+--     str: The string to be divided.
+-- @returns: : table
+function explode (div, str)
+    if (div == "") then return false end
+    local pos, arr = 0, {}
+    for st, sp in function () return string.find(str, div, pos, true) end do
+        table.insert(arr, string.sub(str, pos, st-1))
         pos = sp + 1
     end
-    table.insert(arr,string.sub(str,pos))
+    table.insert(arr, string.sub(str, pos))
     return arr
 end
