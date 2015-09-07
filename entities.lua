@@ -1,4 +1,5 @@
 MINIMUM_COMPONENT_WIDTH = 10
+SPLIT_THRESHOLD = 0.69
 
 local entities = {}
 
@@ -42,7 +43,7 @@ function entities.Segment:__init(l, t, width, height, parent)
     self:add(Size(width, height))
 
     local image_data = love.image.newImageData(width, height)
-    image_data:paste(self:getParent():get("Image").image:getData(), 0, 0, l, t, width, height)
+    image_data:paste(parent:get("Image").image:getData(), 0, 0, l, t, width, height)
     local image = love.graphics.newImage(image_data)
     self:add(Image(image))
 
@@ -53,6 +54,17 @@ function entities.Segment:__init(l, t, width, height, parent)
 
     engine:addEntity(self)
 end
+
+function entities.Segment:tostring()
+    local str = {}
+
+    for _, component in pairs(self._components) do
+        table.insert(str, component:get("String").string)
+    end
+
+   return table.concat(str)
+end
+
 
 function entities.Segment:split_at (start, _end)
     local s = math.max(0, start)
@@ -113,10 +125,10 @@ function entities.Component:__init(start, e, parent)
     self:add(isComponent())
 
 
-    local parent_size = self:getParent():get("Size")
+    local parent_size = parent:get("Size")
 
     local image_data = love.image.newImageData(e - start + 1, parent_size.height)
-    image_data:paste(self:getParent():get("Image").image:getData(), 0, 0, start, 0, e - start + 1, parent_size.height)
+    image_data:paste(parent:get("Image").image:getData(), 0, 0, start, 0, e - start + 1, parent_size.height)
     local image = love.graphics.newImage(image_data)
     self:add(Image(image))
 
@@ -133,13 +145,15 @@ function entities.Component:overlay(sub_image)
     local max_y = image:getHeight() - sub_image:getHeight() + 1
     local max_x = image:getWidth() - sub_image:getWidth() + 1
 
+    print(max_x, max_y)
+
     local wie_oft_hoch = math.floor(image:getHeight() / sub_image:getHeight())
     local wie_oft_breit = math.floor(image:getWidth() / sub_image:getWidth())
 
     local image_data = image:getData()
     local sub_image_data = sub_image:getData()
     local sub_width, sub_height = sub_image:getWidth(), sub_image:getHeight()
-    print(sub_width, sub_height)
+    -- print(sub_width, sub_height)
 
     for j=0, max_y - 1 do
         for i=0, max_x - 1 do
@@ -162,6 +176,16 @@ function entities.Component:overlay(sub_image)
             end
             table.insert(ratios, sum_and/sum_or)
         end
+    end
+
+    local max_ratio = max_value(ratios)
+    -- beware the off by one
+    local max_ratio_index = get_index(ratios, max_ratio) - 1
+
+    local split_x, split_y = max_ratio_index % max_x, math.floor(max_ratio_index / max_x)
+
+    if max_ratio >= SPLIT_THRESHOLD then
+        self:getParent():split_at(split_x, split_x + sub_image:getWidth())
     end
 
     return ratios
