@@ -77,12 +77,17 @@ function entities.Segment:split_at (start, _end)
         local comp = self._components[i]
         local comp_range = comp:get("Range")
 
-        if comp:has("isPrototype") then
+        -- if comp:has("isPrototype") then
+        --     goto continue
+        -- end
+        if comp:get("String").string ~= ".*" then
             goto continue
         end
 
-        if ((comp_range.s >= s and comp_range.s <= e) or (comp_range.e >= s and comp_range.e <= e))
-        or ((comp_range.s <= s and s <= comp_range.e) or comp_range.s <= e and e <= comp_range.e) then
+        if ((comp_range.s >= s and comp_range.s <= e) or
+            (comp_range.e >= s and comp_range.e <= e))
+        or ((comp_range.s <= s and s <= comp_range.e) or
+            comp_range.s <= e and e <= comp_range.e) then
             table.insert(affected_components, i)
         end
 
@@ -90,31 +95,29 @@ function entities.Segment:split_at (start, _end)
     end
 
     local left_component = self._components[affected_components[1]]
+    local left_component_range = left_component:get("Range")
     local right_component = self._components[affected_components[#affected_components]]
+    local right_component_range = right_component:get("Range")
 
     for i=#affected_components, 1, -1 do
         table.remove(self._components, affected_components[i])
     end
 
     local new_components = {}
-    if math.abs(left_component:get("Range").s - s) >= MINIMUM_COMPONENT_WIDTH then
-        table.insert(new_components, entities.Component(left_component:get("Range").s, s, self))
+    if math.abs(left_component_range.s - s) >= MINIMUM_COMPONENT_WIDTH then
+        table.insert(new_components, entities.Component(left_component_range.s, s, self))
     end
 
     table.insert(new_components, entities.Component(s, e, self))
 
-    if math.abs(right_component:get("Range").e - e) >= MINIMUM_COMPONENT_WIDTH then
-        table.insert(new_components, entities.Component(e, right_component:get("Range").e, self))
+    if math.abs(right_component_range.e - e) >= MINIMUM_COMPONENT_WIDTH then
+        table.insert(new_components, entities.Component(e, right_component_range.e, self))
     end
 
     for i=1, #new_components do
         table.insert(self._components, affected_components[1] + i - 1, new_components[i])
     end
 end
-
-
-
-
 
 
 entities.Component = class("Component", Entity)
@@ -124,7 +127,6 @@ function entities.Component:__init(start, e, parent)
     self:add(String())
     self:add(isComponent())
 
-
     local parent_size = parent:get("Size")
 
     local image_data = love.image.newImageData(e - start + 1, parent_size.height)
@@ -132,10 +134,13 @@ function entities.Component:__init(start, e, parent)
     local image = love.graphics.newImage(image_data)
     self:add(Image(image))
 
+    self._string_hypothesis = {}
+
     engine:addEntity(self)
 end
 
-function entities.Component:overlay(sub_image)
+function entities.Component:overlay(prototype)
+    local sub_image = prototype:get("Image").image_bw
     local image = self:get("Image").image_bw
 
     assert(image:getWidth() >= sub_image:getWidth())
@@ -145,15 +150,9 @@ function entities.Component:overlay(sub_image)
     local max_y = image:getHeight() - sub_image:getHeight() + 1
     local max_x = image:getWidth() - sub_image:getWidth() + 1
 
-    print(max_x, max_y)
-
-    local wie_oft_hoch = math.floor(image:getHeight() / sub_image:getHeight())
-    local wie_oft_breit = math.floor(image:getWidth() / sub_image:getWidth())
-
     local image_data = image:getData()
     local sub_image_data = sub_image:getData()
     local sub_width, sub_height = sub_image:getWidth(), sub_image:getHeight()
-    -- print(sub_width, sub_height)
 
     for j=0, max_y - 1 do
         for i=0, max_x - 1 do
