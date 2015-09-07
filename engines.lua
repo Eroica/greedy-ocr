@@ -1,19 +1,8 @@
-function Setup(state)
-    return ecs.Engine()
-end
+GreedyEngine = class("GreedyEngine", Engine)
+function GreedyEngine:__init()
+    self.testi = 123
 
-function CheckForPrototypes(state)
-    return ecs.Engine()
-        :addSystem(DrawLineSystem())
-        :addSystem(DrawSegmentsSystem())
-        :addSystem(DrawComponentsSystem())
-        --:addSystem(OverlayPrototypesSystem())
-end
-
-function QueryDictionary(state)
-end
-
-function SplitComponents(state)
-    return ecs.Engine()
-
+    self:addInitializer("isPrototype", function (entity)
+        print("Prototype `" .. entity:get("String").string .. "' was created.")
+    end)
 end
