@@ -1,5 +1,7 @@
 local config = {}
 
+config.DEBUG = true
+
 config.prototypes = {
     {"ch", "share/ch.png"},
     {"c", "share/c.png"},

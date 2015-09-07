@@ -66,7 +66,7 @@ function entities.Segment:tostring()
 end
 
 
-function entities.Segment:split_at (start, _end)
+function entities.Segment:split_at (start, _end, str)
     local s = math.max(0, start)
     local e = math.min(self:get("Size").width, _end)
 
@@ -108,7 +108,7 @@ function entities.Segment:split_at (start, _end)
         table.insert(new_components, entities.Component(left_component_range.s, s, self))
     end
 
-    table.insert(new_components, entities.Component(s, e, self))
+    table.insert(new_components, entities.Component(s, e, self, str))
 
     if math.abs(right_component_range.e - e) >= MINIMUM_COMPONENT_WIDTH then
         table.insert(new_components, entities.Component(e, right_component_range.e, self))
@@ -121,10 +121,10 @@ end
 
 
 entities.Component = class("Component", Entity)
-function entities.Component:__init(start, e, parent)
+function entities.Component:__init(start, e, parent, literal)
     self:setParent(parent)
     self:add(Range(start, e))
-    self:add(String())
+    self:add(String(literal))
     self:add(isComponent())
 
     local parent_size = parent:get("Size")
@@ -187,8 +187,12 @@ function entities.Component:overlay(prototype)
 
     local split_x, split_y = max_ratio_index % max_x, math.floor(max_ratio_index / max_x)
 
+    if config.DEBUG then
+        print(max_ratio_index, max_ratio, split_x, split_x + sub_image:getWidth())
+    end
+
     if max_ratio >= SPLIT_THRESHOLD then
-        self:getParent():split_at(split_x, split_x + sub_image:getWidth())
+        self:getParent():split_at(split_x, split_x + sub_image:getWidth(), prototype:get("String").string)
     end
 
     -- return ratios
