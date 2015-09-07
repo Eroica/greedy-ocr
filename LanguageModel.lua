@@ -1,5 +1,15 @@
+--[[
+    greedy-ocr
+    Original Work Copyright (c) 2015 Sebastian Spaar
+------------------------------------------------------------------------
+    LanguageModel.lua
+
+]]
 local LanguageModel = {}
 
+-- `allwords', `allletters' functions:
+-- These are 2 helper functions that are used to iterate over a text
+-- file, and return every pair of successive words/letters.
 local function allwords (corpus_file)
     local line = corpus_file:read()
     local pos = 1
@@ -37,7 +47,15 @@ local function allletters (corpus_file)
 end
 
 
+-- Lexicon:
+-- A Lexicon object represents a lexicon. Each word is a key in the
+-- table. It is used by Systems to query possible words for redacted
+-- strings.
 LanguageModel.Lexicon = class("Lexicon")
+
+-- Lexicon:__init
+-- @params: lexicon_filename : string
+-- @returns: Lexicon object
 function LanguageModel.Lexicon:__init (lexicon_filename)
     local lexicon_file = io.open(lexicon_filename, "r")
 
@@ -46,10 +64,19 @@ function LanguageModel.Lexicon:__init (lexicon_filename)
     end
 end
 
+-- Lexicon:contains
+-- @params: str : string
+--     A word that might be in the lexicon.
+-- @returns: true/false
 function LanguageModel.Lexicon:contains (str)
     return self[str] ~= nil
 end
 
+-- Lexicon:lookup
+-- @params: str : string
+--     A string or string pattern in Lua's pattern language.
+-- @returns: matches : table
+--     A table containing all words in the lexicon that match `str'.
 function LanguageModel.Lexicon:lookup (str)
     local matches = {}
 
@@ -64,6 +91,9 @@ function LanguageModel.Lexicon:lookup (str)
 end
 
 
+-- Bag:
+-- A Bag object is used to count occurances of things. For instance,
+-- the number how many times `word' appears in a corpus.
 LanguageModel.Bag = class("Bag")
 function LanguageModel.Bag:__init ()
     -- counts the number of words
@@ -80,12 +110,24 @@ function LanguageModel.Bag:remove (element)
     self[element] = (count and count > 1) and count - 1 or nil
 end
 
+
+-- Ngram:
+-- The Ngram object represents n-gram models of word or letter
+-- distributions. It is a table of Bags for every word/letter.
 LanguageModel.Ngram = class("Ngram")
+
+-- Ngram:__init
+-- @params:
+--     filename : string
+--         The name of the corpus file.
+--     check_letters : true/false
+--         If true, create a bigram model of letters instead of words.
 function LanguageModel.Ngram:__init (filename, check_letters)
     local corpus_file = io.open(filename)
     local w1, w2 = "", ""
 
     local iterator = allwords
+    -- swap the file iterator to check for letters instead of words
     if check_letters then iterator = allletters end
 
     for w in iterator(corpus_file) do
