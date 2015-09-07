@@ -1,53 +1,54 @@
-function isLine()
-    return {}
+isLine = class("isLine", Component)
+function isLine:__init()
 end
 
-function isSegment()
-    return {}
+isSegment = class("isSegment", Component)
+function isSegment:__init()
 end
 
-function isComponent()
-    return {}
+isComponent = class("isComponent", Component)
+function isComponent:__init()
 end
 
-function isPrototype()
-    return {}
+isPrototype = class("isPrototype", Component)
+function isPrototype:__init()
 end
 
-function Position(l, t)
-    return {
-        l = l,
-        t = t
-    }
+
+Position = class("Position", Component)
+function Position:__init(l, t)
+    self.l = l
+    self.t = t
 end
 
-function Size(width, height)
-    return {
-        width = width,
-        height = height
-    }
+
+Size = class("Size", Component)
+function Size:__init(width, height)
+    self.width = width
+    self.height = height
 end
 
-function Image(image)
-    local image_bw = love.image.newImageData(image:getWidth(), image:getHeight())
-    image_bw:paste(image:getData(), 0, 0, 0, 0, image:getWidth(), image:getHeight())
-    image_bw:mapPixel(threshold())
 
-    return {
-        image = image,
-        image_bw = love.graphics.newImage(image_bw)
-    }
+Image = class("Image", Component)
+function Image:__init(image)
+    local image_bw_data = love.image.newImageData(image:getWidth(), image:getHeight())
+    image_bw_data:paste(image:getData(), 0, 0, 0, 0, image:getWidth(), image:getHeight())
+    image_bw_data:mapPixel(threshold())
+    local image_bw = love.graphics.newImage(image_bw_data)
+
+    self.image = image
+    self.image_bw = image_bw
 end
 
-function Range(s, e)
-    return {
-        s = s,
-        e = e
-    }
+
+Range = class("Range", Component)
+function Range:__init(start, e)
+    self.s = start
+    self.e = e
 end
 
-function String(literal)
-    return {
-        string = literal or ".*"
-    }
+
+String = class("String", Component)
+function String:__init(literal)
+    self.string = literal or ".*"
 end

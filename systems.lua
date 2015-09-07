@@ -1,64 +1,52 @@
-function OverlayPrototypesSystem()
+LineDrawSystem = class("LineDrawSystem", System)
+function LineDrawSystem:draw()
+    for i, v in pairs(self.targets) do
+        love.graphics.draw(v:get("Image").image, v:get("Position").l, v:get("Position").t)
+    end
 end
 
-function DrawLineSystem()
-    return ecs.System(isLine)
-        :addEventListener("draw", function(entity)
-            love.graphics.draw(entity:get(Image).image, 0, 0)
-        end)
+function LineDrawSystem:requires()
+    return {"isLine"}
 end
 
-function DrawSegmentsSystem()
-    return ecs.System(isSegment, Position, Size)
-        :addEventListener("draw", function(entity)
-            local position = entity:get(Position)
-            local size = entity:get(Size)
-            --local bounding_box = love.graphics.rectangle("line", position.l, position.t, size.width, size.height)
+SegmentDrawSystem = class("SegmentDrawSystem", System)
+function SegmentDrawSystem:draw()
+    for i, v in pairs(self.targets) do
+        local position = v:get("Position")
+        local size = v:get("Size")
 
-            love.graphics.setColor(255, 0, 255)
-            love.graphics.rectangle("line", position.l, position.t, size.width, size.height)
-            love.graphics.setColor(255, 255, 255)
-        end)
+        love.graphics.setColor(255, 0, 255)
+        love.graphics.rectangle("line", position.l, position.t, size.width, size.height)
+        -- love.graphics.line(position.l, 0, position.l + size.width, 0)
+        -- love.graphics.line(position.l + size.width, 0, position.l + size.width, size.height)
+        -- love.graphics.line(position.l, size.height, position.l + size.width, size.height)
+        -- love.graphics.line(position.l, 0, position.l, size.height)
+        love.graphics.setColor(255, 255, 255)
+    end
 end
 
-function PrintSystem()
-    return ecs.System(isSegment)
-        :addEventListener("state", function(entity)
-            for _, component in ipairs(entity.components) do
-                io.write(component:get(String).string)
-                print("")
-            end
-        end)
+function SegmentDrawSystem:requires()
+    return {"isSegment"}
 end
 
-function OverlayPrototypesSystem()
-    -- local prototypes = engine:getEntities(isPrototype)
 
-    -- return ecs.System(isComponent)
-    --     :addEventListener("draw", function(entity)
-    --         for _, prot in ipairs(prototypes) do
-    --             love.graphics.draw(prot:get(Image).image, 100, 100)
-    --         end
-    --     end)
+ComponentsDrawSystem = class("ComponentsDrawSystem", System)
+function ComponentsDrawSystem:draw()
+    love.graphics.setColor(0, 255, 0)
+    for i, v in pairs(self.targets) do
+        local parent_position = v:getParent():get("Position")
+        local parent_size = v:getParent():get("Size")
+        local range = v:get("Range")
+
+        love.graphics.push()
+            love.graphics.translate(parent_position.l, parent_position.t)
+            love.graphics.line(range.s, 0, range.s, parent_size.height)
+            love.graphics.line(range.e, 0, range.e, parent_size.height)
+        love.graphics.pop()
+    end
+    love.graphics.setColor(255, 255, 255)
 end
 
-function DrawComponentsSystem()
-    return ecs.System(isSegment)
-        :addEventListener("draw", function(entity)
-            local size = entity:get(Size)
-            local position = entity:get(Position)
-
-            love.graphics.setColor(255, 0, 0)
-            love.graphics.push() -- stores the default coordinate system
-            love.graphics.translate(position.l, position.t) -- move the camera position
-
-            for _, component in ipairs(entity.components) do
-                local s, e = component:get(Range).s, component:get(Range).e
-                love.graphics.line(s, 0, s, size.height)
-                love.graphics.line(e, 0, e, size.height)
-            end
-
-            love.graphics.pop()
-            love.graphics.setColor(255, 255, 255)
-        end)
+function ComponentsDrawSystem:requires()
+    return {"isComponent"}
 end
