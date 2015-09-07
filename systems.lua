@@ -70,6 +70,65 @@ function ComponentsDrawSystem:requires()
 end
 
 
+
+SegmentRecognitionSystem = class("SegmentRecognitionSystem", System)
+function SegmentRecognitionSystem:update (dt)
+    for i, segment in pairs(self.targets) do
+        local match = lexicon:lookup(segment:tostring())
+
+        if #match == 1 then
+            if config.DEBUG then
+                print("Segment " .. i .. " succesfully recognized as `" .. match[1] .."'.")
+            end
+
+            local match_copy = match[1]
+
+            local recognized_components = {}
+            for j, component in pairs(segment._components) do
+                local comp_string = component:get("String").string
+                if comp_string ~= ".*" then
+                    table.insert(recognized_components, comp_string)
+                end
+            end
+
+            table.sort(recognized_components, function (a, b) return #a > #b end)
+
+            for j=1, #recognized_components do
+                match_copy = string.gsub(match_copy, recognized_components[j], "#")
+            end
+
+            local match_substring = explode("#", match_copy)
+            local match_table = {}
+            for j=1, #match_substring do
+                if match_substring[j] ~= "" then
+                    table.insert(match_table, match_substring[j])
+                end
+            end
+
+            local match_components = {}
+            for j=1, #segment._components do
+                if segment._components[j]:get("String").string == ".*" then
+                    table.insert(match_components, segment._components[j])
+                end
+            end
+
+            assert(#match_table == #match_components)
+
+            for j=1, #match_table do
+                match_components[j]:get("String").string = match_table[j]
+            end
+
+            segment:remove("isNotRecognized")
+        end
+    end
+end
+
+function SegmentRecognitionSystem:requires ()
+    return {"isSegment", "isNotRecognized"}
+end
+
+
+
 local HUD_HEIGHT = 24
 local HUD_PADDING = 4
 local HUD_COLOR = {32, 40, 63}
