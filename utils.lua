@@ -25,6 +25,18 @@ function max_value(t)
     return math.max(unpack(t))
 end
 
+function max_pair(t)
+    local key, max = 1, t[1]
+
+    for k, v in ipairs(t) do
+        if t[k] > max then
+            key, max = k, v
+        end
+    end
+
+    return key, max
+end
+
 function invert_table(t)
     local s = {}
     for k, v in pairs(t) do

@@ -96,13 +96,10 @@ function HUDDrawSystem:draw()
             local size = seg:get("Size")
             if x >= pos.l and x < pos.l + size.width and y >= pos.t and y < pos.t + size.height then
                 love.graphics.print("Segment Coordinates: " .. tostring(x - pos.l) .. "|" .. tostring(y - pos.t), 0, 0)
-                -- love.graphics.print(x - pos.l, 150, 0)
-                -- love.graphics.print(y - pos.t, 200, 0)
             end
         end
-        love.graphics.print("FPS: " ..tostring(love.timer.getFPS( )), width - 55, 0)
+        love.graphics.print("FPS: " .. tostring(love.timer.getFPS()), width - 55, 0)
     love.graphics.pop()
-
 end
 
 function HUDDrawSystem:requires()

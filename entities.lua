@@ -178,9 +178,13 @@ function entities.Component:overlay(sub_image)
         end
     end
 
-    local max_ratio = max_value(ratios)
-    -- beware the off by one
-    local max_ratio_index = get_index(ratios, max_ratio) - 1
+
+    local max_ratio_index, max_ratio = max_pair(ratios)
+    -- IMPORTANT:
+    -- From `max_ratio_index', 1 needs to be subtracted because the
+    -- `ratios' tables starts indexing at 1 while the ImageData table
+    -- (used in `:getData()') starts indexing at 0!
+    max_ratio_index = max_ratio_index - 1
 
     local split_x, split_y = max_ratio_index % max_x, math.floor(max_ratio_index / max_x)
 
@@ -188,7 +192,7 @@ function entities.Component:overlay(sub_image)
         self:getParent():split_at(split_x, split_x + sub_image:getWidth())
     end
 
-    return ratios
+    -- return ratios
 end
 
 return entities
