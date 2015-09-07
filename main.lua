@@ -1,40 +1,26 @@
 require "lib/lovetoys/lovetoys"
+lovetoyDebug = true
 lovebird = require "lib/lovebird"
 inspect = require "lib/inspect"
 lurker = require "lib/lurker"
 
 
+require "components"
+require "engines"
+require "systems"
+require "utils"
+require "setup"
 entities = require "entities"
 LanguageModel = require "LanguageModel"
 config = require "_config"
-require "components"
---require "engines"
-require "systems"
-require "utils"
 
 
 lurker.postswap = function(f) print("File " .. f .. " was swapped") end
 
 
-function load_prototypes()
-    prototypes = {}
-    new_prototypes = {}
-
-    for _, prototype in pairs(config.prototypes) do
-        local image = love.graphics.newImage(prototype[2])
-        local prototype = entities.Prototype(prototype[1], image)
-        table.insert(prototypes, prototype)
-    end
-end
-
-function load_image()
-    local line_image = love.graphics.newImage(config.line[1])
-    line = entities.Line(line_image, config.line.boxes)
-    segments = line._segments
-end
-
 function love.load()
-    engine = Engine()
+    engine = GreedyEngine()
+    listener = EventManager()
 
     lexicon = LanguageModel.Lexicon("share/dummy_lexicon.txt")
     -- bigram_words = LanguageModel.Ngram("share/mercurius.txt")
@@ -49,6 +35,7 @@ function love.load()
     engine:addSystem(SegmentStringDrawSystem())
     engine:addSystem(HUDDrawSystem())
     engine:addSystem(SegmentRecognitionSystem())
+
 
     love.graphics.setBackgroundColor(127, 127, 127)
 
