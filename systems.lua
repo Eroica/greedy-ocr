@@ -1,3 +1,11 @@
+--[[
+    greedy-ocr
+    Original Work Copyright (c) 2015 Sebastian Spaar
+------------------------------------------------------------------------
+    systems.lua
+
+]]
+
 LineDrawSystem = class("LineDrawSystem", System)
 function LineDrawSystem:draw()
     for i, v in pairs(self.targets) do

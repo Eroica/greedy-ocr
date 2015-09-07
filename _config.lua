@@ -1,3 +1,11 @@
+--[[
+    greedy-ocr
+    Original Work Copyright (c) 2015 Sebastian Spaar
+------------------------------------------------------------------------
+    _config.lua
+
+]]
+
 local config = {}
 
 config.DEBUG = true

@@ -1,3 +1,11 @@
+--[[
+    greedy-ocr
+    Original Work Copyright (c) 2015 Sebastian Spaar
+------------------------------------------------------------------------
+    main.lua
+
+]]
+
 require "lib/lovetoys/lovetoys"
 lovetoyDebug = true
 lovebird = require "lib/lovebird"

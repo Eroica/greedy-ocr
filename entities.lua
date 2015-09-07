@@ -1,3 +1,11 @@
+--[[
+    greedy-ocr
+    Original Work Copyright (c) 2015 Sebastian Spaar
+------------------------------------------------------------------------
+    entities.lua
+
+]]
+
 MINIMUM_COMPONENT_WIDTH = 10
 SPLIT_THRESHOLD = 0.69
 

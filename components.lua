@@ -1,3 +1,11 @@
+--[[
+    greedy-ocr
+    Original Work Copyright (c) 2015 Sebastian Spaar
+------------------------------------------------------------------------
+    components.lua
+
+]]
+
 isLine = class("isLine", Component)
 function isLine:__init()
 end
