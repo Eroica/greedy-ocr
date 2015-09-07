@@ -31,9 +31,9 @@ end
 function love.load()
     engine = Engine()
 
-    lexicon = LanguageModel.Lexicon("share/lexicon.txt")
-    bigram_words = LanguageModel.Ngram("share/mercurius.txt")
-    bigram_letters = LanguageModel.Ngram("share/mercurius.txt", true)
+    -- lexicon = LanguageModel.Lexicon("share/lexicon.txt")
+    -- bigram_words = LanguageModel.Ngram("share/mercurius.txt")
+    -- bigram_letters = LanguageModel.Ngram("share/mercurius.txt", true)
 
     load_image()
     load_prototypes()
@@ -41,6 +41,8 @@ function love.load()
     engine:addSystem(LineDrawSystem())
     engine:addSystem(SegmentDrawSystem())
     engine:addSystem(ComponentsDrawSystem())
+    engine:addSystem(SegmentStringDrawSystem())
+    engine:addSystem(HUDDrawSystem())
 
     love.graphics.setBackgroundColor(127, 127, 127)
 
@@ -65,15 +67,7 @@ function love.draw()
 
 
 
-    for _, seg in pairs(engine:getEntitiesWithComponent("isSegment")) do
-        local pos = seg:get("Position")
-        local size = seg:get("Size")
-        if x >= pos.l and x < pos.l + size.width and y >= pos.t and y < pos.t + size.height then
 
-            love.graphics.print(x - pos.l, 100, 400) -- draw the custom mouse image
-            love.graphics.print(y - pos.t, 200, 400)
-        end
-    end
 
 
     for _, seg in pairs(engine:getEntitiesWithComponent("isPrototype")) do
