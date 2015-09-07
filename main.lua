@@ -31,7 +31,7 @@ end
 function love.load()
     engine = Engine()
 
-    -- lexicon = LanguageModel.Lexicon("share/lexicon.txt")
+    lexicon = LanguageModel.Lexicon("share/dummy_lexicon.txt")
     -- bigram_words = LanguageModel.Ngram("share/mercurius.txt")
     -- bigram_letters = LanguageModel.Ngram("share/mercurius.txt", true)
 
