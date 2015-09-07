@@ -21,8 +21,23 @@ function threshold(value)
 end
 
 
+function max_value(t)
+    return math.max(unpack(t))
+end
 
+function invert_table(t)
+    local s = {}
+    for k, v in pairs(t) do
+        s[v] = k
+    end
 
+    return s
+end
+
+function get_index(t, index)
+    local inverted_t = invert_table(t)
+    return inverted_t[index]
+end
 
 
 function compare_image_region(image, sub_image)
