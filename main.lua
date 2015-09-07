@@ -56,32 +56,24 @@ function love.draw()
     local valign = 100
     local xalign = 200
 
-    -- for _, seg in pairs(segments) do
-    --     if seg._components[2] then
-    --         love.graphics.draw(seg._components[2]:get("Image").image_bw, 100, 100)
-    --     end
-    -- end
+    local x, y = love.mouse.getPosition() -- get the position of the mouse
+
+
+
+    for _, seg in pairs(engine:getEntitiesWithComponent("isSegment")) do
+        local pos = seg:get("Position")
+        local size = seg:get("Size")
+        if x >= pos.l and x < pos.l + size.width and y >= pos.t and y < pos.t + size.height then
+
+            love.graphics.print(x - pos.l, 100, 400) -- draw the custom mouse image
+            love.graphics.print(y - pos.t, 200, 400)
+        end
+    end
 
 
     for _, seg in pairs(engine:getEntitiesWithComponent("isPrototype")) do
         love.graphics.draw(seg:get("Image").image_bw, valign, xalign)
     end
-
-    -- love.graphics.draw(line:get("Image").image_bw, 100, 100)
-
-    -- for _, child in pairs(line.children) do
-    --     love.graphics.draw(child:get("Image").image, 0, valign)
-
-    --     for _, child in pairs(child.children) do
-    --         love.graphics.draw(child:get("Image").image_bw, xalign, valign)
-    --     end
-
-    --     valign = valign + 100
-    -- end
-
-
-    -- love.graphics.setColor(255, 0, 255)
-    -- love.graphics.rectangle("line", 0, 0, 800, 600)
 
     engine:draw()
 
