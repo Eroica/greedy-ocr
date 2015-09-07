@@ -2,6 +2,10 @@ isLine = class("isLine", Component)
 function isLine:__init()
 end
 
+isNotRecognized = class("isNotRecognized", Component)
+function isNotRecognized:__init()
+end
+
 isSegment = class("isSegment", Component)
 function isSegment:__init()
 end

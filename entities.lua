@@ -39,6 +39,7 @@ entities.Segment = class("Segment", Entity)
 function entities.Segment:__init(l, t, width, height, parent)
     self:setParent(parent)
     self:add(isSegment())
+    self:add(isNotRecognized())
     self:add(Position(l, t))
     self:add(Size(width, height))
 
