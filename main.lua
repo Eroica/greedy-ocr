@@ -48,9 +48,7 @@ function love.load()
     engine:addSystem(SegmentRecognitionSystem())
 
 
-    love.graphics.setBackgroundColor(127, 127, 127)
-
-    -- segments[1]:split_at(50, 60)
+    love.graphics.setBackgroundColor(unpack(config.BACKGROUND_COLOR))
 end
 
 function love.update(dt)

@@ -36,7 +36,10 @@ end
 function GreedyEngine:checkIfPrototypeExists (literal)
     for _, p in pairs(self._prototypes) do
         if p:get("String").string == literal then
-            print "you already exist"
+            if config.DEBUG then
+                print("A Prototype for `" .. literal ..
+                      "' already exists! Skipping ..."
+            end
             return true
         end
     end

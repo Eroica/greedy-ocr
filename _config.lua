@@ -16,6 +16,8 @@ config.prototypes = {
     {"e", "share/e.png"}
 }
 
+config.BACKGROUND_COLOR = {127, 127, 127}
+
 config.line = {
     "pages/line.png",
     boxes = {
