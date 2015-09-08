@@ -42,6 +42,7 @@ function love.load()
     engine:addSystem(ComponentsDrawSystem())
     engine:addSystem(SegmentStringDrawSystem())
     engine:addSystem(HUDDrawSystem())
+    engine:addSystem(ButtonDrawSystem())
     engine:addSystem(SegmentRecognitionSystem())
 
 
