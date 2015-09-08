@@ -43,6 +43,8 @@ function love.load()
     engine:addSystem(SegmentStringDrawSystem())
     engine:addSystem(HUDDrawSystem())
     engine:addSystem(ButtonDrawSystem())
+    engine:addSystem(PrototypeDrawSystem())
+    engine:stopSystem("PrototypeDrawSystem")
     engine:addSystem(SegmentRecognitionSystem())
 
 
@@ -57,14 +59,6 @@ function love.update(dt)
 end
 
 function love.draw()
-    local valign = 100
-    local xalign = 200
-
-    for _, seg in pairs(engine:getEntitiesWithComponent("isPrototype")) do
-        love.graphics.draw(seg:get("Image").image_bw, xalign, valign)
-        xalign = xalign + 50
-    end
-
     engine:draw()
 end
 
@@ -75,5 +69,9 @@ function love.keypressed(key)
 
     if key == "." then
         lurker.scan()
+    end
+
+    if key == "p" then
+        engine:toggleSystem("PrototypeDrawSystem")
     end
 end

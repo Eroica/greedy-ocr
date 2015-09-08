@@ -86,7 +86,7 @@ function SegmentRecognitionSystem:update (dt)
 
         if #match == 1 then
             if config.DEBUG then
-                print("Segment " .. i .. " succesfully recognized as `" .. match[1] .."'.")
+                print("Segment `" .. segment:tostring() .. "' succesfully recognized as `" .. match[1] .."'.")
             end
 
             local match_copy = match[1]
@@ -142,6 +142,38 @@ end
 
 function SegmentRecognitionSystem:requires ()
     return {"isSegment", "isNotRecognized"}
+end
+
+
+PrototypeDrawSystem = class("PrototypeDrawSystem", System)
+function PrototypeDrawSystem:draw ()
+
+    local width, height = love.graphics.getDimensions()
+    local padding = 4
+    local next_x = padding
+    local next_y = padding
+
+    love.graphics.setColor(0, 0, 0, 191)
+    love.graphics.rectangle("fill", 0, 0, width, height)
+    love.graphics.setColor(255, 255, 255)
+
+    for i, prototype in pairs(self.targets) do
+
+        local image = prototype:get("Image").image
+
+        if image:getWidth() + padding > width then
+            next_x = padding
+            next_y = next_y + padding + 100
+        end
+
+        love.graphics.draw(image, next_x, next_y)
+
+        next_x = next_x + image:getWidth() + padding
+    end
+end
+
+function PrototypeDrawSystem:requires ()
+    return {"isPrototype"}
 end
 
 
