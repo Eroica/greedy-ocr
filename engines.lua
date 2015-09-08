@@ -38,7 +38,7 @@ function GreedyEngine:checkIfPrototypeExists (literal)
         if p:get("String").string == literal then
             if config.DEBUG then
                 print("A Prototype for `" .. literal ..
-                      "' already exists! Skipping ..."
+                      "' already exists! Skipping ...")
             end
             return true
         end
