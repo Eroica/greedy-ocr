@@ -1,3 +1,13 @@
+--[[
+    greedy-ocr
+    Original Work Copyright (c) 2015 Sebastian Spaar
+------------------------------------------------------------------------
+    gr_mercurius.lua
+
+    This script was used to parse the Mercurius XML file, and extract
+    all sentences.
+]]
+
 local xml = require "xml"
 
 MERCURIUS_FILE = "mercurius.xml"
