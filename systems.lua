@@ -78,6 +78,42 @@ function ComponentsDrawSystem:requires()
 end
 
 
+SegmentSplittingSystem = class("SegmentSplittingSystem", System)
+function SegmentSplittingSystem:update (dt)
+    local prototypes = engine._prototypes
+
+    for i, segment in pairs(self.targets) do
+        if segment:has("isNotRecognized") then
+            for j, prototype in pairs(prototypes) do
+                for k, comp in pairs(segment._components) do
+                    local prot_image = prototype:get("Image").image
+                    local image = comp:get("Image").image
+
+                    -- print "current comp:"
+                    -- print(k)
+                    -- print "current prot:"
+                    -- print(prototype:get("String").string)
+
+                    if  prot_image:getWidth() <= image:getWidth()
+                    and prot_image:getHeight() <= image:getHeight() then
+                        -- print "comparing:"
+                        -- print(prot_image:getWidth(), image:getWidth())
+                        -- print(prot_image:getHeight(), image:getHeight())
+                        -- print("_____")
+
+                        comp:overlay(prototype)
+                    end
+
+                end
+            end
+        end
+    end
+end
+
+function SegmentSplittingSystem:requires ()
+    return {"isNotRecognized", "isSegment"}
+end
+
 
 SegmentRecognitionSystem = class("SegmentRecognitionSystem", System)
 function SegmentRecognitionSystem:update (dt)
