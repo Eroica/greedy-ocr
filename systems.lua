@@ -126,6 +126,15 @@ function SegmentRecognitionSystem:update (dt)
                 match_components[j]:get("String").string = match_table[j]
             end
 
+            for j=1, #match_components do
+                local comp = match_components[j]
+                if engine:checkIfPrototypeExists(comp:get("String").string) == false then
+                    local literal = comp:get("String").string
+                    local image = comp:get("Image").image
+                    local prot = entities.Prototype(literal, image)
+                end
+            end
+
             segment:remove("isNotRecognized")
         end
     end
@@ -137,7 +146,7 @@ end
 
 
 
-local HUD_HEIGHT = 24
+local HUD_HEIGHT = 44
 local HUD_PADDING = 4
 local HUD_COLOR = {32, 40, 63}
 local HUD_LINE_COLOR = {56, 61, 81}
@@ -147,7 +156,7 @@ local HUD_LINE_COLOR = {56, 61, 81}
 HUDDrawSystem = class("HUDDrawSystem", System)
 function HUDDrawSystem:draw()
     local width, height = love.graphics.getDimensions()
-    local x, y = love.mouse.getPosition() -- get the position of the mouse
+    local x, y = love.mouse.getPosition()
 
     love.graphics.setColor(unpack(HUD_COLOR))
     love.graphics.rectangle("fill", 0, height - HUD_HEIGHT, width, height)
@@ -166,9 +175,28 @@ function HUDDrawSystem:draw()
             end
         end
         love.graphics.print("FPS: " .. tostring(love.timer.getFPS()), width - 55, 0)
+
+        local prots = engine._prototypes
+        local prots_strings = {}
+        for i=1, #prots do
+            table.insert(prots_strings, prots[i]:get("String").string)
+        end
+
+        love.graphics.print("Prototypes (" .. #engine._prototypes .. "): " .. table.concat(prots_strings, ", "), 0, 20)
     love.graphics.pop()
 end
 
 function HUDDrawSystem:requires()
+    return {}
+end
+
+
+ButtonDrawSystem = class("ButtonDrawSystem", System)
+function ButtonDrawSystem:draw()
+    local width, height = love.graphics.getDimensions()
+
+end
+
+function ButtonDrawSystem:requires()
     return {}
 end
