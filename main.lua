@@ -39,6 +39,10 @@ function love.load()
     WORLD:addSystem(Systems.SegmentDrawSystem)
     WORLD:addSystem(Systems.ComponentDrawSystem)
     WORLD:addSystem(Systems.SegmentStringDrawSystem)
+    WORLD:addSystem(Systems.HUDDrawSystem)
+    WORLD:addSystem(Systems.ButtonDrawSystem)
+    protdraw = WORLD:addSystem(Systems.PrototypeDrawSystem)
+    protdraw.active = false
     -- lexicon = LanguageModel.Lexicon("share/dummy_lexicon.txt")
     -- -- bigram_words = LanguageModel.Ngram("share/mercurius.txt")
     -- -- bigram_letters = LanguageModel.Ngram("share/mercurius.txt", true)
@@ -64,7 +68,7 @@ function love.update(dt)
 end
 
 function love.draw()
-    WORLD:update(dt, tiny.requireAll("isDrawSystem"))
+    WORLD:update(love.timer.getDelta(), tiny.requireAll("isDrawSystem"))
 end
 
 function love.keypressed(key)
@@ -76,7 +80,7 @@ function love.keypressed(key)
         lurker.scan()
     end
 
-    -- if key == "p" then
-    --     engine:toggleSystem("PrototypeDrawSystem")
-    -- end
+    if key == "p" then
+        protdraw.active = not protdraw.active
+    end
 end
