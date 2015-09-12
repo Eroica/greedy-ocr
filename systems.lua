@@ -182,9 +182,6 @@ end
 
 Systems.PrototypeDrawSystem = tiny.system({isDrawSystem = true})
 function Systems.PrototypeDrawSystem:update (dt)
-    -- self.inactive = true
-    -- self.active = false
-
     local width, height = love.graphics.getDimensions()
     local padding = 4
     local next_x = padding
@@ -215,7 +212,7 @@ end
 
 
 
-Systems.CreateRectangleSystem = tiny.system({isDrawSystem = true})
+Systems.CreateRectangleSystem = tiny.system({isDrawSystem = true, l = 0, t = 0})
 function Systems.CreateRectangleSystem:update (dt)
     local x, y = love.mouse.getPosition()
 
