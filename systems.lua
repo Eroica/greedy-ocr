@@ -48,6 +48,30 @@ end
 
 
 
+Systems.ComponentsRangeDrawSystem = tiny.system({isDrawSystem = true})
+function Systems.ComponentsRangeDrawSystem:update (dt)
+    local x, y = love.mouse.getPosition()
+
+    for _, e in pairs(self.entities) do
+            local pos = e.position
+            local size = e.size
+            if x >= pos.l and x < pos.l + size.width and y >= pos.t and y < pos.t + size.height then
+                love.graphics.setColor(255, 0, 0)
+                for _, comp in pairs(e.components) do
+                    love.graphics.print(comp.range[1], pos.l + comp.range[1], pos.t)
+                    love.graphics.print(comp.range[2], pos.l + comp.range[2], pos.t)
+                end
+            end
+        end
+    love.graphics.setColor(255, 255, 255)
+end
+
+function Systems.ComponentsRangeDrawSystem:filter (entity)
+    return entity.isSegment ~= nil
+end
+
+
+
 Systems.ComponentDrawSystem = tiny.processingSystem({isDrawSystem = true})
 function Systems.ComponentDrawSystem:process (entity, dt)
     local position = entity.position

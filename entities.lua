@@ -65,13 +65,14 @@ function Entities.Segment:init (l, t, width, height, image)
     self.position = {l = l, t = t}
     self.size = {width = width, height = height}
     self.components = {}
+    self.image = image
 
-    local image_data = love.image.newImageData(width, height)
-    image_data:paste(image:getData(), 0, 0, 0, 0, width, height)
-    local image = love.graphics.newImage(image_data)
 
-    local component = Entities.Component(0, width - 1, image)
-    self.components[1] = component
+    -- local image_data = love.image.newImageData(width, height)
+    -- image_data:paste(image:getData(), 0, 0, 0, 0, width, height)
+    -- self.image = love.graphics.newImage(image_data)
+
+    self.components[1] = Entities.Component(0, width - 1, image)
 
     getmetatable(self).__tostring = function (t)
         local str = {}
@@ -84,6 +85,37 @@ function Entities.Segment:init (l, t, width, height, image)
     end
 
     WORLD:addEntity(self)
+end
+
+function Entities.Segment:split_component (c, start, e)
+
+    local affected_component = self.components[c]
+    local affected_width = affected_component.range[2] - affected_component.range[1]
+    local e = math.min(e, affected_width)
+
+    local new_components = {}
+
+    if start >= MINIMUM_COMPONENT_WIDTH then
+        local left_image = affected_component:crop_image(0, start)
+        table.insert(new_components, Entities.Component(affected_component.range[1], affected_component.range[1] + start, left_image))
+    end
+
+    local middle_image = affected_component:crop_image(start, e)
+    table.insert(new_components, Entities.Component(affected_component.range[1] + start, affected_component.range[1] + e, middle_image))
+
+    if math.abs(affected_component.range[2] - affected_component.range[1] - e) >= MINIMUM_COMPONENT_WIDTH then
+        local right_image = affected_component:crop_image(e)
+
+        print "created right image of width"
+        print(right_image:getWidth())
+        table.insert(new_components, Entities.Component(affected_component.range[1] + e, affected_component.range[2], right_image))
+    end
+
+    table.remove(self.components, c)
+
+    for i=1, #new_components do
+        table.insert(self.components, c + i - 1, new_components[i])
+    end
 end
 
 
@@ -104,6 +136,18 @@ function Entities.Component:init (start, e, image)
     WORLD:addEntity(self)
 end
 
+
+function Entities.Component:crop_image (start, e)
+    local e = e or self.image:getWidth() - 1
+    local component_image = self.image
+    local height = component_image:getHeight()
+
+    local image_data = love.image.newImageData(e - start + 1, height)
+    image_data:paste(component_image:getData(), 0, 0, start, e, e - start + 1, height)
+    local image = love.graphics.newImage(image_data)
+
+    return image
+end
 
 
 
