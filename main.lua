@@ -22,7 +22,7 @@ local Systems = require "systems"
 --require "utils"
 require "setup"
 Entities = require "Entities"
---LanguageModel = require "LanguageModel"
+LanguageModel = require "LanguageModel"
 config = require "_config"
 
 
@@ -38,15 +38,16 @@ function love.load()
     WORLD:addSystem(Systems.PageDrawSystem)
     WORLD:addSystem(Systems.SegmentDrawSystem)
     WORLD:addSystem(Systems.ComponentDrawSystem)
+    WORLD:addSystem(Systems.ComponentsRangeDrawSystem)
     WORLD:addSystem(Systems.SegmentStringDrawSystem)
     WORLD:addSystem(Systems.HUDDrawSystem)
     WORLD:addSystem(Systems.ButtonDrawSystem)
     protdraw = WORLD:addSystem(Systems.PrototypeDrawSystem)
     protdraw.active = false
 
-    -- lexicon = LanguageModel.Lexicon("share/dummy_lexicon.txt")
-    -- -- bigram_words = LanguageModel.Ngram("share/mercurius.txt")
-    -- -- bigram_letters = LanguageModel.Ngram("share/mercurius.txt", true)
+    lexicon = LanguageModel.Lexicon("share/dummy_lexicon.txt")
+    -- bigram_words = LanguageModel.Ngram("share/mercurius.txt")
+    -- bigram_letters = LanguageModel.Ngram("share/mercurius.txt", true)
 
 
     -- engine:addSystem(SegmentRecognitionSystem())
