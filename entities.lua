@@ -17,6 +17,13 @@ function Entities.Prototype:init (literal, image)
     self.string = literal
     self.image = image
 
+
+    getmetatable(self).__tostring = function (t)
+        return t.string
+    end
+
+
+
     WORLD:addEntity(self)
 end
 
@@ -88,12 +95,19 @@ function Entities.Component:init (start, e, image)
     self.string = literal or ".*"
     self.image = image
 
+
+    getmetatable(self).__tostring = function (t)
+        return t.string
+    end
+
+
     WORLD:addEntity(self)
 end
 
-getmetatable(Entities.Component).__tostring = function (t)
-    return t.string
-end
+
+
+
+
 -- function entities.Segment:split_at (start, _end, str)
 --     local s = math.max(0, start)
 --     local e = math.min(self:get("Size").width, _end)
