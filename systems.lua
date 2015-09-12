@@ -215,8 +215,18 @@ end
 
 
 
+Systems.CreateRectangleSystem = tiny.system({isDrawSystem = true})
+function Systems.CreateRectangleSystem:update (dt)
+    local x, y = love.mouse.getPosition()
 
 
+    love.graphics.setColor(0, 0, 255)
+    love.graphics.push()
+        love.graphics.translate(self.l, self.t)
+        love.graphics.rectangle("line", 0, 0, x-self.l, y-self.t)
+    love.graphics.pop()
+    love.graphics.setColor(255, 255, 255)
+end
 
 return Systems
 

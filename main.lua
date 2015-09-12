@@ -43,6 +43,8 @@ function love.load()
     WORLD:addSystem(Systems.ButtonDrawSystem)
     protdraw = WORLD:addSystem(Systems.PrototypeDrawSystem)
     protdraw.active = false
+    -- createrect = WORLD:addSystem(Systems.CreateRectangleSystem)
+    -- createrect.active = false
     -- lexicon = LanguageModel.Lexicon("share/dummy_lexicon.txt")
     -- -- bigram_words = LanguageModel.Ngram("share/mercurius.txt")
     -- -- bigram_letters = LanguageModel.Ngram("share/mercurius.txt", true)
@@ -83,4 +85,25 @@ function love.keypressed(key)
     if key == "p" then
         protdraw.active = not protdraw.active
     end
+end
+
+function love.keyreleased(key)
+end
+
+function love.mousepressed(x, y, button)
+   if button == "l" then -- this is the lowercase letter L, not a one (1)
+      local createrect=  WORLD:addSystem(Systems.CreateRectangleSystem)
+      createrect.l = x
+      createrect.t = y
+      -- createrect.active = not createrect.active
+   end
+end
+
+function love.mousereleased(x, y, button)
+   if button == "l" then -- this is the lowercase letter L, not a one (1)
+       local createrect= WORLD:removeSystem(Systems.CreateRectangleSystem)
+      createrect.l = 0
+      createrect.t = 0
+      -- createrect.active = not createrect.active
+   end
 end
