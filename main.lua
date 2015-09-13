@@ -6,19 +6,22 @@
 
 ]]
 
-require "lib/lovetoys/lovetoys"
-lovetoyDebug = true
+class = require "lib/30log"
+tiny = require "lib/tiny"
+
+--require "lib/lovetoys/lovetoys"
+--lovetoyDebug = true
 lovebird = require "lib/lovebird"
 inspect = require "lib/inspect"
 lurker = require "lib/lurker"
 
 
-require "components"
-require "engines"
-require "systems"
+--require "components"
+--require "engines"
+local Systems = require "systems"
 require "utils"
 require "setup"
-entities = require "entities"
+Entities = require "Entities"
 LanguageModel = require "LanguageModel"
 config = require "_config"
 
@@ -27,25 +30,28 @@ lurker.postswap = function(f) print("File " .. f .. " was swapped") end
 
 
 function love.load()
-    engine = GreedyEngine()
-    listener = EventManager()
+    WORLD = tiny.world()
+    WORLD:addEntity(joe)
+    page = load_image()
+    prototypes = load_prototypes()
+
+    WORLD:addSystem(Systems.PageDrawSystem)
+    WORLD:addSystem(Systems.SegmentDrawSystem)
+    WORLD:addSystem(Systems.ComponentDrawSystem)
+    WORLD:addSystem(Systems.ComponentsRangeDrawSystem)
+    WORLD:addSystem(Systems.SegmentStringDrawSystem)
+    WORLD:addSystem(Systems.HUDDrawSystem)
+    WORLD:addSystem(Systems.ButtonDrawSystem)
+    WORLD:addSystem(Systems.SegmentRecognitionSystem)
+    protdraw = WORLD:addSystem(Systems.PrototypeDrawSystem)
+    protdraw.active = false
 
     lexicon = LanguageModel.Lexicon("share/dummy_lexicon.txt")
-    -- bigram_words = LanguageModel.Ngram("share/mercurius.txt")
+    --bigram_words = LanguageModel.Ngram("share/mercurius.txt")
     -- bigram_letters = LanguageModel.Ngram("share/mercurius.txt", true)
 
-    load_image()
-    load_prototypes()
 
-    engine:addSystem(LineDrawSystem())
-    engine:addSystem(SegmentDrawSystem())
-    engine:addSystem(ComponentsDrawSystem())
-    engine:addSystem(SegmentStringDrawSystem())
-    engine:addSystem(HUDDrawSystem())
-    engine:addSystem(ButtonDrawSystem())
-    engine:addSystem(PrototypeDrawSystem())
-    engine:stopSystem("PrototypeDrawSystem")
-    engine:addSystem(SegmentRecognitionSystem())
+    -- engine:addSystem(SegmentRecognitionSystem())
 
 
     love.graphics.setBackgroundColor(unpack(config.BACKGROUND_COLOR))
@@ -53,11 +59,11 @@ end
 
 function love.update(dt)
     lovebird.update()
-    engine:update(dt)
+    WORLD:update(dt, tiny.requireAll("isUpdateSystem"))
 end
 
 function love.draw()
-    engine:draw()
+    WORLD:update(love.timer.getDelta(), tiny.requireAll("isDrawSystem"))
 end
 
 function love.keypressed(key)
@@ -70,6 +76,23 @@ function love.keypressed(key)
     end
 
     if key == "p" then
-        engine:toggleSystem("PrototypeDrawSystem")
+        protdraw.active = not protdraw.active
     end
+end
+
+function love.keyreleased(key)
+end
+
+function love.mousepressed(x, y, button)
+   if button == "l" then
+      local createrect = WORLD:addSystem(Systems.CreateRectangleSystem)
+      createrect.l = x
+      createrect.t = y
+   end
+end
+
+function love.mousereleased(x, y, button)
+   if button == "l" then
+      WORLD:removeSystem(Systems.CreateRectangleSystem)
+   end
 end

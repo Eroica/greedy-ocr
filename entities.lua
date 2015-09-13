@@ -9,25 +9,32 @@
 MINIMUM_COMPONENT_WIDTH = 10
 SPLIT_THRESHOLD = 0.69
 
-local entities = {}
+local Entities = {}
 
-entities.Prototype = class("Prototype", Entity)
-function entities.Prototype:__init(literal, image)
-    self:add(isPrototype())
-    self:add(String(literal))
-    self:add(Image(image))
+Entities.Prototype = class("Prototype")
+function Entities.Prototype:init (literal, image)
+    self.isPrototype = true
+    self.string = literal
+    self.image = image
 
-    engine:addEntity(self)
+
+    getmetatable(self).__tostring = function (t)
+        return t.string
+    end
+
+
+
+    WORLD:addEntity(self)
 end
 
 
-entities.Line = class("Line", Entity)
-function entities.Line:__init(image, segments)
-    self:add(Image(image))
-    self:add(isLine())
-    self:add(Position(0, 0))
+Entities.Page = class("Page")
+function Entities.Page:init (image, segments)
+    self.isPage = true
+    self.image = image
+    self.position = {l = 0, t = 0}
 
-    self._segments = {}
+    self.segments = {}
 
     for _, segment in ipairs(segments) do
         local start = segment[1]
@@ -35,122 +42,101 @@ function entities.Line:__init(image, segments)
 
         local width = e[1] - start[1]
         local height = e[2] - start[2]
-        local seg = entities.Segment(start[1], start[2], width, height, self)
-        table.insert(self._segments, seg)
+
+        local seg = Entities.Segment:new(start[1], start[2], width, height, self)
+        table.insert(self.segments, seg)
     end
 
-    engine:addEntity(self)
+    WORLD:addEntity(self)
 end
 
 
-entities.Segment = class("Segment", Entity)
-function entities.Segment:__init(l, t, width, height, parent)
-    self:setParent(parent)
-    self:add(isSegment())
-    self:add(isNotRecognized())
-    self:add(Position(l, t))
-    self:add(Size(width, height))
+Entities.Segment = class("Segment")
+function Entities.Segment:init (l, t, width, height, parent)
+    self.parent = parent
+    self.isSegment = true
+    self.isNotRecognized = true
+    self.position = {l = l, t = t}
+    self.size = {width = width, height = height}
 
     local image_data = love.image.newImageData(width, height)
-    image_data:paste(parent:get("Image").image:getData(), 0, 0, l, t, width, height)
-    local image = love.graphics.newImage(image_data)
-    self:add(Image(image))
+    image_data:paste(parent.image:getData(), 0, 0, l, t, width, height)
+    self.image = love.graphics.newImage(image_data)
 
-    self._components = {}
+    self.components = {}
 
-    local component = entities.Component(0, width - 1, self)
-    table.insert(self._components, component)
+    self.components[1] = Entities.Component(0, width - 1, self)
 
-    engine:addEntity(self)
-end
+    getmetatable(self).__tostring = function (t)
+        local str = {}
 
-function entities.Segment:tostring()
-    local str = {}
-
-    for _, component in pairs(self._components) do
-        table.insert(str, component:get("String").string)
-    end
-
-   return table.concat(str)
-end
-
-
-function entities.Segment:split_at (start, _end, str)
-    local s = math.max(0, start)
-    local e = math.min(self:get("Size").width, _end)
-
-    assert(e - s > 0)
-
-    local affected_components = {}
-    for i=1, #self._components do
-        local comp = self._components[i]
-        local comp_range = comp:get("Range")
-
-        -- if comp:has("isPrototype") then
-        --     goto continue
-        -- end
-        if comp:get("String").string ~= ".*" then
-            goto continue
+        for _, component in pairs(t.components) do
+            table.insert(str, component.string)
         end
 
-        if ((comp_range.s >= s and comp_range.s <= e) or
-            (comp_range.e >= s and comp_range.e <= e))
-        or ((comp_range.s <= s and s <= comp_range.e) or
-            comp_range.s <= e and e <= comp_range.e) then
-            table.insert(affected_components, i)
-        end
-
-        ::continue::
+        return table.concat(str)
     end
 
-    local left_component = self._components[affected_components[1]]
-    local left_component_range = left_component:get("Range")
-    local right_component = self._components[affected_components[#affected_components]]
-    local right_component_range = right_component:get("Range")
+    WORLD:addEntity(self)
+end
 
-    for i=#affected_components, 1, -1 do
-        table.remove(self._components, affected_components[i])
+
+Entities.Component = class("Component")
+function Entities.Component:init (start, e, parent)
+    self.parent = parent
+    self.isComponent = true
+    self.range = {start, e}
+    self.string = literal or ".*"
+
+    local width = e - start + 1
+    local height = parent.size.height
+    local image_data = love.image.newImageData(width, height)
+    image_data:paste(parent.image:getData(), 0, 0, start, 0, width, height)
+    self.image = love.graphics.newImage(image_data)
+
+    getmetatable(self).__tostring = function (t)
+        return t.string
     end
+
+    WORLD:addEntity(self)
+end
+
+
+function Entities.Component:split (start, e, str)
+    local width = self.range[2] - self.range[1] + 1
+    local start = math.max(0, start)
+    local e = math.min(e, width)
 
     local new_components = {}
-    if math.abs(left_component_range.s - s) >= MINIMUM_COMPONENT_WIDTH then
-        table.insert(new_components, entities.Component(left_component_range.s, s, self))
+
+    if start >= MINIMUM_COMPONENT_WIDTH then
+        table.insert(new_components, Entities.Component(self.range[1], self.range[1] + start, self.parent))
     end
 
-    table.insert(new_components, entities.Component(s, e, self, str))
+    local middle_component = Entities.Component(self.range[1] + start, self.range[1] + e, self.parent)
+    middle_component.string = str
+    table.insert(new_components, middle_component)
 
-    if math.abs(right_component_range.e - e) >= MINIMUM_COMPONENT_WIDTH then
-        table.insert(new_components, entities.Component(e, right_component_range.e, self))
+    if math.abs(self.range[2] - self.range[1] - e) >= MINIMUM_COMPONENT_WIDTH then
+        table.insert(new_components, Entities.Component(self.range[1] + e, self.range[2], self.parent))
     end
+
+    local index = invert_table(self.parent.components)[self]
+    WORLD:removeEntity(self)
+    table.remove(self.parent.components, index)
 
     for i=1, #new_components do
-        table.insert(self._components, affected_components[1] + i - 1, new_components[i])
+        table.insert(self.parent.components, index + i - 1, new_components[i])
     end
 end
 
 
-entities.Component = class("Component", Entity)
-function entities.Component:__init(start, e, parent, literal)
-    self:setParent(parent)
-    self:add(Range(start, e))
-    self:add(String(literal))
-    self:add(isComponent())
 
-    local parent_size = parent:get("Size")
+function Entities.Component:overlay (prototype)
+    assert(class.isInstance(prototype, Prototype))
 
-    local image_data = love.image.newImageData(e - start + 1, parent_size.height)
-    image_data:paste(parent:get("Image").image:getData(), 0, 0, start, 0, e - start + 1, parent_size.height)
-    local image = love.graphics.newImage(image_data)
-    self:add(Image(image))
-
-    self._string_hypothesis = {}
-
-    engine:addEntity(self)
-end
-
-function entities.Component:overlay(prototype)
-    local sub_image = prototype:get("Image").image_bw
-    local image = self:get("Image").image_bw
+    local sub_image = threshold_image(prototype.image)
+    local image = threshold_image(self.image)
 
     assert(image:getWidth() >= sub_image:getWidth())
     assert(image:getHeight() >= sub_image:getHeight())
@@ -169,12 +155,6 @@ function entities.Component:overlay(prototype)
 
             for k=0, sub_width - 1 do
                 for l=0, sub_height - 1 do
-                    -- print("i+k: " .. tostring(i+k))
-                    -- print("k: " .. tostring(k))
-                    -- print("j+l: " .. tostring(j+l))
-                    -- print("l: " .. tostring(l))
-                    -- print("#####")
-
                     local image_pixel = image_data:getPixel(i+k, j+l)
                     local sub_image_pixel = sub_image_data:getPixel(k, l)
 
@@ -201,10 +181,11 @@ function entities.Component:overlay(prototype)
     end
 
     if max_ratio >= SPLIT_THRESHOLD then
-        self:getParent():split_at(split_x, split_x + sub_image:getWidth(), prototype:get("String").string)
+--        self:getParent():split_at(split_x, split_x + sub_image:getWidth(), prototype:get("String").string)
+        self:split(split_x, split_x + sub_image:getWidth(), prototype.string)
     end
 
     -- return ratios
 end
 
-return entities
+return Entities

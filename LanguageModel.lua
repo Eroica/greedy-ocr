@@ -5,6 +5,9 @@
     LanguageModel.lua
 
 ]]
+
+local class = require "lib/30log"
+
 local LanguageModel = {}
 
 -- `allwords', `allletters' functions:
@@ -53,10 +56,16 @@ end
 -- strings.
 LanguageModel.Lexicon = class("Lexicon")
 
--- Lexicon:__init
+-- Lexicon:init
 -- @params: lexicon_filename : string
 -- @returns: Lexicon object
-function LanguageModel.Lexicon:__init (lexicon_filename)
+function LanguageModel.Lexicon:init (lexicon_filename)
+    -- HACK: The "class" field needs to be removed, otherwise it would
+    -- get treated as a word. This, unfortunately, breaks 30log's class
+    -- functionalities.
+    self.class = nil
+    getmetatable(self).__tostring = nil
+
     local lexicon_file = io.open(lexicon_filename, "r")
 
     for line in lexicon_file:lines() do
@@ -95,7 +104,7 @@ end
 -- A Bag object is used to count occurances of things. For instance,
 -- the number how many times `word' appears in a corpus.
 LanguageModel.Bag = class("Bag")
-function LanguageModel.Bag:__init ()
+function LanguageModel.Bag:init ()
     -- counts the number of words
     self["_count"] = 0
 end
@@ -116,13 +125,13 @@ end
 -- distributions. It is a table of Bags for every word/letter.
 LanguageModel.Ngram = class("Ngram")
 
--- Ngram:__init
+-- Ngram:init
 -- @params:
 --     filename : string
 --         The name of the corpus file.
 --     check_letters : true/false
 --         If true, create a bigram model of letters instead of words.
-function LanguageModel.Ngram:__init (filename, check_letters)
+function LanguageModel.Ngram:init (filename, check_letters)
     local corpus_file = io.open(filename)
     local w1, w2 = "", ""
 
