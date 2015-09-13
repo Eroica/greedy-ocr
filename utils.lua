@@ -39,6 +39,14 @@ function threshold (value)
     end
 end
 
+function threshold_image (image)
+    local width, height = image:getWidth(), image:getHeight()
+    local image_data = love.image.newImageData(width, height)
+    image_data:paste(image:getData(), 0, 0, 0, 0, width, height)
+    image_data:mapPixel(threshold())
+    return love.graphics.newImage(image_data)
+end
+
 -- max_value:
 -- Deprecated.
 function max_value (t)
@@ -59,6 +67,25 @@ function max_pair (t)
 
     return key, max
 end
+
+
+function table.flatten(arr)
+        local result = { }
+
+        local function flatten(arr)
+            for _, v in ipairs(arr) do
+                if type(v) == "table" then
+                    flatten(v)
+                else
+                    table.insert(result, v)
+                end
+            end
+        end
+
+        flatten(arr)
+        return result
+    end
+
 
 -- invert_table:
 -- Deprecated.
