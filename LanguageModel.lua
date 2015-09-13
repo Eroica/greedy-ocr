@@ -60,6 +60,12 @@ LanguageModel.Lexicon = class("Lexicon")
 -- @params: lexicon_filename : string
 -- @returns: Lexicon object
 function LanguageModel.Lexicon:init (lexicon_filename)
+    -- HACK: The "class" field needs to be removed, otherwise it would
+    -- get treated as a word. This, unfortunately, breaks 30log's class
+    -- functionalities.
+    self.class = nil
+    getmetatable(self).__tostring = nil
+
     local lexicon_file = io.open(lexicon_filename, "r")
 
     for line in lexicon_file:lines() do
