@@ -10,7 +10,7 @@
 -- Takes an RGB color value and converts it to a greyscale value
 -- (from 0 to 255). Based on the article at
 -- http://www.johndcook.com/blog/2009/08/24/algorithms-convert-color-grayscale/
--- (last retrieved: September 1st, 2015)
+-- (Date retrieved: September 1st, 2015)
 --
 -- @params: r, g, b : numbers
 -- @returns: A number from 0 to 255.
@@ -93,22 +93,16 @@ function trim_image (image)
     end
 
     -- check up until what index the array is continuous
-    local max_row_left = find_successor(white_rows, 1)
-    local max_row_right = math.abs(#white_rows - find_antecessor(white_rows, #white_rows))
-    local max_column_left = find_successor(white_columns, 1)
-    local max_column_right = math.abs(#white_columns - find_antecessor(white_columns, #white_columns))
+    local BUFFER = 0
 
-    -- if max_row_left == max_row_right then
-    --     max_row_right = 0
-    -- elseif max_column_left == max_column_right then
-    --     max_column_right = 0
-    -- end
+    local max_row_left = find_successor(white_rows, 1) - BUFFER
+    local max_row_right = math.abs(#white_rows - find_antecessor(white_rows, #white_rows) - BUFFER)
+    local max_column_left = find_successor(white_columns, 1) - BUFFER
+    local max_column_right = math.abs(#white_columns - find_antecessor(white_columns, #white_columns) - BUFFER)
 
     local trimmed_image_data = love.image.newImageData(width - max_column_left - max_column_right, height - max_row_left - max_row_right)
     trimmed_image_data:paste(image:getData(), 0, 0, max_column_left, max_row_left, width - max_column_right, height - max_row_right)
-    local trimmed_image = love.graphics.newImage(trimmed_image_data)
-
-    return trimmed_image
+    return love.graphics.newImage(trimmed_image_data)
 end
 
 
@@ -119,7 +113,6 @@ function find_successor (t, i)
         return find_successor(t, i + 1)
     end
 end
-
 
 function find_antecessor (t, i)
     if t[i - 1] ~= t[i] - 1 then
@@ -192,7 +185,7 @@ end
 -- `split()' method.
 -- Source: http://lua-users.org/wiki/MakingLuaLikePhp
 -- Credit: http://richard.warburton.it/
--- (last retrieved: September 1st, 2015)
+-- (Date retrieved: September 1st, 2015)
 --
 -- @params: div, str : string
 --     div: The dividing string.
