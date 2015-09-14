@@ -144,26 +144,11 @@ function max_pair (t)
 end
 
 
-function table.flatten(arr)
-        local result = { }
-
-        local function flatten(arr)
-            for _, v in ipairs(arr) do
-                if type(v) == "table" then
-                    flatten(v)
-                else
-                    table.insert(result, v)
-                end
-            end
-        end
-
-        flatten(arr)
-        return result
-    end
-
-
 -- invert_table:
--- Deprecated.
+-- Creates a new table from a given table, swapping every key-value
+-- pair.
+-- @params: t : table
+-- @returns: table
 function invert_table (t)
     local s = {}
     for k, v in pairs(t) do
