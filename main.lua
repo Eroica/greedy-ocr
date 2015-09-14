@@ -21,11 +21,11 @@ local gamera = require "lib/gamera"
 --require "components"
 --require "engines"
 local Systems = require "systems"
+config = require "_config"
 require "utils"
 require "setup"
 Entities = require "Entities"
 LanguageModel = require "LanguageModel"
-config = require "_config"
 
 
 lurker.postswap = function(f) print("File " .. f .. " was swapped") end
@@ -35,7 +35,7 @@ function love.load()
     WORLD = tiny.world()
 
     page = load_image()
-    prototypes = load_prototypes()
+    load_prototypes()
 
     CAMERA = gamera.new(0, 0, page.image:getWidth(), page.image:getHeight() + 128)
     CAMERA:setPosition(0, 0)
@@ -45,12 +45,12 @@ function love.load()
     WORLD:addSystem(Systems.ComponentDrawSystem)
     WORLD:addSystem(Systems.ComponentsRangeDrawSystem)
     WORLD:addSystem(Systems.SegmentStringDrawSystem)
-    -- WORLD:addSystem(Systems.HUDDrawSystem)
-    -- WORLD:addSystem(Systems.ButtonDrawSystem)
+    WORLD:addSystem(Systems.HUDDrawSystem)
+    WORLD:addSystem(Systems.ButtonDrawSystem)
     WORLD:addSystem(Systems.SegmentRecognitionSystem)
 
     protdraw = WORLD:addSystem(Systems.PrototypeDrawSystem)
-    all_prototypes = WORLD:addSystem(Systems.AllPrototypesSystem)
+    PROTOTYPES = WORLD:addSystem(Systems.AllPrototypesSystem)
     split_components = WORLD:addSystem(Systems.ComponentSplittingSystem)
 
     lexicon = LanguageModel.Lexicon("share/dummy_lexicon.txt")
@@ -66,9 +66,9 @@ function love.update(dt)
 end
 
 function love.draw()
-    CAMERA:draw(function(l, t, w, h)
         WORLD:update(love.timer.getDelta(), tiny.requireAll("isDrawSystem"))
-    end)
+    -- CAMERA:draw(function(l, t, w, h)
+    -- end)
 end
 
 mouse_down = false

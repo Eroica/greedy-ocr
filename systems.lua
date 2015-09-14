@@ -24,7 +24,9 @@ end
 
 Systems.PageDrawSystem = tiny.processingSystem({isDrawSystem = true})
 function Systems.PageDrawSystem:process (entity, dt)
-    love.graphics.draw(entity.image, entity.position.l, entity.position.t)
+    CAMERA:draw(function(l, t, w, h)
+        love.graphics.draw(entity.image, entity.position.l, entity.position.t)
+    end)
 end
 
 function Systems.PageDrawSystem:filter (entity)
@@ -32,11 +34,12 @@ function Systems.PageDrawSystem:filter (entity)
 end
 
 
-
 Systems.SegmentStringDrawSystem = tiny.processingSystem({isDrawSystem = true})
 function Systems.SegmentStringDrawSystem:process (entity, dt)
-    love.graphics.setColor(0, 0, 0)
-    love.graphics.print(tostring(entity), entity.position.l, math.floor(entity.position.t + entity.size.height))
+    love.graphics.setColor(255, 0, 255)
+    CAMERA:draw(function(l, t, w, h)
+        love.graphics.print(tostring(entity), entity.position.l, math.floor(entity.position.t + entity.size.height))
+    end)
     love.graphics.setColor(255, 255, 255)
 end
 
@@ -44,21 +47,21 @@ function Systems.SegmentStringDrawSystem:filter (entity)
     return entity.isSegment ~= nil
 end
 
-
 Systems.SegmentDrawSystem = tiny.processingSystem({isDrawSystem = true})
 function Systems.SegmentDrawSystem:process (entity, dt)
     local position = entity.position
     local size = entity.size
 
     love.graphics.setColor(255, 0, 255)
-    love.graphics.rectangle("line", position.l, position.t, size.width, size.height)
+    CAMERA:draw(function(l, t, w, h)
+        love.graphics.rectangle("line", position.l, position.t, size.width, size.height)
+    end)
     love.graphics.setColor(255, 255, 255)
 end
 
 function Systems.SegmentDrawSystem:filter (entity)
     return entity.isSegment ~= nil
 end
-
 
 Systems.SegmentRecognitionSystem = tiny.processingSystem({isUpdateSystem = true})
 function Systems.SegmentRecognitionSystem:process (entity, dt)
@@ -140,8 +143,10 @@ function Systems.ComponentsRangeDrawSystem:update (dt)
             if x >= pos.l and x < pos.l + size.width and y >= pos.t and y < pos.t + size.height then
                 love.graphics.setColor(255, 0, 0)
                 for _, comp in pairs(e.components) do
-                    love.graphics.print(comp.range[1], pos.l + comp.range[1], pos.t)
-                    love.graphics.print(comp.range[2], pos.l + comp.range[2], pos.t)
+                    CAMERA:draw(function(l, t, w, h)
+                        love.graphics.print(comp.range[1], pos.l + comp.range[1], pos.t)
+                        love.graphics.print(comp.range[2], pos.l + comp.range[2], pos.t)
+                    end)
                 end
             end
         end
@@ -151,8 +156,6 @@ end
 function Systems.ComponentsRangeDrawSystem:filter (entity)
     return entity.isSegment ~= nil
 end
-
-
 
 Systems.ComponentDrawSystem = tiny.processingSystem({isDrawSystem = true})
 function Systems.ComponentDrawSystem:process (entity, dt)
@@ -165,8 +168,10 @@ function Systems.ComponentDrawSystem:process (entity, dt)
         local range = comp.range
         love.graphics.push()
             love.graphics.translate(position.l, position.t)
-            love.graphics.line(range[1], 0, range[1], size.height)
-            love.graphics.line(range[2], 0, range[2], size.height)
+            CAMERA:draw(function(l, t, w, h)
+                love.graphics.line(range[1], 0, range[1], size.height)
+                love.graphics.line(range[2], 0, range[2], size.height)
+            end)
         love.graphics.pop()
     end
 
@@ -193,8 +198,9 @@ local HUD_LINE_COLOR = {56, 61, 81}
 
 Systems.HUDDrawSystem = tiny.system({isDrawSystem = true})
 function Systems.HUDDrawSystem:update (dt)
-    --local width, height = love.graphics.getDimensions()
-    local l, t, width, height = CAMERA:getVisible()
+    local width, height = love.graphics.getDimensions()
+    --local l, t, width, height = CAMERA:getVisible()
+    l, t = 0, 0
     local x, y = love.mouse.getPosition()
 
     love.graphics.setColor(unpack(HUD_COLOR))
