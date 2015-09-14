@@ -11,15 +11,15 @@ local config = {}
 config.DEBUG = true
 
 config.prototypes = {
-    {"ch", "share/ch.png"},
-    {"c", "share/c.png"},
-    {"e", "share/e.png"}
+    {"ch", "prototypes/ch.png"},
+    {"c", "prototypes/c.png"},
+    {"e", "prototypes/e.png"}
 }
 
 config.BACKGROUND_COLOR = {127, 127, 127}
 
 config.line = {
-    "pages/line.png",
+    "pages/992793.jpg",
     boxes = {
         {{2, 14}, {136, 64}},
         {{157, 11}, {229, 51}},
