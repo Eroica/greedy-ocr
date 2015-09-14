@@ -8,6 +8,20 @@
 
 local Systems = {}
 
+Systems.AllPrototypesSystem = tiny.sortedSystem({isUpdateSystem = true})
+function Systems.AllPrototypesSystem:compare (e1, e2)
+    if e1.image:getWidth() > e2.image:getWidth() then
+        return true
+    else
+        return false
+    end
+end
+
+function Systems.AllPrototypesSystem:filter (entity)
+    return entity.isPrototype ~= nil
+end
+
+
 Systems.PageDrawSystem = tiny.processingSystem({isDrawSystem = true})
 function Systems.PageDrawSystem:process (entity, dt)
     love.graphics.draw(entity.image, entity.position.l, entity.position.t)
@@ -93,11 +107,17 @@ function Systems.SegmentRecognitionSystem:process (entity, dt)
 
         for j=1, #match_components do
             local comp = match_components[j]
-            -- if engine:checkIfPrototypeExists(comp:get("String").string) == false then
-            --     local literal = comp:get("String").string
-            --     local image = comp:get("Image").image
-            --     local prot = entities.Prototype(literal, image)
-            -- end
+
+            local all_prototype_strings = {}
+            for _, prot in pairs(prototypes) do
+                all_prototype_strings[prot.string] = true
+            end
+
+            if all_prototype_strings[comp.string] == nil then
+                local literal = comp.string
+                local image = trim_image(comp.image)
+                local prot = Entities.Prototype(comp.string, image)
+            end
         end
 
         entity.isNotRecognized = nil
@@ -173,23 +193,25 @@ local HUD_LINE_COLOR = {56, 61, 81}
 
 Systems.HUDDrawSystem = tiny.system({isDrawSystem = true})
 function Systems.HUDDrawSystem:update (dt)
-    local width, height = love.graphics.getDimensions()
+    --local width, height = love.graphics.getDimensions()
+    local l, t, width, height = CAMERA:getVisible()
     local x, y = love.mouse.getPosition()
 
     love.graphics.setColor(unpack(HUD_COLOR))
-    love.graphics.rectangle("fill", 0, height - HUD_HEIGHT, width, height)
+    love.graphics.rectangle("fill", l, t + height - HUD_HEIGHT, width, height)
     love.graphics.setColor(unpack(HUD_LINE_COLOR))
-    love.graphics.line(0, height - HUD_HEIGHT - 1, width, height - HUD_HEIGHT - 1)
+    love.graphics.line(l, t + height - HUD_HEIGHT - 1, l + width, t + height - HUD_HEIGHT - 1)
 
     love.graphics.setColor(255, 255, 255)
     love.graphics.push()
-        love.graphics.translate(HUD_PADDING, height - HUD_HEIGHT + HUD_PADDING)
+        love.graphics.translate(l + HUD_PADDING, t + height - HUD_HEIGHT + HUD_PADDING)
 
         for _, e in pairs(self.entities) do
             local pos = e.position
+            local l, t = CAMERA:toScreen(pos.l, pos.t)
             local size = e.size
-            if x >= pos.l and x < pos.l + size.width and y >= pos.t and y < pos.t + size.height then
-                love.graphics.print("Segment Coordinates: " .. tostring(x - pos.l) .. "|" .. tostring(y - pos.t), 0, 0)
+            if x >= l and x < l + size.width and y >= t and y < t + size.height then
+                love.graphics.print("Segment Coordinates: " .. tostring(x - l) .. "|" .. tostring(y - t), 0, 0)
             end
         end
         love.graphics.print("FPS: " .. tostring(love.timer.getFPS()), width - 55, 0)
@@ -266,7 +288,7 @@ end
 
 
 
-Systems.PrototypeDrawSystem = tiny.system({isDrawSystem = true})
+Systems.PrototypeDrawSystem = tiny.system({isDrawSystem = true, active = false})
 function Systems.PrototypeDrawSystem:update (dt)
     local width, height = love.graphics.getDimensions()
     local padding = 4
@@ -310,6 +332,53 @@ function Systems.CreateRectangleSystem:update (dt)
     love.graphics.pop()
     love.graphics.setColor(255, 255, 255)
 end
+
+
+
+
+Systems.ComponentSplittingSystem = tiny.processingSystem({isUpdateSystem = true, active = false})
+function Systems.ComponentSplittingSystem:process (entity, dt)
+    local prototypes = all_prototypes.entities
+
+    for _, prototype in pairs(prototypes) do
+        print ("I wanna check " .. tostring(prototype) )
+    end
+
+end
+
+function Systems.ComponentSplittingSystem:filter (entity)
+    return entity.isComponent ~= nil
+end
+
+
+
+
+
+Systems.CameraPositionSystem = tiny.system({isUpdateSystem = true})
+function Systems.CameraPositionSystem:onAddToWorld (world)
+    self.x, self.y = love.mouse.getPosition()
+    self.l, self.t = CAMERA.x, CAMERA.y
+end
+
+function Systems.CameraPositionSystem:update (dt)
+    if love.keyboard.isDown(" ") then
+        local current_x, current_y = love.mouse.getPosition()
+        local dx, dy = current_x - self.x, current_y - self.y
+
+        CAMERA:setPosition(self.l - dx, self.t - dy)
+    end
+end
+
+-- function Systems.CameraPositionSystem:onRemoveFromWorld (world)
+--     CAMERA:setCamera(self.new_x, self.new_y)
+-- end
+
+function Systems.CameraPositionSystem:filter (entity)
+    -- return entity.isCamera ~=nil
+end
+
+
+
 
 return Systems
 
