@@ -47,6 +47,88 @@ function threshold_image (image)
     return love.graphics.newImage(image_data)
 end
 
+
+function trim_image (image)
+    local function all_white (t)
+        for i=1, #t do
+            if t[i] ~= 255 then return false end
+        end
+
+        return true
+    end
+
+    local image_bw = threshold_image(image)
+    local width = image_bw:getWidth()
+    local height = image_bw:getHeight()
+
+    local white_columns = {}
+    local white_rows = {}
+
+    for i=0, height - 1 do
+        local row = {}
+
+        for j=0, width - 1 do
+            local r, g, b = image_bw:getData():getPixel(j, i)
+            row[#row + 1] = rgb2grey(r, g, b)
+        end
+
+        if all_white(row) then
+            white_rows[#white_rows + 1] = i
+        end
+
+    end
+
+    for i=0, width - 1 do
+        local column = {}
+
+        for j=0, height - 1 do
+            local r, g, b = image_bw:getData():getPixel(i, j)
+            column[#column + 1] = rgb2grey(r, g, b)
+
+        end
+
+        if all_white(column) then
+            white_columns[#white_columns + 1] = i
+        end
+    end
+
+    -- check up until what index the array is continuous
+    local max_row_left = find_successor(white_rows, 1)
+    local max_row_right = math.abs(#white_rows - find_antecessor(white_rows, #white_rows))
+    local max_column_left = find_successor(white_columns, 1)
+    local max_column_right = math.abs(#white_columns - find_antecessor(white_columns, #white_columns))
+
+    -- if max_row_left == max_row_right then
+    --     max_row_right = 0
+    -- elseif max_column_left == max_column_right then
+    --     max_column_right = 0
+    -- end
+
+    local trimmed_image_data = love.image.newImageData(width - max_column_left - max_column_right, height - max_row_left - max_row_right)
+    trimmed_image_data:paste(image:getData(), 0, 0, max_column_left, max_row_left, width - max_column_right, height - max_row_right)
+    local trimmed_image = love.graphics.newImage(trimmed_image_data)
+
+    return trimmed_image
+end
+
+
+function find_successor (t, i)
+    if t[i + 1] ~= t[i] + 1 then
+        return i
+    else
+        return find_successor(t, i + 1)
+    end
+end
+
+
+function find_antecessor (t, i)
+    if t[i - 1] ~= t[i] - 1 then
+        return i
+    else
+        return find_antecessor(t, i - 1)
+    end
+end
+
 -- max_value:
 -- Deprecated.
 function max_value (t)
