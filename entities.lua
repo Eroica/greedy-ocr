@@ -17,34 +17,30 @@ function Entities.Prototype:init (literal, image)
     self.string = literal
     self.image = image
 
-
     getmetatable(self).__tostring = function (t)
         return t.string
     end
-
-
 
     WORLD:addEntity(self)
 end
 
 
 Entities.Page = class("Page")
-function Entities.Page:init (image, segments)
+function Entities.Page:init (image, bounding_boxes)
     self.isPage = true
     self.image = image
     self.position = {l = 0, t = 0}
 
     self.segments = {}
 
-    for _, segment in ipairs(segments) do
-        local start = segment[1]
-        local e = segment[2]
+    for _, box in ipairs(bounding_boxes) do
+        local l = box[1]
+        local t = box[2]
+        local width = box[3]
+        local height = box[4]
 
-        local width = e[1] - start[1]
-        local height = e[2] - start[2]
-
-        local seg = Entities.Segment:new(start[1], start[2], width, height, self)
-        table.insert(self.segments, seg)
+        local segment = Entities.Segment:new(l, t, width, height, self)
+        table.insert(self.segments, segment)
     end
 
     WORLD:addEntity(self)

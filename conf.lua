@@ -5,7 +5,7 @@ function love.conf(t)
     t.modules.sound = false
     t.modules.system = false
 
-    -- t.window.width = 1280
-    -- t.window.height = 800
+    t.window.width = 1024
+    t.window.height = 768
     -- t.window.fullscreen = true
 end
