@@ -12,12 +12,6 @@ config.DEBUG = true
 
 config.prototypes_directory = "_prototypes"
 
-config.prototypes = {
-    {"ch", "prototypes/ch.png"},
-    {"c", "prototypes/c.png"},
-    {"e", "prototypes/e.png"}
-}
-
 config.BACKGROUND_COLOR = {127, 127, 127}
 
 config.line = {
