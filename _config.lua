@@ -10,6 +10,8 @@ local config = {}
 
 config.DEBUG = true
 
+config.lexicon_filename = "_share/lexicon.txt"
+
 config.prototypes_directory = "_prototypes"
 
 config.BACKGROUND_COLOR = {127, 127, 127}
