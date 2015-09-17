@@ -50,7 +50,7 @@ function love.load()
     PROTOTYPES = WORLD:addSystem(Systems.Prototypes.sharedPrototypes)
     split_components = WORLD:addSystem(Systems.Components.Splitting)
 
-    lexicon = LanguageModel.Lexicon("share/dummy_lexicon.txt")
+    lexicon = LanguageModel.Lexicon("_share/dummy_lexicon.txt")
     --bigram_words = LanguageModel.Ngram("share/mercurius.txt")
     -- bigram_letters = LanguageModel.Ngram("share/mercurius.txt", true)
 
