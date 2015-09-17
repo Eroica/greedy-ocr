@@ -8,27 +8,24 @@
 
 class = require "lib/30log"
 tiny = require "lib/tiny"
-
---require "lib/lovetoys/lovetoys"
---lovetoyDebug = true
 lovebird = require "lib/lovebird"
 inspect = require "lib/inspect"
 lurker = require "lib/lurker"
+lurker.postswap = function(f) print("File " .. f .. " was swapped") end
 
 local gamera = require "lib/gamera"
 
-
---require "components"
 --require "engines"
-local Systems = require "systems"
+local Systems = {Segments = require "systems/Segments",
+                 Prototypes = require "systems/Prototypes",
+                 Components = require "systems/Components",
+                 Page = require "systems/Page"}
+
 config = require "_config"
+LanguageModel = require "LanguageModel"
 require "utils"
 require "setup"
 Entities = require "Entities"
-LanguageModel = require "LanguageModel"
-
-
-lurker.postswap = function(f) print("File " .. f .. " was swapped") end
 
 
 function love.load()
@@ -40,18 +37,18 @@ function love.load()
     CAMERA = gamera.new(0, 0, page.image:getWidth(), page.image:getHeight() + 128)
     CAMERA:setPosition(0, 0)
 
-    WORLD:addSystem(Systems.PageDrawSystem)
-    WORLD:addSystem(Systems.SegmentDrawSystem)
-    WORLD:addSystem(Systems.ComponentDrawSystem)
-    WORLD:addSystem(Systems.ComponentsRangeDrawSystem)
-    WORLD:addSystem(Systems.SegmentStringDrawSystem)
-    WORLD:addSystem(Systems.HUDDrawSystem)
-    WORLD:addSystem(Systems.ButtonDrawSystem)
-    WORLD:addSystem(Systems.SegmentRecognitionSystem)
+    WORLD:addSystem(Systems.Page.DrawPage)
+    WORLD:addSystem(Systems.Segments.DrawBoundingBox)
+    WORLD:addSystem(Systems.Segments.DrawComponents)
+    WORLD:addSystem(Systems.Segments.DrawString)
+    WORLD:addSystem(Systems.Segments.Recognition)
+    WORLD:addSystem(Systems.Components.DrawRange)
+    WORLD:addSystem(Systems.Page.DrawHUD)
+    WORLD:addSystem(Systems.Page.DrawButtons)
 
-    protdraw = WORLD:addSystem(Systems.PrototypeDrawSystem)
-    PROTOTYPES = WORLD:addSystem(Systems.AllPrototypesSystem)
-    split_components = WORLD:addSystem(Systems.ComponentSplittingSystem)
+    protdraw = WORLD:addSystem(Systems.Prototypes.OverlayPrototypes)
+    PROTOTYPES = WORLD:addSystem(Systems.Prototypes.sharedPrototypes)
+    split_components = WORLD:addSystem(Systems.Components.Splitting)
 
     lexicon = LanguageModel.Lexicon("share/dummy_lexicon.txt")
     --bigram_words = LanguageModel.Ngram("share/mercurius.txt")
@@ -66,12 +63,8 @@ function love.update(dt)
 end
 
 function love.draw()
-        WORLD:update(love.timer.getDelta(), tiny.requireAll("isDrawSystem"))
-    -- CAMERA:draw(function(l, t, w, h)
-    -- end)
+    WORLD:update(love.timer.getDelta(), tiny.requireAll("isDrawSystem"))
 end
-
-mouse_down = false
 
 function love.keypressed(key)
     if key == "escape" then
@@ -99,13 +92,13 @@ function love.mousepressed(x, y, button)
         -- local createrect = WORLD:addSystem(Systems.CreateRectangleSystem)
         -- createrect.l = x
         -- createrect.t = y
-        WORLD:addSystem(Systems.CameraPositionSystem)
+        WORLD:addSystem(Systems.Page.CameraPosition)
     end
 end
 
 function love.mousereleased(x, y, button)
     if button == "l" then
         -- WORLD:removeSystem(Systems.CreateRectangleSystem)
-        WORLD:removeSystem(Systems.CameraPositionSystem)
+        WORLD:removeSystem(Systems.Page.CameraPosition)
     end
 end

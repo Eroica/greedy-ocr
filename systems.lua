@@ -63,6 +63,7 @@ function Systems.SegmentDrawSystem:filter (entity)
     return entity.isSegment ~= nil
 end
 
+
 Systems.SegmentRecognitionSystem = tiny.processingSystem({isUpdateSystem = true})
 function Systems.SegmentRecognitionSystem:process (entity, dt)
     local match = lexicon:lookup(tostring(entity))
@@ -217,7 +218,7 @@ function Systems.HUDDrawSystem:update (dt)
             local l, t = CAMERA:toScreen(pos.l, pos.t)
             local size = e.size
             if x >= l and x < l + size.width and y >= t and y < t + size.height then
-                love.graphics.print("Segment Coordinates: " .. tostring(x - l) .. "|" .. tostring(y - t), 0, 0)
+                love.graphics.print("Segment " .. tostring(_) .. " Coordinates: " .. tostring(x - l) .. "|" .. tostring(y - t), 0, 0)
             end
         end
         love.graphics.print("FPS: " .. tostring(love.timer.getFPS()), width - 55, 0)

@@ -10,7 +10,7 @@ local config = {}
 
 config.DEBUG = true
 
-config.prototypes_directory = "prototypes"
+config.prototypes_directory = "_prototypes"
 
 config.prototypes = {
     {"ch", "prototypes/ch.png"},
@@ -21,7 +21,7 @@ config.prototypes = {
 config.BACKGROUND_COLOR = {127, 127, 127}
 
 config.line = {
-    "pages/992793.jpg",
+    "_pages/992793.jpg",
     boxes = {
         {155, 17, 159, 58},
         {333, 29, 103, 48},
