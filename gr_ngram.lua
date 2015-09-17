@@ -1,6 +1,5 @@
-local binser = require "lib/binser"
 local LanguageModel = require "LanguageModel"
-
+require "utils"
 
 -- `allwords', `allletters' functions:
 -- These are 2 helper functions that are used to iterate over a text
@@ -43,16 +42,13 @@ end
 
 
 
-local corpus_file = io.open("share/mercurius.txt")
+local corpus_file = io.open("_share/mercurius.txt")
 local w1, w2 = "", ""
 
 model = {}
 
-local iterator = allwords
--- swap the file iterator to check for letters instead of words
-if check_letters then iterator = allletters end
 
-for w in iterator(corpus_file) do
+for w in allwords(corpus_file) do
     w1 = w2; w2 = w;
 
     if model[w1] == nil then
@@ -62,5 +58,23 @@ for w in iterator(corpus_file) do
         model[w1]:insert(w2)
     end
 end
+
+table.save(model, "_share/ngram_words.bin")
+
+
+model = {}
+
+for w in allletters(corpus_file) do
+    w1 = w2; w2 = w;
+
+    if model[w1] == nil then
+        model[w1] = LanguageModel.Bag()
+        model[w1]:insert(w2)
+    else
+        model[w1]:insert(w2)
+    end
+end
+
+table.save(model, "_share/ngram_letters.bin")
 
 corpus_file:close()
