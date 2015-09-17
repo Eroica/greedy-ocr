@@ -40,9 +40,9 @@ function Segments.DrawBoundingBox:filter (entity)
 end
 
 
-Segments.Recognition = tiny.processingSystem({isUpdateSystem = true})
+Segments.Recognition = tiny.processingSystem({isUpdateSystem = true, interval = 30})
 function Segments.Recognition:process (entity, dt)
-    local match = lexicon:lookup(tostring(entity))
+    local match = LEXICON:lookup(tostring(entity))
 
     if #match == 1 then
         if config.DEBUG then
@@ -101,6 +101,7 @@ function Segments.Recognition:process (entity, dt)
         end
 
         entity.isNotRecognized = nil
+        -- Refresh this entity's components
         self.world:addEntity(entity)
     end
 end
