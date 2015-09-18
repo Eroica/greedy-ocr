@@ -31,10 +31,10 @@ Entities = require "Entities"
 function love.load()
     WORLD = tiny.world()
 
-    page = load_image()
+    PAGE = load_image()
     load_prototypes()
 
-    CAMERA = gamera.new(0, 0, page.image:getWidth(), page.image:getHeight() + 128)
+    CAMERA = gamera.new(0, 0, PAGE.image:getWidth(), PAGE.image:getHeight() + 128)
     CAMERA:setPosition(0, 0)
 
     WORLD:addSystem(Systems.Page.DrawPage)
