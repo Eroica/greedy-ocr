@@ -39,10 +39,11 @@ function love.load()
 
     WORLD:addSystem(Systems.Page.DrawPage)
     WORLD:addSystem(Systems.Segments.DrawBoundingBox)
-    WORLD:addSystem(Systems.Segments.DrawComponents)
+    -- WORLD:addSystem(Systems.Segments.DrawComponents)
     WORLD:addSystem(Systems.Segments.DrawString)
     WORLD:addSystem(Systems.Segments.Recognition)
     WORLD:addSystem(Systems.Components.DrawRange)
+    WORLD:addSystem(Systems.Components.DrawLines)
     WORLD:addSystem(Systems.Page.DrawHUD)
     WORLD:addSystem(Systems.Page.DrawButtons)
 

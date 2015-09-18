@@ -1,6 +1,36 @@
 local Components = {}
 
 
+Components.DrawLines = tiny.processingSystem({isDrawSystem = true})
+function Components.DrawLines:process (entity, dt)
+    local position = entity.parent.position
+    local size = entity.parent.size
+
+    love.graphics.setColor(0, 255, 0)
+
+    love.graphics.push()
+        love.graphics.translate(position.l, position.t)
+        CAMERA:draw(function(l, t, w, h)
+            love.graphics.line(entity.range[1], 0, entity.range[1], size.height)
+            love.graphics.line(entity.range[2], 0, entity.range[2], size.height)
+        end)
+    love.graphics.pop()
+
+    love.graphics.setColor(255, 255, 255)
+end
+
+function Components.DrawLines:filter (entity)
+    return entity.isComponent ~= nil
+end
+
+
+
+
+
+
+
+
+
 Components.DrawRange = tiny.system({isDrawSystem = true})
 function Components.DrawRange:update (dt)
     local x, y = CAMERA:toWorld(love.mouse.getPosition())

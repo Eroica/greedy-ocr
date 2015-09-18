@@ -111,37 +111,6 @@ function Segments.Recognition:filter (entity)
 end
 
 
-
-Segments.DrawComponents = tiny.processingSystem({isDrawSystem = true})
-function Segments.DrawComponents:process (entity, dt)
-    local position = entity.position
-    local size = entity.size
-
-    love.graphics.setColor(0, 255, 0)
-
-    for _, comp in pairs(entity.components) do
-        local range = comp.range
-        love.graphics.push()
-            love.graphics.translate(position.l, position.t)
-            CAMERA:draw(function(l, t, w, h)
-                love.graphics.line(range[1], 0, range[1], size.height)
-                love.graphics.line(range[2], 0, range[2], size.height)
-            end)
-        love.graphics.pop()
-    end
-
-    love.graphics.setColor(255, 255, 255)
-end
-
-function Segments.DrawComponents:filter (entity)
-    return entity.isSegment ~= nil
-end
-
-
-
-
-
-
 return Segments
 
 
