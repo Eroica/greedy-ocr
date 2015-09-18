@@ -3,7 +3,7 @@ local Components = {}
 
 Components.DrawRange = tiny.system({isDrawSystem = true})
 function Components.DrawRange:update (dt)
-    local x, y = love.mouse.getPosition()
+    local x, y = CAMERA:toWorld(love.mouse.getPosition())
 
     for _, e in pairs(self.entities) do
             local pos = e.position

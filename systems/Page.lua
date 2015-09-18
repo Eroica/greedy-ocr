@@ -14,8 +14,6 @@ end
 
 
 
-
-
 local HUD_HEIGHT = 44
 local HUD_PADDING = 4
 local HUD_COLOR = {32, 40, 63}
@@ -28,27 +26,30 @@ Page.DrawHUD = tiny.system({isDrawSystem = true})
 function Page.DrawHUD:update (dt)
     local width, height = love.graphics.getDimensions()
     --local l, t, width, height = CAMERA:getVisible()
-    l, t = 0, 0
-    local x, y = love.mouse.getPosition()
+    local x, y = CAMERA:toWorld(love.mouse.getPosition())
 
     love.graphics.setColor(unpack(HUD_COLOR))
-    love.graphics.rectangle("fill", l, t + height - HUD_HEIGHT, width, height)
+    love.graphics.rectangle("fill", 0, height - HUD_HEIGHT, width, height)
     love.graphics.setColor(unpack(HUD_LINE_COLOR))
-    love.graphics.line(l, t + height - HUD_HEIGHT - 1, l + width, t + height - HUD_HEIGHT - 1)
+    love.graphics.line(0, height - HUD_HEIGHT - 1, width, height - HUD_HEIGHT - 1)
 
     love.graphics.setColor(255, 255, 255)
     love.graphics.push()
-        love.graphics.translate(l + HUD_PADDING, t + height - HUD_HEIGHT + HUD_PADDING)
+        love.graphics.translate(HUD_PADDING, height - HUD_HEIGHT + HUD_PADDING)
 
         for _, e in pairs(self.entities) do
             local pos = e.position
-            local l, t = CAMERA:toScreen(pos.l, pos.t)
+            local l, t = pos.l, pos.t
             local size = e.size
-            if x >= l and x < l + size.width and y >= t and y < t + size.height then
+            if  x >= l and x < l + size.width
+            and y >= t and y < t + size.height then
                 love.graphics.print("Segment " .. tostring(_) .. " Coordinates: " .. tostring(x - l) .. "|" .. tostring(y - t), 0, 0)
             end
         end
         love.graphics.print("FPS: " .. tostring(love.timer.getFPS()), width - 55, 0)
+
+
+        love.graphics.print("World Coordinates: " .. tostring(x) .. "|" .. tostring(y), width - 200, 20)
 
         -- local prots = engine._prototypes
         -- local prots_strings = {}
