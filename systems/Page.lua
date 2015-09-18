@@ -46,19 +46,17 @@ function Page.DrawHUD:update (dt)
                 love.graphics.print("Segment " .. tostring(_) .. " Coordinates: " .. tostring(x - l) .. "|" .. tostring(y - t), 0, 0)
             end
         end
-        love.graphics.print("FPS: " .. tostring(love.timer.getFPS()), width - 55, 0)
 
+        local prots_strings = {}
+        for i=1, #PROTOTYPES.entities do
+            table.insert(prots_strings, PROTOTYPES.entities[i].string)
+        end
 
-        love.graphics.print("World Coordinates: " .. tostring(x) .. "|" .. tostring(y), width - 200, 20)
+        love.graphics.print("Prototypes (" .. #PROTOTYPES.entities .. "): "
+                            .. table.concat(prots_strings, ", "), 0, 20)
 
-        -- local prots = engine._prototypes
-        -- local prots_strings = {}
-        -- for i=1, #prots do
-        --     table.insert(prots_strings, prots[i]:get("String").string)
-        -- end
-
-        -- love.graphics.print("Prototypes (" .. #engine._prototypes .. "): "
-        --                     .. table.concat(prots_strings, ", "), 0, 20)
+        love.graphics.print("FPS: " .. tostring(love.timer.getFPS()), width - 55, 20)
+        love.graphics.printf("World Coordinates: " .. tostring(x) .. "|" .. tostring(y), width - 208, 0, 200, "right")
     love.graphics.pop()
 end
 
