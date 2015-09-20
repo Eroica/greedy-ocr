@@ -6,40 +6,40 @@
 
 ]]
 
-class = require "lib/30log"
-tiny = require "lib/tiny"
+class    = require "lib/30log"
+tiny     = require "lib/tiny"
 lovebird = require "lib/lovebird"
-inspect = require "lib/inspect"
-lurker = require "lib/lurker"
+inspect  = require "lib/inspect"
+lurker   = require "lib/lurker"
 lurker.postswap = function(f) print("File " .. f .. " was swapped") end
 
 local gamera = require "lib/gamera"
 
---require "engines"
-local Systems = {Segments = require "systems/Segments",
-                 Prototypes = require "systems/Prototypes",
-                 Components = require "systems/Components",
-                 Page = require "systems/Page"}
+Systems = {
+    Segments   = require "systems/Segments",
+    Prototypes = require "systems/Prototypes",
+    Components = require "systems/Components",
+    Page       = require "systems/Page"
+}
 
-config = require "_config"
+config        = require "_config"
 LanguageModel = require "LanguageModel"
+Entities      = require "Entities"
 require "utils"
 require "setup"
-Entities = require "Entities"
 
 
 function love.load()
     WORLD = tiny.world()
-
-    PAGE = load_image()
+    PAGE  = load_image()
     load_prototypes()
 
-    CAMERA = gamera.new(0, 0, PAGE.image:getWidth(), PAGE.image:getHeight() + 128)
+    CAMERA = gamera.new(0, 0, PAGE.image:getWidth(),
+                              PAGE.image:getHeight() + 128)
     CAMERA:setPosition(0, 0)
 
     WORLD:addSystem(Systems.Page.DrawPage)
     WORLD:addSystem(Systems.Segments.DrawBoundingBox)
-    -- WORLD:addSystem(Systems.Segments.DrawComponents)
     WORLD:addSystem(Systems.Segments.DrawString)
     WORLD:addSystem(Systems.Segments.Recognition)
     WORLD:addSystem(Systems.Components.DrawRange)
@@ -47,8 +47,9 @@ function love.load()
     WORLD:addSystem(Systems.Page.DrawHUD)
     WORLD:addSystem(Systems.Page.DrawButtons)
 
-    protdraw = WORLD:addSystem(Systems.Prototypes.OverlayPrototypes)
+    protdraw   = WORLD:addSystem(Systems.Prototypes.OverlayPrototypes)
     PROTOTYPES = WORLD:addSystem(Systems.Prototypes.sharedPrototypes)
+    COMPONENTS = WORLD:addSystem(Systems.Components.sharedComponents)
     split_components = WORLD:addSystem(Systems.Components.Splitting)
 
     LEXICON = LanguageModel.Lexicon(config.lexicon_filename)
@@ -81,7 +82,7 @@ function love.keypressed(key)
     end
 
     if key == "c" then
-        split_components.active = not split_components.active
+        split_components:activate()
     end
 end
 
