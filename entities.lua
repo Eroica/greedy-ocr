@@ -49,6 +49,14 @@ end
 
 Entities.Segment = class("Segment")
 function Entities.Segment:init (l, t, width, height, parent)
+    local function all_white (t)
+        for i=1, #t do
+            if t[i] ~= 255 then return false end
+        end
+
+        return true
+    end
+
     self.parent = parent
     self.isSegment = true
     self.isNotRecognized = true
@@ -61,7 +69,50 @@ function Entities.Segment:init (l, t, width, height, parent)
 
     self.components = {}
 
-    self.components[1] = Entities.Component(0, width - 1, self)
+
+    local image_bw = threshold_image(self.image)
+
+    local lines = {}
+    local component_edges = {}
+    local search_black = true
+    local num_white_rows = 0
+
+    for column_idx=0, image_bw:getWidth() - 1 do
+        local colors = {}
+
+        for row_idx=0, image_bw:getHeight() - 1 do
+            local r, g, b = image_bw:getData():getPixel(column_idx, row_idx)
+            table.insert(colors, rgb2grey(r, g, b))
+        end
+
+        if not all_white(colors) then
+            if search_black then
+                table.insert(component_edges, math.max(column_idx - 1, 0))
+                search_black = false
+            end
+        else
+            if search_black then
+                goto continue
+            else
+                num_white_rows = num_white_rows + 1
+                if num_white_rows == 3 then
+                    search_black = true
+                    table.insert(component_edges, column_idx - 1)
+                    num_white_rows = 0
+                end
+            end
+        end
+        ::continue::
+    end
+
+
+    for i=1, #component_edges, 2 do
+        local start = component_edges[i]
+        local _end = component_edges[i+1] or image_bw:getWidth() - 1
+
+        table.insert(self.components, Entities.Component(start, _end, self))
+    end
+
 
     getmetatable(self).__tostring = function (t)
         local str = {}
@@ -83,6 +134,7 @@ function Entities.Component:init (start, e, parent)
     self.isComponent = true
     self.range = {start, e}
     self.string = literal or ".*"
+    self.visitedBy = {}
 
     local width = e - start + 1
     local height = parent.size.height
@@ -177,11 +229,8 @@ function Entities.Component:overlay (prototype)
     end
 
     if max_ratio >= SPLIT_THRESHOLD then
---        self:getParent():split_at(split_x, split_x + sub_image:getWidth(), prototype:get("String").string)
         self:split(split_x, split_x + sub_image:getWidth(), prototype.string)
     end
-
-    -- return ratios
 end
 
 return Entities
