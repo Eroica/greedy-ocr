@@ -13,19 +13,14 @@ function Page.DrawPage:filter (entity)
 end
 
 
-
-local HUD_HEIGHT = 44
-local HUD_PADDING = 4
-local HUD_COLOR = {32, 40, 63}
+local HUD_HEIGHT     = 44
+local HUD_PADDING    = 4
+local HUD_COLOR      = {32, 40, 63}
 local HUD_LINE_COLOR = {56, 61, 81}
--- local HUD_COLOR = {73, 93, 127}
--- local HUD_LINE_COLOR = {125, 143, 165}
-
 
 Page.DrawHUD = tiny.system({isDrawSystem = true})
 function Page.DrawHUD:update (dt)
     local width, height = love.graphics.getDimensions()
-    --local l, t, width, height = CAMERA:getVisible()
     local x, y = CAMERA:toWorld(love.mouse.getPosition())
 
     love.graphics.setColor(unpack(HUD_COLOR))
@@ -34,16 +29,19 @@ function Page.DrawHUD:update (dt)
     love.graphics.line(0, height - HUD_HEIGHT - 1, width, height - HUD_HEIGHT - 1)
 
     love.graphics.setColor(255, 255, 255)
-    love.graphics.push()
+    do love.graphics.push()
         love.graphics.translate(HUD_PADDING, height - HUD_HEIGHT + HUD_PADDING)
 
         for _, e in pairs(self.entities) do
-            local pos = e.position
+            local pos  = e.position
             local l, t = pos.l, pos.t
             local size = e.size
             if  x >= l and x < l + size.width
             and y >= t and y < t + size.height then
-                love.graphics.print("Segment " .. tostring(_) .. " Coordinates: " .. tostring(x - l) .. "|" .. tostring(y - t), 0, 0)
+                love.graphics.print(   "Segment "       .. tostring(_)
+                                    .. " Coordinates: " .. tostring(x - l)
+                                    .. "|"              .. tostring(y - t)
+                                    .. " String: "      .. tostring(e), 0, 0)
             end
         end
 
@@ -52,12 +50,16 @@ function Page.DrawHUD:update (dt)
             table.insert(prots_strings, PROTOTYPES.entities[i].string)
         end
 
-        love.graphics.print("Prototypes (" .. #PROTOTYPES.entities .. "): "
+        love.graphics.print(   "Prototypes (" .. #PROTOTYPES.entities .. "): "
                             .. table.concat(prots_strings, ", "), 0, 20)
 
-        love.graphics.print("FPS: " .. tostring(love.timer.getFPS()), width - 55, 20)
-        love.graphics.printf("World Coordinates: " .. tostring(x) .. "|" .. tostring(y), width - 208, 0, 200, "right")
-    love.graphics.pop()
+        love.graphics.print("FPS: " .. tostring(love.timer.getFPS()),
+                            width - 55, 20)
+
+        love.graphics.printf(   "World Coordinates: " .. tostring(x) .. "|"
+                             .. tostring(y), width - 208, 0, 200, "right")
+
+    end love.graphics.pop()
 end
 
 function Page.DrawHUD:filter (entity)
@@ -67,22 +69,22 @@ end
 
 local BUTTON_HEIGHT = 24
 local BUTTON_1 = {
-    width = 48,
+    width  = 48,
     height = BUTTON_HEIGHT,
-    text = "Export"
+    text   = "Export"
 }
 
 local BUTTON_2 = {
-    width = 148,
+    width  = 148,
     height = BUTTON_HEIGHT,
-    text = "Show all Prototypes"
+    text   = "Show all Prototypes"
 }
 
 Page.DrawButtons = tiny.system({isDrawSystem = true})
 function Page.DrawButtons:update (dt)
     local width, height = love.graphics.getDimensions()
 
-    love.graphics.push()
+    do love.graphics.push()
         love.graphics.translate(0, height - BUTTON_HEIGHT - HUD_HEIGHT - HUD_PADDING - 2)
 
         -- Button 1 ("Export")
@@ -93,10 +95,10 @@ function Page.DrawButtons:update (dt)
         love.graphics.rectangle("fill", width - BUTTON_1.width - HUD_PADDING, 1, BUTTON_1.width, BUTTON_HEIGHT)
 
         love.graphics.setColor(255, 255, 255)
-        love.graphics.push()
+        do love.graphics.push()
             love.graphics.translate(width - BUTTON_1.width - HUD_PADDING, 1 + HUD_PADDING)
             love.graphics.printf(BUTTON_1.text, 0, 0, BUTTON_1.width, "center")
-        love.graphics.pop()
+        end love.graphics.pop()
 
 
         -- Button 2
@@ -107,19 +109,13 @@ function Page.DrawButtons:update (dt)
         love.graphics.rectangle("fill", width - BUTTON_1.width - BUTTON_2.width - HUD_PADDING * 3, 1, BUTTON_2.width, BUTTON_HEIGHT)
 
         love.graphics.setColor(255, 255, 255)
-        love.graphics.push()
+        do love.graphics.push()
             love.graphics.translate(width - BUTTON_1.width - BUTTON_2.width - HUD_PADDING * 3, 1 + HUD_PADDING)
             love.graphics.printf(BUTTON_2.text, 0, 0, BUTTON_2.width, "center")
-        love.graphics.pop()
+        end love.graphics.pop()
 
-    love.graphics.pop()
+    end love.graphics.pop()
 end
-
--- function DrawButtons:requires()
---     return {}
--- end
-
-
 
 
 Page.CreateRectangles = tiny.system({isDrawSystem = true, l = 0, t = 0})
@@ -136,12 +132,6 @@ function Page.CreateRectangles:update (dt)
 end
 
 
-
-
-
-
-
-
 Page.CameraPosition = tiny.system({isUpdateSystem = true})
 function Page.CameraPosition:onAddToWorld (world)
     self.x, self.y = love.mouse.getPosition()
@@ -155,14 +145,6 @@ function Page.CameraPosition:update (dt)
 
         CAMERA:setPosition(self.l - dx, self.t - dy)
     end
-end
-
--- function Page.CameraPosition:onRemoveFromWorld (world)
---     CAMERA:setCamera(self.new_x, self.new_y)
--- end
-
-function Page.CameraPosition:filter (entity)
-    -- return entity.isCamera ~=nil
 end
 
 
