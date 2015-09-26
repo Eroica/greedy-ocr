@@ -29,6 +29,19 @@ require "utils"
 require "setup"
 
 
+
+function overlay_prototype(prototype)
+    for _, comp in pairs(COMPONENTS.entities) do
+        local prot_image = prototype.image
+        if  prot_image:getWidth() <= comp.image:getWidth()
+        and prot_image:getHeight() <= comp.image:getHeight() then
+            comp:overlay(prototype)
+        end
+    end
+end
+
+
+
 function love.load()
     WORLD = tiny.world()
     PAGE  = load_image()

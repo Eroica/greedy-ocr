@@ -1,6 +1,8 @@
 local Prototypes = {}
 
-
+-- This system provides a wrapper for all existing prototypes by sorting
+-- them according to their size (larger prototypes come before smaller
+-- ones).
 Prototypes.sharedPrototypes = tiny.sortedSystem({isUpdateSystem = true})
 function Prototypes.sharedPrototypes:onAddToWorld (world)
     self.prototype_images = {}
@@ -30,10 +32,6 @@ function Prototypes.sharedPrototypes:filter (entity)
     return entity.isPrototype ~= nil
 end
 
-function Prototypes.sharedPrototypes:onAdd (entity)
-    entity.image_bw = threshold_image(entity.image)
-    self.world:addEntity(entity)
-end
 
 
 Prototypes.OverlayPrototypes = tiny.system({isDrawSystem = true, active = false})
@@ -47,18 +45,17 @@ function Prototypes.OverlayPrototypes:update (dt)
     love.graphics.rectangle("fill", 0, 0, width, height)
     love.graphics.setColor(255, 255, 255)
 
-    for _, prototype in pairs(PROTOTYPES.entities) do
+    for i=1, #PROTOTYPES.entities do
+        local image = PROTOTYPES.entities[i].image
 
-        local image = prototype.image
+        love.graphics.draw(image, next_x, next_y)
+        next_x = next_x + image:getWidth() + padding
 
-        if image:getWidth() + padding > width then
+        if  i ~= #PROTOTYPES.entities
+        and next_x + padding + PROTOTYPES.entities[i+1].image:getWidth() > width then
             next_x = padding
             next_y = next_y + padding + 100
         end
-
-        love.graphics.draw(image, next_x, next_y)
-
-        next_x = next_x + image:getWidth() + padding
     end
 end
 

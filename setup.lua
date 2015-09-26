@@ -16,6 +16,10 @@ function load_prototypes ()
     end
 
     love.filesystem.getDirectoryItems(PROTOTYPE_DIR, create_prototype)
+
+    for _, prototype in pairs(config.additional_prototypes) do
+        Entities.Prototype(prototype[1], love.graphics.newImage(prototype[2]))
+    end
 end
 
 function load_image()

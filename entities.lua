@@ -7,7 +7,7 @@
 ]]
 
 MINIMUM_COMPONENT_WIDTH = 10
-SPLIT_THRESHOLD = 0.69
+SPLIT_THRESHOLD = 0.70
 
 local Entities = {}
 
@@ -16,6 +16,7 @@ function Entities.Prototype:init (literal, image)
     self.isPrototype = true
     self.string = literal
     self.image = image
+    self.bw_image = threshold_image(image)
 
     getmetatable(self).__tostring = function (t)
         return t.string
@@ -107,7 +108,8 @@ function Entities.Segment:init (l, t, width, height, parent)
 
 
     for i=1, #component_edges, 2 do
-        local start = component_edges[i]
+        local start = component_edges[i] - 3
+        if start < 0 then start = 0 end
         local _end = component_edges[i+1] or image_bw:getWidth() - 1
 
         table.insert(self.components, Entities.Component(start, _end, self))
@@ -183,7 +185,7 @@ end
 function Entities.Component:overlay (prototype)
     assert(class.isInstance(prototype, Prototype))
 
-    local sub_image = threshold_image(prototype.image)
+    local sub_image = prototype.bw_image
     local image = threshold_image(self.image)
 
     assert(image:getWidth() >= sub_image:getWidth())
