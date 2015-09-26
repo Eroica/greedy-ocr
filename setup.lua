@@ -1,11 +1,12 @@
-local prototypes_directory = config.prototypes_directory
+local PROTOTYPE_DIR = config.prototypes_directory
+local PAGES_DIR = config.pages_directory
 
 function load_prototypes ()
     local function create_prototype (filename)
-        if  love.filesystem.isFile(prototypes_directory .. "/" .. filename)
+        if  love.filesystem.isFile(PROTOTYPE_DIR .. "/" .. filename)
         and filename:sub(1, 1) ~= "."
         and filename:sub(1, 1) ~= "_" then
-            local image = love.graphics.newImage(prototypes_directory .. "/" .. filename)
+            local image = love.graphics.newImage(PROTOTYPE_DIR .. "/" .. filename)
 
             -- Get the part before the `.'
             local literal = explode(".", filename)[1]
@@ -14,7 +15,7 @@ function load_prototypes ()
         end
     end
 
-    love.filesystem.getDirectoryItems(prototypes_directory, create_prototype)
+    love.filesystem.getDirectoryItems(PROTOTYPE_DIR, create_prototype)
 end
 
 function load_image()
