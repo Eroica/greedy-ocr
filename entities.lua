@@ -7,7 +7,7 @@
 ]]
 
 MINIMUM_COMPONENT_WIDTH = 10
-SPLIT_THRESHOLD = 0.70
+SPLIT_THRESHOLD = 0.75
 
 local Entities = {}
 
@@ -227,7 +227,7 @@ function Entities.Component:overlay (prototype)
     local split_x, split_y = max_ratio_index % max_x, math.floor(max_ratio_index / max_x)
 
     if config.DEBUG then
-        print(max_ratio_index, max_ratio, split_x, split_x + sub_image:getWidth())
+        print(max_ratio_index, max_ratio, split_x, split_x + sub_image:getWidth(), prototype.string)
     end
 
     if max_ratio >= SPLIT_THRESHOLD then

@@ -40,6 +40,20 @@ function overlay_prototype(prototype)
     end
 end
 
+function recognize_segment(segment)
+        for _, prot in pairs(PROTOTYPES.entities) do
+    for i, comp in pairs(segment.components) do
+            if  prot.image:getWidth() <= comp.image:getWidth()
+            and prot.image:getHeight() <= comp.image:getHeight() then
+                print(i)
+                if comp.string == ".*" then
+                    comp:overlay(prot)
+                end
+            end
+        end
+    end
+end
+
 
 
 function love.load()
