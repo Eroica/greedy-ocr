@@ -42,7 +42,7 @@ end
 
 
 
-local corpus_file = io.open("_share/mercurius.txt")
+local corpus_file = io.open("_share/mercurius_1st_half.txt")
 local w1, w2 = "", ""
 
 model = {}
@@ -60,8 +60,10 @@ for w in allwords(corpus_file) do
 end
 
 table.save(model, "_share/ngram_words.bin")
+corpus_file:close()
 
-
+local corpus_file = io.open("_share/mercurius_1st_half.txt")
+local w1, w2 = "", ""
 model = {}
 
 for w in allletters(corpus_file) do
