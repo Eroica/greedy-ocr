@@ -7,7 +7,7 @@
 ]]
 
 MINIMUM_COMPONENT_WIDTH = 10
-SPLIT_THRESHOLD = 0.75
+SPLIT_THRESHOLD = 0.74
 
 local Entities = {}
 
@@ -69,8 +69,6 @@ function Entities.Segment:init (l, t, width, height, parent)
     self.image = love.graphics.newImage(image_data)
 
     self.components = {}
-
-
     local image_bw = threshold_image(self.image)
 
     local lines = {}
@@ -129,6 +127,20 @@ function Entities.Segment:init (l, t, width, height, parent)
     WORLD:addEntity(self)
 end
 
+function Entities.Segment:recognize ()
+    for _, prot in pairs(PROTOTYPES.entities) do
+        for i, comp in pairs(self.components) do
+            if  prot.image:getWidth() <= comp.image:getWidth()
+            and prot.image:getHeight() <= comp.image:getHeight() then
+                print(i)
+                if comp.string == ".*" then
+                    comp:overlay(prot)
+                end
+            end
+        end
+    end
+end
+
 
 Entities.Component = class("Component")
 function Entities.Component:init (start, e, parent)
@@ -136,7 +148,7 @@ function Entities.Component:init (start, e, parent)
     self.isComponent = true
     self.range = {start, e}
     self.string = literal or ".*"
-    self.visitedBy = {}
+    self.letter_frequencies = {}
 
     local width = e - start + 1
     local height = parent.size.height

@@ -5,6 +5,9 @@ local Prototypes = {}
 -- ones).
 Prototypes.sharedPrototypes = tiny.sortedSystem({isUpdateSystem = true})
 function Prototypes.sharedPrototypes:onAddToWorld (world)
+    self.prototype_ranking = config.prototype_ranking
+    self._inverse_prototype_ranking = invert_table(self.prototype_ranking)
+
     -- self.prototype_images = {}
 end
 
@@ -21,10 +24,22 @@ function Prototypes.sharedPrototypes:compare (e1, e2)
     local area_1 = e1.image:getWidth() * e1.image:getHeight()
     local area_2 = e2.image:getWidth() * e2.image:getHeight()
 
-    if area_1 > area_2 then
-        return true
+    if self._inverse_prototype_ranking[e1.string] == nil
+    or self._inverse_prototype_ranking[e2.string] == nil then
+        if area_1 > area_2 then
+            return true
+        else
+            return false
+        end
     else
-        return false
+        local index_1 = self._inverse_prototype_ranking[e1.string]
+        local index_2 = self._inverse_prototype_ranking[e2.string]
+
+        if index_1 < index_2 then
+            return true
+        else
+            return false
+        end
     end
 end
 

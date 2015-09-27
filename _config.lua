@@ -11,13 +11,16 @@ local config = {}
 config.DEBUG = true
 
 config.lexicon_filename = "_share/lexicon_1st_half.txt"
-config.corpus_filename = "_share/mercurius_1st_half.txt"
+config.corpus_filename  = "_share/mercurius_1st_half.txt"
 
 config.prototypes_directory = "_prototypes"
-config.pages_directory = "_pages"
-
+config.pages_directory      = "_pages"
 
 config.BACKGROUND_COLOR = {127, 127, 127}
+
+config.prototype_ranking = {
+    "m", "n", "l", "i",
+}
 
 config.additional_prototypes = {
     {"s", "_prototypes/_s_2.png"},
@@ -31,7 +34,6 @@ config.additional_prototypes = {
     {"F", "_prototypes/_f_c.png"},
     {"B", "_prototypes/_b_c.png"},
 }
-
 
 config.line = {
     "_pages/992793.jpg",

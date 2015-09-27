@@ -40,7 +40,7 @@ function Segments.DrawBoundingBox:filter (entity)
 end
 
 
-Segments.Recognition = tiny.processingSystem({isUpdateSystem = true, interval = 30})
+Segments.Recognition = tiny.processingSystem({isUpdateSystem = true, active = false})
 function Segments.Recognition:process (entity, dt)
     local match = LEXICON:lookup(tostring(entity))
 
