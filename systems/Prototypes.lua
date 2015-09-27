@@ -5,16 +5,16 @@ local Prototypes = {}
 -- ones).
 Prototypes.sharedPrototypes = tiny.sortedSystem({isUpdateSystem = true})
 function Prototypes.sharedPrototypes:onAddToWorld (world)
-    self.prototype_images = {}
+    -- self.prototype_images = {}
 end
 
 function Prototypes.sharedPrototypes:update (dt)
-    local prototype_images = {}
-    for i=1, #self.entities do
-        prototype_images[#prototype_images + 1] = self.entities[i].image_bw
-    end
+    -- local prototype_images = {}
+    -- for i=1, #self.entities do
+    --     prototype_images[#prototype_images + 1] = self.entities[i].image_bw
+    -- end
 
-    self.prototype_images = prototype_images
+    -- self.prototype_images = prototype_images
 end
 
 function Prototypes.sharedPrototypes:compare (e1, e2)

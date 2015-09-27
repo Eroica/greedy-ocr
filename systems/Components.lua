@@ -13,8 +13,55 @@ end
 function Components.sharedComponents:onAdd (entity)
     entity.image_bw = threshold_image(entity.image)
     self.world:addEntity(entity)
+
+    if entity.string ~= ".*" then
+        local components = entity.parent.components
+        local index = invert_table(entity.parent.components)[entity]
+
+        if index == #components then return end
+
+        if components[index+1].string == ".*" then
+            components[index+1].letter_frequencies = {}
+            local recognized_letter = entity.string
+            local sum_frequency = BIGRAM[recognized_letter]._count
+
+            for letter, frequency in pairs(BIGRAM[recognized_letter]) do
+                if letter ~= "_count" and letter ~= "class" then
+                    components[index+1].letter_frequencies[letter] = frequency/sum_frequency
+                end
+            end
+        end
+    end
 end
 
+-- Segments.UpdatePossibleLetters = tiny.processingSystem({isUpdateSystem = true})
+-- function Segments.UpdatePossibleLetters:process (entity, dt)
+--     for i=1, #entity.components do
+--         if  entity.components[i].string ~= ".*"
+--         and entity.components[i+1].string == ".*"
+--         and i ~= #entity.components then
+--             entity.components[i+1].letter_frequencies = {}
+--             local recognized_letter = entity.components[i].string
+--             local sum_frequency = BIGRAM[recognized_letter]._count
+
+
+--             for letter, frequency in pairs(BIGRAM[recognized_letter]) do
+--                 if letter ~= "_count" and letter ~= "class" then
+--                     entity.components[i+1].letter_frequencies[letter] = frequency/sum_frequency
+--                 end
+--             end
+
+--             --     local l = BIGRAM[recognized_letter][letter]
+
+--             -- end
+--         end
+--     end
+
+-- end
+
+-- function Segments.UpdatePossibleLetters:filter (entity)
+--     return entity.isSegment ~= nil
+-- end
 
 
 
