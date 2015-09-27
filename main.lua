@@ -40,25 +40,12 @@ function overlay_prototype(prototype)
     end
 end
 
-function recognize_segment(segment)
-        for _, prot in pairs(PROTOTYPES.entities) do
-    for i, comp in pairs(segment.components) do
-            if  prot.image:getWidth() <= comp.image:getWidth()
-            and prot.image:getHeight() <= comp.image:getHeight() then
-                print(i)
-                if comp.string == ".*" then
-                    comp:overlay(prot)
-                end
-            end
-        end
-    end
-end
-
 
 
 function love.load()
-    WORLD = tiny.world()
-    PAGE  = load_image()
+    WORLD  = tiny.world()
+    PAGE   = load_image()
+    BIGRAM = load_bigram()
     load_prototypes()
 
     CAMERA = gamera.new(0, 0, PAGE.image:getWidth(),
@@ -69,6 +56,7 @@ function love.load()
     WORLD:addSystem(Systems.Segments.DrawBoundingBox)
     WORLD:addSystem(Systems.Segments.DrawString)
     WORLD:addSystem(Systems.Segments.Recognition)
+    hmm =WORLD:addSystem(Systems.Segments.UpdatePossibleLetters)
     WORLD:addSystem(Systems.Components.DrawRange)
     WORLD:addSystem(Systems.Components.DrawLines)
     WORLD:addSystem(Systems.Page.DrawHUD)
@@ -80,8 +68,6 @@ function love.load()
     split_components = WORLD:addSystem(Systems.Components.Splitting)
 
     LEXICON = LanguageModel.Lexicon(config.lexicon_filename)
-    --bigram_words = LanguageModel.Ngram("share/mercurius.txt")
-    -- bigram_letters = LanguageModel.Ngram("share/mercurius.txt", true)
 
     love.graphics.setBackgroundColor(unpack(config.BACKGROUND_COLOR))
 end

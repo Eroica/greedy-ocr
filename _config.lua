@@ -11,9 +11,11 @@ local config = {}
 config.DEBUG = true
 
 config.lexicon_filename = "_share/lexicon_1st_half.txt"
+config.corpus_filename = "_share/mercurius_1st_half.txt"
 
 config.prototypes_directory = "_prototypes"
 config.pages_directory = "_pages"
+
 
 config.BACKGROUND_COLOR = {127, 127, 127}
 
