@@ -26,9 +26,21 @@ function load_prototypes ()
 end
 
 function load_image ()
-    local line_image = love.graphics.newImage(config.line[1])
-    local page = Entities.Page(line_image, config.line.boxes)
-    return page
+    local pages = love.filesystem.getDirectoryItems(PAGES_DIR)
+
+    for _, filename in pairs(pages) do
+        if  filename:sub(1, 1) ~= "."
+        and filename:sub(1, 1) ~= "_" then
+            local file = explode(".", filename)
+            local name = file[1]
+            local suffix = file[2]
+
+            if suffix ~= "lua" then
+                local image = love.graphics.newImage(PAGES_DIR .. "/" .. name .. "." .. suffix)
+                return Entities.Page(image, dofile(PAGES_DIR .. "/" .. name .. "." .. "lua"))
+            end
+        end
+    end
 end
 
 function load_bigram ()
