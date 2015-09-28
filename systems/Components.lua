@@ -11,7 +11,6 @@ function Components.sharedComponents:splitComponents ()
 end
 
 function Components.sharedComponents:onAdd (entity)
-    entity.image_bw = threshold_image(entity.image)
     self.world:addEntity(entity)
 
     if entity.string ~= ".*" then

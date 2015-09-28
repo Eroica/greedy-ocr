@@ -7,7 +7,7 @@
 ]]
 
 MINIMUM_COMPONENT_WIDTH = 10
-SPLIT_THRESHOLD = 0.74
+SPLIT_THRESHOLD = 0.75
 
 local Entities = {}
 
@@ -16,7 +16,7 @@ function Entities.Prototype:init (literal, image)
     self.isPrototype = true
     self.string = literal
     self.image = image
-    self.bw_image = threshold_image(image)
+    self.image_bw = threshold_image(image)
 
     getmetatable(self).__tostring = function (t)
         return t.string
@@ -108,7 +108,13 @@ function Entities.Segment:init (l, t, width, height, parent)
     for i=1, #component_edges, 2 do
         local start = component_edges[i] - 3
         if start < 0 then start = 0 end
-        local _end = component_edges[i+1] or image_bw:getWidth() - 1
+
+        local _end
+        if i+1 == #component_edges then
+            _end = image_bw:getWidth()
+            else
+            _end = component_edges[i+1] or image_bw:getWidth()
+        end
 
         table.insert(self.components, Entities.Component(start, _end, self))
     end
@@ -155,6 +161,7 @@ function Entities.Component:init (start, e, parent)
     local image_data = love.image.newImageData(width, height)
     image_data:paste(parent.image:getData(), 0, 0, start, 0, width, height)
     self.image = love.graphics.newImage(image_data)
+    self.image_bw = threshold_image(self.image)
 
     getmetatable(self).__tostring = function (t)
         return t.string
@@ -197,8 +204,8 @@ end
 function Entities.Component:overlay (prototype)
     assert(class.isInstance(prototype, Prototype))
 
-    local sub_image = prototype.bw_image
-    local image = threshold_image(self.image)
+    local sub_image = prototype.image_bw
+    local image = self.image_bw
 
     assert(image:getWidth() >= sub_image:getWidth())
     assert(image:getHeight() >= sub_image:getHeight())
@@ -242,9 +249,9 @@ function Entities.Component:overlay (prototype)
         print(max_ratio_index, max_ratio, split_x, split_x + sub_image:getWidth(), prototype.string)
     end
 
-    if max_ratio >= SPLIT_THRESHOLD then
-        self:split(split_x, split_x + sub_image:getWidth(), prototype.string)
-    end
+    -- if max_ratio >= SPLIT_THRESHOLD then
+    --     self:split(split_x, split_x + sub_image:getWidth(), prototype.string)
+    -- end
 end
 
 return Entities
