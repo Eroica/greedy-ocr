@@ -13,10 +13,13 @@ end
 function Components.sharedComponents:onAdd (entity)
     self.world:addEntity(entity)
 
+    -- Add letter frequencies to the component behind `index'
     if entity.string ~= ".*" then
         local components = entity.parent.components
         local index = invert_table(entity.parent.components)[entity]
 
+        -- Stop if `index' is the last component of a segment (that
+        -- means there is now component after `index').
         if index == #components then return end
 
         if components[index+1].string == ".*" then
@@ -31,6 +34,11 @@ function Components.sharedComponents:onAdd (entity)
             end
         end
     end
+end
+
+function Components.sharedComponents:onModify (dt)
+    -- Check if a Segment has been recognized
+    RECOGNITION:update(dt)
 end
 
 -- Segments.UpdatePossibleLetters = tiny.processingSystem({isUpdateSystem = true})
