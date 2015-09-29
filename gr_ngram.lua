@@ -1,5 +1,21 @@
+--[[
+    greedy-ocr
+    Original Work Copyright (c) 2015 Sebastian Spaar
+------------------------------------------------------------------------
+    gr_ngram.lua
+
+    This script can be used separately to create a bigram model for a
+    given corpus file (found in `_config.lua'). The model is represented
+    by an "Ngram" class (a table), but no serialization is supported at
+    the moment. This is why code from this script is used directly in
+    `setup.lua'.
+]]
+
+#!/usr/bin/env lua
+
+inspect = require "inspect"
 local LanguageModel = require "LanguageModel"
-require "utils"
+local config = require "_config"
 
 -- `allwords', `allletters' functions:
 -- These are 2 helper functions that are used to iterate over a text
@@ -41,42 +57,34 @@ local function allletters (corpus_file)
 end
 
 
-
-local corpus_file = io.open("_share/mercurius_1st_half.txt")
+local corpus_file = io.open(config.corpus_filename)
 local w1, w2 = "", ""
-
-model = {}
-
+WORD_MODEL = {}
 
 for w in allwords(corpus_file) do
     w1 = w2; w2 = w;
 
-    if model[w1] == nil then
-        model[w1] = LanguageModel.Bag()
-        model[w1]:insert(w2)
+    if WORD_MODEL[w1] == nil then
+        WORD_MODEL[w1] = LanguageModel.Bag()
+        WORD_MODEL[w1]:insert(w2)
     else
-        model[w1]:insert(w2)
+        WORD_MODEL[w1]:insert(w2)
     end
 end
 
-table.save(model, "_share/ngram_words.bin")
-corpus_file:close()
-
-local corpus_file = io.open("_share/mercurius_1st_half.txt")
-local w1, w2 = "", ""
-model = {}
+corpus_file:seek("set", 0)
+w1, w2 = "", ""
+LETTER_MODEL = {}
 
 for w in allletters(corpus_file) do
     w1 = w2; w2 = w;
 
-    if model[w1] == nil then
-        model[w1] = LanguageModel.Bag()
-        model[w1]:insert(w2)
+    if LETTER_MODEL[w1] == nil then
+        LETTER_MODEL[w1] = LanguageModel.Bag()
+        LETTER_MODEL[w1]:insert(w2)
     else
-        model[w1]:insert(w2)
+        LETTER_MODEL[w1]:insert(w2)
     end
 end
-
-table.save(model, "_share/ngram_letters.bin")
 
 corpus_file:close()
