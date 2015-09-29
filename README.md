@@ -1,3 +1,5 @@
+![License: zlib](https://img.shields.io/badge/License-zlib-blue.svg)
+
 # greedy-ocr
 
 To be done!
