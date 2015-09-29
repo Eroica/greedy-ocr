@@ -6,8 +6,7 @@
 
 ]]
 
-MINIMUM_COMPONENT_WIDTH = 10
-SPLIT_THRESHOLD = 0.75
+local config = require "_config"
 
 local Entities = {}
 
@@ -30,6 +29,7 @@ Entities.Page = class("Page")
 function Entities.Page:init (image, bounding_boxes)
     self.isPage = true
     self.image = image
+    self.image_bw = threshold_image(image)
     self.position = {l = 0, t = 0}
 
     self.segments = {}
@@ -112,11 +112,12 @@ function Entities.Segment:init (l, t, width, height, parent)
         local _end
         if i+1 == #component_edges then
             _end = image_bw:getWidth()
-            else
+        else
             _end = component_edges[i+1] or image_bw:getWidth()
         end
 
-        table.insert(self.components, Entities.Component(start, _end, self))
+        -- table.insert(self.components, Entities.Component(start, _end, self))
+        if i == 1 then table.insert(self.components, Entities.Component(0, width, self)) end
     end
 
 
@@ -178,7 +179,7 @@ function Entities.Component:split (start, e, str)
 
     local new_components = {}
 
-    if start >= MINIMUM_COMPONENT_WIDTH then
+    if start >= config.MINIMUM_COMPONENT_WIDTH then
         table.insert(new_components, Entities.Component(self.range[1], self.range[1] + start, self.parent))
     end
 
@@ -186,7 +187,7 @@ function Entities.Component:split (start, e, str)
     middle_component.string = str
     table.insert(new_components, middle_component)
 
-    if math.abs(self.range[2] - self.range[1] - e) >= MINIMUM_COMPONENT_WIDTH then
+    if math.abs(self.range[2] - self.range[1] - e) >= config.MINIMUM_COMPONENT_WIDTH then
         table.insert(new_components, Entities.Component(self.range[1] + e, self.range[2], self.parent))
     end
 
@@ -246,12 +247,12 @@ function Entities.Component:overlay (prototype)
     local split_x, split_y = max_ratio_index % max_x, math.floor(max_ratio_index / max_x)
 
     if config.DEBUG then
-        print(max_ratio_index, max_ratio, split_x, split_x + sub_image:getWidth(), prototype.string)
+        print(max_ratio_index, max_ratio, split_x, split_x + sub_image:getWidth() - 1, prototype.string)
     end
 
-    -- if max_ratio >= SPLIT_THRESHOLD then
-    --     self:split(split_x, split_x + sub_image:getWidth(), prototype.string)
-    -- end
+    if max_ratio >= config.SPLIT_THRESHOLD then
+        self:split(split_x, split_x + sub_image:getWidth() - 1, prototype.string)
+    end
 end
 
 return Entities
