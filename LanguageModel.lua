@@ -10,8 +10,6 @@ local class = require "lib/30log"
 
 local LanguageModel = {}
 
-
-
 -- Lexicon:
 -- A Lexicon object represents a lexicon. Each word is a key in the
 -- table. It is used by Systems to query possible words for redacted
@@ -51,8 +49,10 @@ end
 function LanguageModel.Lexicon:lookup (str)
     local matches = {}
 
-    for word, value in pairs(self) do
-        local s, e = word:find(str)
+    local word_pattern = "^" .. str .. "$"
+
+    for word, _ in pairs(self) do
+        local s, e = word:find(word_pattern)
         if s then
             matches[#matches + 1] = word
         end
@@ -80,6 +80,26 @@ function LanguageModel.Bag:remove (element)
     local count = self[element]
     self[element] = (count and count > 1) and count - 1 or nil
 end
+
+function LanguageModel.Bag:highest_frequency (rank)
+    local ignored_keys = {
+        "_count" = true,
+        "class"  = true,
+        " "      = true
+    }
+
+    local max_value = 0
+    for _, c in pairs(copy) do
+        if not ignored_keys[c] then
+            max_value = math.max(max_value, c)
+        end
+    end
+
+    for _, c in pairs(self) do
+        if self[c] == max_value then return c end
+    end
+end
+
 
 
 -- Ngram:
