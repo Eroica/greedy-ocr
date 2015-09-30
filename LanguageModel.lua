@@ -83,9 +83,9 @@ end
 
 function LanguageModel.Bag:highest_frequency (rank)
     local ignored_keys = {
-        "_count" = true,
-        "class"  = true,
-        " "      = true
+        _count = true,
+        class  = true,
+        [" "]    = true
     }
 
     local max_value = 0
