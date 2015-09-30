@@ -121,12 +121,12 @@ end
 Page.CreateRectangles = tiny.system({isDrawSystem = true, l = 0, t = 0})
 function Page.CreateRectangles:update (dt)
     if not love.keyboard.isDown(" ") then
-        local x, y = love.mouse.getPosition()
+        self.dx, self.dy = love.mouse.getPosition()
 
         love.graphics.setColor(0, 0, 255)
         love.graphics.push()
             love.graphics.translate(self.l, self.t)
-            love.graphics.rectangle("line", 0, 0, x-self.l, y-self.t)
+            love.graphics.rectangle("line", 0, 0, self. dx - self.l, self.dy - self.t)
         love.graphics.pop()
         love.graphics.setColor(255, 255, 255)
     end
@@ -136,7 +136,9 @@ function Page.CreateRectangles:onAddToWorld (world)
     self.l, self.t = love.mouse.getPosition()
 end
 
+function Page.CreateRectangles:onRemoveFromWorld (world)
 
+end
 
 
 Page.CameraPosition = tiny.system({isUpdateSystem = true})
