@@ -11,7 +11,7 @@ tiny     = require "lib/tiny"
 lovebird = require "lib/lovebird"
 inspect  = require "lib/inspect"
 lurker   = require "lib/lurker"
-lurker.postswap = function(f) print("File " .. f .. " was swapped") end
+lurker.postswap = function (f) print("File " .. f .. " was swapped") end
 
 local gamera = require "lib/gamera"
 
@@ -22,11 +22,11 @@ Systems = {
     Page       = require "systems/Page"
 }
 
+require "utils"
+require "setup"
 config        = require "_config"
 LanguageModel = require "LanguageModel"
 Entities      = require "Entities"
-require "utils"
-require "setup"
 
 
 
@@ -147,7 +147,7 @@ end
 
 function love.mousereleased(x, y, button)
     if button == "l" then
-        WORLD:removeSystem(Systems.Page.CameraPosition)
         WORLD:removeSystem(Systems.Page.CreateRectangles)
+        WORLD:removeSystem(Systems.Page.CameraPosition)
     end
 end

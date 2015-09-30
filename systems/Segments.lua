@@ -11,7 +11,7 @@ local Segments = {}
 
 Segments.DrawString = tiny.processingSystem({isDrawSystem = true})
 function Segments.DrawString:process (entity, dt)
-    love.graphics.setColor(255, 0, 255)
+    love.graphics.setColor(0, 0, 0)
     CAMERA:draw(function(l, t, w, h)
         love.graphics.print(tostring(entity), entity.position.l, math.floor(entity.position.t + entity.size.height))
     end)
@@ -44,6 +44,12 @@ Segments.Recognition = tiny.processingSystem({isUpdateSystem = true, active = fa
 function Segments.Recognition:process (entity, dt)
     local match = LEXICON:lookup(tostring(entity))
 
+    for i=#match, 1, -1 do
+        if #match[i] < #entity.components then
+            table.remove(match, i)
+        end
+    end
+
     if #match == 1 then
         if config.DEBUG then
             print("Segment `" .. tostring(entity) .. "' succesfully recognized as `" .. match[1] .."'.")
@@ -53,7 +59,8 @@ function Segments.Recognition:process (entity, dt)
 
         local recognized_components = {}
         for j, component in pairs(entity.components) do
-            if component.string ~= ".*" then
+            if  component.string ~= ".*"
+            and component.string ~= ".?" then
                 table.insert(recognized_components, component.string)
             end
         end
@@ -74,7 +81,7 @@ function Segments.Recognition:process (entity, dt)
 
         local match_components = {}
         for j=1, #entity.components do
-            if entity.components[j].string == ".*" then
+            if entity.components[j].string == ".*" or entity.components[j].string == ".?" then
                 table.insert(match_components, entity.components[j])
             end
         end
@@ -89,7 +96,7 @@ function Segments.Recognition:process (entity, dt)
             local comp = match_components[j]
 
             local all_prototype_strings = {}
-            for _, prot in pairs(prototypes) do
+            for _, prot in pairs(PROTOTYPES.entities) do
                 all_prototype_strings[prot.string] = true
             end
 

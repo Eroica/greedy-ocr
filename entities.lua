@@ -154,7 +154,7 @@ function Entities.Component:init (start, e, parent)
     self.parent = parent
     self.isComponent = true
     self.range = {start, e}
-    self.string = literal or ".*"
+    self.string = ".*"
     self.letter_frequencies = {}
 
     local width = e - start + 1
@@ -164,13 +164,16 @@ function Entities.Component:init (start, e, parent)
     self.image = love.graphics.newImage(image_data)
     self.image_bw = threshold_image(self.image)
 
+    -- TODO: Write function that checks whether a component consists
+    -- of a single character or more than one.
+    if width <= 20 then self.string = ".?" end
+
     getmetatable(self).__tostring = function (t)
         return t.string
     end
 
     WORLD:addEntity(self)
 end
-
 
 function Entities.Component:split (start, e, str)
     local width = self.range[2] - self.range[1] + 1
@@ -199,8 +202,6 @@ function Entities.Component:split (start, e, str)
         table.insert(self.parent.components, index + i - 1, new_components[i])
     end
 end
-
-
 
 function Entities.Component:overlay (prototype)
     assert(class.isInstance(prototype, Prototype))
