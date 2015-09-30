@@ -38,38 +38,11 @@ end
 
 function Components.sharedComponents:onModify (dt)
     -- Check if a Segment has been recognized
+    -- This currently breaks a System's autarky, and will need to be
+    -- changed!
+    -- TODO: Remove global `RECOGNITION'
     RECOGNITION:update(dt)
 end
-
--- Segments.UpdatePossibleLetters = tiny.processingSystem({isUpdateSystem = true})
--- function Segments.UpdatePossibleLetters:process (entity, dt)
---     for i=1, #entity.components do
---         if  entity.components[i].string ~= ".*"
---         and entity.components[i+1].string == ".*"
---         and i ~= #entity.components then
---             entity.components[i+1].letter_frequencies = {}
---             local recognized_letter = entity.components[i].string
---             local sum_frequency = BIGRAM[recognized_letter]._count
-
-
---             for letter, frequency in pairs(BIGRAM[recognized_letter]) do
---                 if letter ~= "_count" and letter ~= "class" then
---                     entity.components[i+1].letter_frequencies[letter] = frequency/sum_frequency
---                 end
---             end
-
---             --     local l = BIGRAM[recognized_letter][letter]
-
---             -- end
---         end
---     end
-
--- end
-
--- function Segments.UpdatePossibleLetters:filter (entity)
---     return entity.isSegment ~= nil
--- end
-
 
 
 Components.DrawLines = tiny.processingSystem({isDrawSystem = true})
