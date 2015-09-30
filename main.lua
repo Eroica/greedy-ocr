@@ -41,6 +41,39 @@ function overlay_prototype(prototype)
 end
 
 
+function overlay_components ()
+    for i=#COMPONENTS.entities, 1, -1 do
+        local vom = PROTOTYPES.entities[24]
+        local comp = COMPONENTS.entities[i]
+        if comp.image:getWidth() >= vom.image:getWidth()
+            and comp.image:getHeight() >= vom.image:getHeight() then
+            comp:overlay(vom)
+        end
+    end
+end
+    -- for idx_1, comp in pairs(COMPONENTS.entities) do
+    --     for idx_2, comp_2 in pairs(COMPONENTS.entities) do
+    --         if  idx_1 ~= idx_2
+    --         and comp_2.image:getWidth() <= comp.image:getWidth()
+    --         and comp_2.image:getHeight() <= comp.image:getHeight() then
+    --             print("Comparing " .. idx_1 .. " to " .. idx_2)
+    --             comp:overlay(comp_2)
+    --         end
+    --     end
+    -- end
+-- end
+
+function overlay_prototype (index)
+    for i=1, #COMPONENTS.entities do
+        local prot = PROTOTYPES.entities[index]
+        local comp = COMPONENTS.entities[i]
+        if comp.image:getWidth() >= prot.image:getWidth() and comp.image:getHeight() >= prot.image:getHeight() then
+            comp:overlay(prot)
+        end
+    end
+end
+
+
 
 function love.load()
     WORLD  = tiny.world()
@@ -55,7 +88,7 @@ function love.load()
     WORLD:addSystem(Systems.Page.DrawPage)
     WORLD:addSystem(Systems.Segments.DrawBoundingBox)
     WORLD:addSystem(Systems.Segments.DrawString)
-    WORLD:addSystem(Systems.Segments.Recognition)
+    RECOGNITION = WORLD:addSystem(Systems.Segments.Recognition)
     WORLD:addSystem(Systems.Components.DrawRange)
     WORLD:addSystem(Systems.Components.DrawLines)
     WORLD:addSystem(Systems.Page.DrawHUD)
@@ -93,6 +126,10 @@ function love.keypressed(key)
         protdraw.active = not protdraw.active
     end
 
+    if key == "x" then
+        PAGE.image, PAGE.image_bw = PAGE.image_bw, PAGE.image
+    end
+
     if key == "c" then
         split_components:activate()
     end
@@ -103,16 +140,14 @@ end
 
 function love.mousepressed(x, y, button)
     if button == "l" then
-        -- local createrect = WORLD:addSystem(Systems.CreateRectangleSystem)
-        -- createrect.l = x
-        -- createrect.t = y
+        WORLD:addSystem(Systems.Page.CreateRectangles)
         WORLD:addSystem(Systems.Page.CameraPosition)
     end
 end
 
 function love.mousereleased(x, y, button)
     if button == "l" then
-        -- WORLD:removeSystem(Systems.CreateRectangleSystem)
         WORLD:removeSystem(Systems.Page.CameraPosition)
+        WORLD:removeSystem(Systems.Page.CreateRectangles)
     end
 end
