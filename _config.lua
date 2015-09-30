@@ -36,6 +36,8 @@ config.additional_prototypes = {
     {"G", "_prototypes/_g_c.png"},
     {"F", "_prototypes/_f_c.png"},
     {"B", "_prototypes/_b_c.png"},
+    {"A", "_prototypes/_a_c.png"},
+    {"l", "_prototypes/_l_2.png"},
 }
 
 return config
