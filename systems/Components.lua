@@ -14,7 +14,7 @@ function Components.sharedComponents:onAdd (entity)
     self.world:addEntity(entity)
 
     -- Add letter frequencies to the component behind `index'
-    if entity.string ~= ".*" then
+    if entity.string ~= ".*" and entity.string ~= ".?" then
         local components = entity.parent.components
         local index = invert_table(entity.parent.components)[entity]
 
