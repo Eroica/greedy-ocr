@@ -40,4 +40,6 @@ config.additional_prototypes = {
     {"l", "_prototypes/_l_2.png"},
 }
 
+config.UNKNOWN_COMPONENTS = {[".*"] = true, [".?"] = true}
+
 return config
