@@ -136,11 +136,14 @@ end
 
 function Entities.Segment:recognize ()
     for _, prot in pairs(PROTOTYPES.entities) do
-        for i, comp in pairs(self.components) do
+        -- for i, comp in pairs(self.components) do
+        local range = #self.components
+        for i=1, range do
+            local comp = self.components[i]
             if  prot.image:getWidth() <= comp.image:getWidth()
             and prot.image:getHeight() <= comp.image:getHeight() then
                 print(i)
-                if comp.string == ".*" then
+                if comp.string == ".*" or comp.string == ".?" then
                     comp:overlay(prot)
                 end
             end
@@ -204,7 +207,8 @@ function Entities.Component:split (start, e, str)
 end
 
 function Entities.Component:overlay (prototype)
-    assert(class.isInstance(prototype, Prototype))
+    assert(prototype.image)
+    assert(prototype.string)
 
     local sub_image = prototype.image_bw
     local image = self.image_bw
