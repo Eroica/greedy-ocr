@@ -135,10 +135,10 @@ function Entities.Segment:init (l, t, width, height, parent)
 end
 
 function Entities.Segment:recognize ()
-    for _, prot in pairs(PROTOTYPES.entities) do
-        -- for i, comp in pairs(self.components) do
         local range = #self.components
         for i=1, range do
+    for _, prot in pairs(PROTOTYPES.entities) do
+        -- for i, comp in pairs(self.components) do
             local comp = self.components[i]
             if  prot.image:getWidth() <= comp.image:getWidth()
             and prot.image:getHeight() <= comp.image:getHeight() then
@@ -169,7 +169,7 @@ function Entities.Component:init (start, e, parent)
 
     -- TODO: Write function that checks whether a component consists
     -- of a single character or more than one.
-    if width <= 20 then self.string = ".?" end
+    if width <= 30 then self.string = ".?" end
 
     getmetatable(self).__tostring = function (t)
         return t.string
@@ -233,8 +233,23 @@ function Entities.Component:overlay (prototype)
                     local image_pixel = image_data:getPixel(i+k, j+l)
                     local sub_image_pixel = sub_image_data:getPixel(k, l)
 
+                    if image_pixel == 255 then image_pixel = 0 end
+                    if image_pixel == 0 then image_pixel = 1 end
+                    if sub_image_pixel == 255 then sub_image_pixel = 0 end
+                    if sub_image_pixel == 0 then sub_image_pixel = 1 end
+
                     sum_and = sum_and + bit.band(image_pixel, sub_image_pixel)
                     sum_or = sum_or + bit.bor(image_pixel, sub_image_pixel)
+
+                    -- if bit.bxor(image_pixel, sub_image_pixel) == 255 then
+                    --     sum_and = sum_and - 255
+                    --     sum_or = sum_or - 255
+                    -- end
+                    -- if image_pixel == 0 and sub_image_pixel == 0 then
+                    --     sum_and = sum_and + 2
+                    --     sum_or = sum_or + 1
+                    -- end
+
                 end
             end
             table.insert(ratios, sum_and/sum_or)
