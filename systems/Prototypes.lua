@@ -74,9 +74,8 @@ function Prototypes.OverlayPrototypes:update (dt)
     end
 end
 
--- function Prototypes.OverlayPrototypes:filter (entity)
---     return entity.isPrototype ~= nil
--- end
+function Prototypes.OverlayPrototypes:filter (entity)
+end
 
 
 return Prototypes
