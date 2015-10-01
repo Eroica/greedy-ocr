@@ -52,7 +52,8 @@ function Segments.Recognition:process (entity, dt)
 
     if #match == 1 then
         if config.DEBUG then
-            print("Segment `" .. tostring(entity) .. "' succesfully recognized as `" .. match[1] .."'.")
+            print("This segment was succesfully recognized:")
+            print(tostring(entity), match[1])
         end
 
         local match_copy = match[1]
@@ -86,7 +87,7 @@ function Segments.Recognition:process (entity, dt)
             end
         end
 
-        assert(#match_table == #match_components)
+        -- assert(#match_table == #match_components)
 
         for j=1, #match_table do
             match_components[j].string = match_table[j]
@@ -95,16 +96,15 @@ function Segments.Recognition:process (entity, dt)
         for j=1, #match_components do
             local comp = match_components[j]
 
-            local all_prototype_strings = {}
-            for _, prot in pairs(PROTOTYPES.entities) do
-                all_prototype_strings[prot.string] = true
-            end
+            -- local all_prototype_strings = {}
+            -- for _, prot in pairs(PROTOTYPES.entities) do
+            --     all_prototype_strings[prot.string] = true
+            -- end
 
-            if all_prototype_strings[comp.string] == nil then
-                local literal = comp.string
+            -- if all_prototype_strings[comp.string] == nil then
                 local image = trim_image(comp.image)
                 local prot = Entities.Prototype(comp.string, image)
-            end
+            -- end
         end
 
         entity.isNotRecognized = nil
@@ -119,42 +119,3 @@ end
 
 
 return Segments
-
-
--- SegmentSplittingSystem = class("SegmentSplittingSystem", System)
--- function SegmentSplittingSystem:update (dt)
---     local prototypes = engine._prototypes
-
---     for i, segment in pairs(self.targets) do
---         if segment:has("isNotRecognized") then
---             for j, prototype in pairs(prototypes) do
---                 for k, comp in pairs(segment._components) do
---                     local prot_image = prototype:get("Image").image
---                     local image = comp:get("Image").image
-
---                     -- print "current comp:"
---                     -- print(k)
---                     -- print "current prot:"
---                     -- print(prototype:get("String").string)
-
---                     if  prot_image:getWidth() <= image:getWidth()
---                     and prot_image:getHeight() <= image:getHeight() then
---                         -- print "comparing:"
---                         -- print(prot_image:getWidth(), image:getWidth())
---                         -- print(prot_image:getHeight(), image:getHeight())
---                         -- print("_____")
-
---                         comp:overlay(prototype)
---                     end
-
---                 end
---             end
---         end
---     end
--- end
-
--- function SegmentSplittingSystem:requires ()
---     return {"isNotRecognized", "isSegment"}
--- end
-
-
