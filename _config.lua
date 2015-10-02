@@ -19,10 +19,10 @@ config.pages_directory      = "_pages"
 config.BACKGROUND_COLOR = {127, 127, 127}
 
 config.MINIMUM_COMPONENT_WIDTH = 10
-config.SPLIT_THRESHOLD = 0.79
+config.SPLIT_THRESHOLD = 0.75
 
 config.prototype_ranking = {
-    "m", "n", "l", "i",
+    "u", "m", "n", "l", "i", "t"
 }
 
 config.additional_prototypes = {
