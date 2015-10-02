@@ -213,8 +213,8 @@ function Entities.Component:overlay (prototype)
     local sub_image = prototype.image_bw
     local image = self.image_bw
 
-    assert(image:getWidth() >= sub_image:getWidth())
-    assert(image:getHeight() >= sub_image:getHeight())
+    assert(image:getWidth() >= sub_image:getWidth(), "too large")
+    assert(image:getHeight() >= sub_image:getHeight(), "too high")
 
     local ratios = {}
     local max_y = image:getHeight() - sub_image:getHeight() + 1
@@ -224,31 +224,32 @@ function Entities.Component:overlay (prototype)
     local sub_image_data = sub_image:getData()
     local sub_width, sub_height = sub_image:getWidth(), sub_image:getHeight()
 
-    for j=0, max_y - 1 do
-        for i=0, max_x - 1 do
+
+    for img_y=0, max_y - 1 do
+        for img_x=0, max_x - 1 do
+
             local sum_and, sum_or = 0, 0
 
-            for k=0, sub_width - 1 do
-                for l=0, sub_height - 1 do
-                    local image_pixel = image_data:getPixel(i+k, j+l)
-                    local sub_image_pixel = sub_image_data:getPixel(k, l)
+            for sub_y=0, sub_height - 1 do
+                for sub_x=0, sub_width - 1 do
+                    local image_pixel = image:getData():getPixel(img_x+sub_x, img_y+sub_y)
+                    local sub_image_pixel = sub_image:getData():getPixel(sub_x, sub_y)
 
-                    if image_pixel == 255 then image_pixel = 0 end
-                    if image_pixel == 0 then image_pixel = 1 end
-                    if sub_image_pixel == 255 then sub_image_pixel = 0 end
-                    if sub_image_pixel == 0 then sub_image_pixel = 1 end
+                    if image_pixel == 255 then
+                        image_pixel = 0
+                    else
+                        image_pixel = 1
+                    end
+
+                    if sub_image_pixel == 255 then
+                        sub_image_pixel = 0
+                    else
+                        sub_image_pixel = 1
+                    end
+
 
                     sum_and = sum_and + bit.band(image_pixel, sub_image_pixel)
                     sum_or = sum_or + bit.bor(image_pixel, sub_image_pixel)
-
-                    -- if bit.bxor(image_pixel, sub_image_pixel) == 255 then
-                    --     sum_and = sum_and - 255
-                    --     sum_or = sum_or - 255
-                    -- end
-                    -- if image_pixel == 0 and sub_image_pixel == 0 then
-                    --     sum_and = sum_and + 2
-                    --     sum_or = sum_or + 1
-                    -- end
 
                 end
             end
@@ -264,7 +265,7 @@ function Entities.Component:overlay (prototype)
     -- (used in `:getData()') starts indexing at 0!
     max_ratio_index = max_ratio_index - 1
 
-    local split_x, split_y = max_ratio_index % max_x, math.floor(max_ratio_index / max_x)
+    local split_x = max_ratio_index % max_x
 
     if config.DEBUG then
         print(max_ratio_index, max_ratio, split_x, split_x + sub_image:getWidth() - 1, prototype.string)
