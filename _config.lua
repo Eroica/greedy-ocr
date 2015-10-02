@@ -38,6 +38,7 @@ config.additional_prototypes = {
     {"B", "_prototypes/_b_c.png"},
     {"A", "_prototypes/_a_c.png"},
     {"l", "_prototypes/_l_2.png"},
+    {"t", "_prototypes/_t_2.png"},
 }
 
 config.UNKNOWN_COMPONENTS = {[".*"] = true, [".?"] = true}
