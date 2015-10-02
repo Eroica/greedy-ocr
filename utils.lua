@@ -6,6 +6,23 @@
 
 ]]
 
+function count_pixel_color (image, count_white)
+    local pixel_color = 0
+    if count_white then pixel_color = 255 end
+
+    local count = 0
+    for i=0, image:getWidth() - 1 do
+        for j=0, image:getHeight() - 1 do
+            local r, g, b = image:getData():getPixel(i, j)
+            if rgb2grey(r, g, b) == pixel_color then
+                count = count + 1
+            end
+        end
+    end
+
+    return count
+end
+
 
 -- rgb2grey:
 -- Takes an RGB color value and converts it to a greyscale value
