@@ -76,6 +76,8 @@ end
 
 
 function love.load()
+    love.graphics.setDefaultFilter("nearest", "nearest")
+
     WORLD  = tiny.world()
     PAGE   = load_image()
     BIGRAM = load_bigram()
@@ -104,13 +106,25 @@ function love.load()
     love.graphics.setBackgroundColor(unpack(config.BACKGROUND_COLOR))
 end
 
+comp_images = {}
+
 function love.update(dt)
     lovebird.update()
     WORLD:update(dt, tiny.requireAll("isUpdateSystem"))
+
+
 end
 
 function love.draw()
     WORLD:update(love.timer.getDelta(), tiny.requireAll("isDrawSystem"))
+
+    for _, comp in pairs(comp_images) do
+        love.graphics.setColor(0, 0, 255)
+        love.graphics.rectangle("fill", 50, 50, 100, 100)
+        love.graphics.setColor(255, 255, 255)
+        love.graphics.draw(comp.image, 50, 50)
+    end
+
 end
 
 function love.keypressed(key)
@@ -128,6 +142,13 @@ function love.keypressed(key)
 
     if key == "x" then
         PAGE.image, PAGE.image_bw = PAGE.image_bw, PAGE.image
+    end
+
+    if key == "y" then
+        for i=1, #PROTOTYPES.entities do
+            PROTOTYPES.entities[i].image, PROTOTYPES.entities[i].image_bw
+            = PROTOTYPES.entities[i].image_bw, PROTOTYPES.entities[i].image
+        end
     end
 
     if key == "c" then
