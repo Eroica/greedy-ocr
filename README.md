@@ -14,3 +14,7 @@ To be done!
 *   `lovebird` by [rxi](https://github.com/rxi/lovebird) (License: MIT)
 *   `lurker` and `lume` by [rxi](https://github.com/rxi/lurker) (License: MIT)
 *   `tiny-ecs` by [Calvin Rose](https://github.com/bakpakin/tiny-ecs) (License: MIT)
+
+The file `gr_mercurius.lua` depends on the following library:
+
+*   `xml` by [lubyk](http://doc.lubyk.org/xml.html) (License: MIT)

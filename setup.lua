@@ -4,6 +4,16 @@ local PROTOTYPE_DIR = config.prototypes_directory
 local PAGES_DIR = config.pages_directory
 local BIGRAM_FILE = config.corpus_filename
 
+-- load_prototypes:
+-- Checks the Prototypes directory (specified in `_config.lua') and
+-- creates a Prototype for each image found.
+-- IMPORTANT: Files that start with a `.' or an `_' are ignored. This
+-- is to ignore hidden files, e.g. `.DS_Store', and to enable the user
+-- to put images inside Prototypes directory that get loaded at another
+-- place.
+--
+-- @params:
+-- @returns:
 function load_prototypes ()
     local function create_prototype (filename)
         if  love.filesystem.isFile(PROTOTYPE_DIR .. "/" .. filename)
@@ -25,6 +35,15 @@ function load_prototypes ()
     end
 end
 
+
+-- load_image:
+-- Goes inside the Pages directory (specified in `_config.lua') and
+-- looks for a pair of an image and a Lua file with the same name.
+-- This Lua file should contain the bounding boxes of the words found
+-- in the image, and will be read using `dofile()'.
+--
+-- @params:
+-- @returns:
 function load_image ()
     local pages = love.filesystem.getDirectoryItems(PAGES_DIR)
 
@@ -36,13 +55,23 @@ function load_image ()
             local suffix = file[2]
 
             if suffix ~= "lua" then
-                local image = love.graphics.newImage(PAGES_DIR .. "/" .. name .. "." .. suffix)
-                return Entities.Page(image, dofile(PAGES_DIR .. "/" .. name .. "." .. "lua"))
+                local image_filename = PAGES_DIR .. "/" .. name .. "." .. suffix
+                local image = love.graphics.newImage(image_filename)
+                local lua_filename = PAGES_DIR .. "/" .. name .. "." .. "lua"
+                return Entities.Page(image, dofile(lua_filename))
             end
         end
     end
 end
 
+
+-- load_bigram:
+-- Takes the corpus specified in `_config.lua' and creates a bigram
+-- model over the letters.
+--
+-- @params:
+-- @returns: MODEL: The bigram
+--                  @type: table
 function load_bigram ()
     local function allletters (corpus_file)
         local line = corpus_file:read()
@@ -61,7 +90,6 @@ function load_bigram ()
             return nil
         end
     end
-
 
     local corpus_file = io.open(BIGRAM_FILE)
     local w1, w2 = "", ""
