@@ -14,7 +14,9 @@ function Components.sharedComponents:onAdd (entity)
     self.world:addEntity(entity)
 
     -- Add letter frequencies to the component behind `index'
-    if entity.string ~= ".*" and entity.string ~= ".?" then
+    if  entity.string ~= ".*"
+    and entity.string ~= ".?"
+    and #entity.string == 1 then
         local components = entity.parent.components
         local index = invert_table(entity.parent.components)[entity]
 
@@ -24,6 +26,7 @@ function Components.sharedComponents:onAdd (entity)
 
         if components[index+1].string == ".*" then
             components[index+1].letter_frequencies = {}
+
             local recognized_letter = entity.string
             local sum_frequency = BIGRAM[recognized_letter]._count
 
