@@ -123,8 +123,9 @@ function Entities.Segment:init (l, t, width, height, parent)
 
             table.insert(self.components, Entities.Component(start, _end, self))
         end
-    -- Do not split Segment, just create a single Component spanning the
-    -- whole segment
+
+    -- Do not split Segment, just create a single Component covering the
+    -- whole Segment
     else
         table.insert(self.components, Entities.Component(0, width, self))
     end --if
@@ -144,20 +145,36 @@ function Entities.Segment:init (l, t, width, height, parent)
 end
 
 function Entities.Segment:recognize ()
-        local range = #self.components
-        for i=1, range do
-    for _, prot in pairs(PROTOTYPES.entities) do
-        -- for i, comp in pairs(self.components) do
-            local comp = self.components[i]
-            if  prot.image:getWidth() <= comp.image:getWidth()
-            and prot.image:getHeight() <= comp.image:getHeight() then
-                print(i)
-                if comp.string == ".*" or comp.string == ".?" then
-                    comp:overlay(prot)
+    local pre_string, post_string = tostring(self), tostring(self)
+
+    repeat
+        pre_string = post_string
+
+        -- local range = #self.components
+        for i=1, #self.components do
+            for j=1, #PROTOTYPES.entities do
+                local component = self.components[i]
+                local prototype = PROTOTYPES.entities[j]
+
+                if  config.UNKNOWN_COMPONENTS[component.string]
+                and image_fits_image(prototype.image, component.image) then
+
+                    if config.DEBUG then print("Checking component", i) end
+
+                    local ratio, split_x = component:overlay(prototype)
+
+                    if ratio >= config.SPLIT_THRESHOLD then
+                        component:split(split_x,
+                                        split_x + prototype.image:getWidth() - 1,
+                                        prototype.string)
+                        WORLD:update()
+                    end
                 end
-            end
-        end
-    end
+            end --for: j
+        end --for: i
+        post_string = tostring(self)
+
+    until pre_string == post_string
 end
 
 
@@ -213,11 +230,32 @@ function Entities.Component:split (start, e, str)
     for i=1, #new_components do
         table.insert(self.parent.components, index + i - 1, new_components[i])
     end
+
+    -- create a new Prototype from the recognized component (the middle
+    -- one)
+    if str then
+        Entities.Prototype(middle_component.string, middle_component.image)
+    end
 end
 
+
+-- Component:overlay:
+-- Checks the similarity of this Component's image with another Entity.
+-- The entity at least has to provide an `image_bw', that is, a binary
+-- image.
+-- Returns the x coordinate of the point where the two images are the
+-- most similar.
+--
+-- @params:  prototype: The Entity whose image to check
+--           |__@type: (id)
+-- @returns: max_ratio: The highest similarity value
+--           |__@type: number
+--           split_x: The x coordinate where the two Entities are the
+--           |        most similar
+--           |__@type: number
 function Entities.Component:overlay (prototype)
-    assert(prototype.image)
-    assert(prototype.string)
+    assert(prototype.image_bw)
+    -- assert(prototype.string)
 
     local sub_image = prototype.image_bw
     local image = self.image_bw
@@ -226,6 +264,8 @@ function Entities.Component:overlay (prototype)
     assert(image:getHeight() >= sub_image:getHeight(), "too high")
 
     local ratios = {}
+    -- How many times the smaller image can be shifted over the larger
+    -- ones in x/y direction (per pixel)
     local max_y = image:getHeight() - sub_image:getHeight() + 1
     local max_x = image:getWidth() - sub_image:getWidth() + 1
 
@@ -244,6 +284,10 @@ function Entities.Component:overlay (prototype)
                     local image_pixel = image:getData():getPixel(img_x+sub_x, img_y+sub_y)
                     local sub_image_pixel = sub_image:getData():getPixel(sub_x, sub_y)
 
+                    -- Let black pixels be evaluated to `1' and white
+                    -- pixels to `0' (ref. "Character Segmentation
+                    -- Using Visual Inter-word Constraints in a Text
+                    -- Page", p. 5)
                     if image_pixel == 255 then
                         image_pixel = 0
                     else
@@ -256,7 +300,6 @@ function Entities.Component:overlay (prototype)
                         sub_image_pixel = 1
                     end
 
-
                     sum_and = sum_and + bit.band(image_pixel, sub_image_pixel)
                     sum_or = sum_or + bit.bor(image_pixel, sub_image_pixel)
 
@@ -266,7 +309,7 @@ function Entities.Component:overlay (prototype)
         end
     end
 
-
+    -- Get the position of the highest ratio
     local max_ratio_index, max_ratio = max_pair(ratios)
     -- IMPORTANT:
     -- From `max_ratio_index', 1 needs to be subtracted because the
@@ -274,15 +317,29 @@ function Entities.Component:overlay (prototype)
     -- (used in `:getData()') starts indexing at 0!
     max_ratio_index = max_ratio_index - 1
 
+    -- The x coordinate where the highest similarity is
     local split_x = max_ratio_index % max_x
 
     if config.DEBUG then
-        print(max_ratio_index, max_ratio, split_x, split_x + sub_image:getWidth() - 1, prototype.string)
+        print("Overlaying:", max_ratio_index, max_ratio,
+                             split_x, split_x + sub_image:getWidth() - 1,
+                             prototype.string)
     end
 
-    if max_ratio >= config.SPLIT_THRESHOLD then
-        self:split(split_x, split_x + sub_image:getWidth() - 1, prototype.string)
-    end
+
+    -- if self.letter_frequencies[prototype.string] ~= nil then
+    --     if prototype.string == max_pair(self.letter_frequencies) then
+    --         local frequency = self.letter_frequencies[prototype.string]
+    --         max_ratio = max_ratio + frequency * 20
+    --         print(max_ratio)
+    --     end
+    -- end
+
+    return max_ratio, split_x
+
+    -- if max_ratio >= config.SPLIT_THRESHOLD then
+    --     self:split(split_x, split_x + sub_image:getWidth() - 1, prototype.string)
+    -- end
 end
 
 return Entities
