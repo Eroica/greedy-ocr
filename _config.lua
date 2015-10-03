@@ -18,6 +18,7 @@ config.pages_directory      = "_pages"
 
 config.BACKGROUND_COLOR = {127, 127, 127}
 
+config.automatically_split_segments = true
 config.MINIMUM_COMPONENT_WIDTH = 10
 config.SPLIT_THRESHOLD = 0.75
 

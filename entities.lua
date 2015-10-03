@@ -71,54 +71,63 @@ function Entities.Segment:init (l, t, width, height, parent)
     self.components = {}
     local image_bw = threshold_image(self.image)
 
-    local lines = {}
-    local component_edges = {}
-    local search_black = true
-    local num_white_rows = 0
+    -- Automatically split Segment into smaller components when
+    -- specified so in `_config.lua'
+    if config.automatically_split_segments then
+        local lines = {}
+        local component_edges = {}
+        local search_black = true
+        local num_white_rows = 0
 
-    for column_idx=0, image_bw:getWidth() - 1 do
-        local colors = {}
+        for column_idx=0, image_bw:getWidth() - 1 do
+            local colors = {}
 
-        for row_idx=0, image_bw:getHeight() - 1 do
-            local r, g, b = image_bw:getData():getPixel(column_idx, row_idx)
-            table.insert(colors, rgb2grey(r, g, b))
-        end
-
-        if not all_white(colors) then
-            if search_black then
-                table.insert(component_edges, math.max(column_idx - 1, 0))
-                search_black = false
+            for row_idx=0, image_bw:getHeight() - 1 do
+                local r, g, b = image_bw:getData():getPixel(column_idx, row_idx)
+                table.insert(colors, rgb2grey(r, g, b))
             end
-        else
-            if search_black then
-                goto continue
+
+            if not all_white(colors) then
+                if search_black then
+                    table.insert(component_edges, math.max(column_idx - 1, 0))
+                    search_black = false
+                end
             else
-                num_white_rows = num_white_rows + 1
-                if num_white_rows == 3 then
-                    search_black = true
-                    table.insert(component_edges, column_idx - 1)
-                    num_white_rows = 0
+                if search_black then
+                    goto continue
+                else
+                    num_white_rows = num_white_rows + 1
+
+                    -- TODO: Magic number `3'---this is the minimum
+                    -- amount of white pixels between components
+                    if num_white_rows == 3 then
+                        search_black = true
+                        table.insert(component_edges, column_idx - 1)
+                        num_white_rows = 0
+                    end
                 end
             end
-        end
-        ::continue::
-    end
-
-
-    for i=1, #component_edges, 2 do
-        local start = component_edges[i] - 3
-        if start < 0 then start = 0 end
-
-        local _end
-        if i+1 == #component_edges then
-            _end = image_bw:getWidth()
-        else
-            _end = component_edges[i+1] or image_bw:getWidth()
+            ::continue::
         end
 
-        -- table.insert(self.components, Entities.Component(start, _end, self))
-        if i == 1 then table.insert(self.components, Entities.Component(0, width, self)) end
-    end
+        for i=1, #component_edges, 2 do
+            local start = component_edges[i] - 3
+            if start < 0 then start = 0 end
+
+            local _end
+            if i+1 == #component_edges then
+                _end = image_bw:getWidth()
+            else
+                _end = component_edges[i+1] or image_bw:getWidth()
+            end
+
+            table.insert(self.components, Entities.Component(start, _end, self))
+        end
+    -- Do not split Segment, just create a single Component spanning the
+    -- whole segment
+    else
+        table.insert(self.components, Entities.Component(0, width, self))
+    end --if
 
 
     getmetatable(self).__tostring = function (t)
