@@ -29,51 +29,7 @@ LanguageModel = require "LanguageModel"
 Entities      = require "Entities"
 
 
-
-function overlay_prototype(prototype)
-    for _, comp in pairs(COMPONENTS.entities) do
-        local prot_image = prototype.image
-        if  prot_image:getWidth() <= comp.image:getWidth()
-        and prot_image:getHeight() <= comp.image:getHeight() then
-            comp:overlay(prototype)
-        end
-    end
-end
-
-
-function overlay_components ()
-    for i=#COMPONENTS.entities, 1, -1 do
-        local vom = PROTOTYPES.entities[24]
-        local comp = COMPONENTS.entities[i]
-        if comp.image:getWidth() >= vom.image:getWidth()
-            and comp.image:getHeight() >= vom.image:getHeight() then
-            comp:overlay(vom)
-        end
-    end
-end
-    -- for idx_1, comp in pairs(COMPONENTS.entities) do
-    --     for idx_2, comp_2 in pairs(COMPONENTS.entities) do
-    --         if  idx_1 ~= idx_2
-    --         and comp_2.image:getWidth() <= comp.image:getWidth()
-    --         and comp_2.image:getHeight() <= comp.image:getHeight() then
-    --             print("Comparing " .. idx_1 .. " to " .. idx_2)
-    --             comp:overlay(comp_2)
-    --         end
-    --     end
-    -- end
--- end
-
-function overlay_prototype (index)
-    for i=1, #COMPONENTS.entities do
-        local prot = PROTOTYPES.entities[index]
-        local comp = COMPONENTS.entities[i]
-        if comp.image:getWidth() >= prot.image:getWidth() and comp.image:getHeight() >= prot.image:getHeight() then
-            comp:overlay(prot)
-        end
-    end
-end
-
-
+local draw_prototypes_system = Systems.Prototypes.OverlayPrototypes
 
 function love.load()
     love.graphics.setDefaultFilter("nearest", "nearest")
@@ -90,16 +46,15 @@ function love.load()
     WORLD:addSystem(Systems.Page.DrawPage)
     WORLD:addSystem(Systems.Segments.DrawBoundingBox)
     WORLD:addSystem(Systems.Segments.DrawString)
-    RECOGNITION = WORLD:addSystem(Systems.Segments.Recognition)
     WORLD:addSystem(Systems.Components.DrawRange)
     WORLD:addSystem(Systems.Components.DrawLines)
     WORLD:addSystem(Systems.Page.DrawHUD)
     WORLD:addSystem(Systems.Page.DrawButtons)
+    WORLD:addSystem(draw_prototypes_system)
 
-    protdraw   = WORLD:addSystem(Systems.Prototypes.OverlayPrototypes)
+    RECOGNITION = WORLD:addSystem(Systems.Segments.Recognition)
     PROTOTYPES = WORLD:addSystem(Systems.Prototypes.sharedPrototypes)
     COMPONENTS = WORLD:addSystem(Systems.Components.sharedComponents)
-    split_components = WORLD:addSystem(Systems.Components.Splitting)
 
     LEXICON = LanguageModel.Lexicon(config.lexicon_filename)
 
@@ -137,7 +92,7 @@ function love.keypressed(key)
     end
 
     if key == "p" then
-        protdraw.active = not protdraw.active
+        draw_prototypes_system.active = not draw_prototypes_system.active
     end
 
     if key == "x" then
@@ -146,13 +101,9 @@ function love.keypressed(key)
 
     if key == "y" then
         for i=1, #PROTOTYPES.entities do
-            PROTOTYPES.entities[i].image, PROTOTYPES.entities[i].image_bw
+              PROTOTYPES.entities[i].image, PROTOTYPES.entities[i].image_bw
             = PROTOTYPES.entities[i].image_bw, PROTOTYPES.entities[i].image
         end
-    end
-
-    if key == "c" then
-        split_components:activate()
     end
 end
 
