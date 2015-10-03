@@ -37,6 +37,7 @@ function love.load()
     WORLD  = tiny.world()
     PAGE   = load_image()
     BIGRAM = load_bigram()
+    BIGRAM_REVERSE = load_bigram(true)
     load_prototypes()
 
     CAMERA = gamera.new(0, 0, PAGE.image:getWidth(),

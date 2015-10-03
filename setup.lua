@@ -72,7 +72,7 @@ end
 -- @params:
 -- @returns: MODEL: The bigram
 --                  @type: table
-function load_bigram ()
+function load_bigram (reverse)
     local function allletters (corpus_file)
         local line = corpus_file:read()
         local pos = 1
@@ -96,7 +96,11 @@ function load_bigram ()
     local MODEL = {}
 
     for w in allletters(corpus_file) do
-        w1 = w2; w2 = w;
+        if reverse then
+            w2 = w1; w1 = w;
+        else
+            w1 = w2; w2 = w;
+        end
 
         if MODEL[w1] == nil then
             MODEL[w1] = LanguageModel.Bag()
