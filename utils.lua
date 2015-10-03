@@ -82,7 +82,7 @@ end
 -- @params:  image: An image
 --                  @type: Image
 -- @returns: @type: Image
-function trim_image (image)
+function trim_image (image, white_pixels_buffer)
     local function all_white (t)
         for i=1, #t do
             if t[i] ~= 255 then return false end
@@ -125,7 +125,9 @@ function trim_image (image)
     end --for
 
     -- Keep a buffer of n white pixels
-    local BUFFER = 0
+    local BUFFER = white_pixels_buffer or 1
+
+    print(inspect(white_rows))
 
     local white_pixels_left = 0
     if #white_columns ~= 0 then
@@ -136,18 +138,20 @@ function trim_image (image)
     if white_columns[#white_columns] == width - 1 then
         white_pixels_right =   #white_columns
                              - find_antecessor(white_columns, #white_columns)
+                             - BUFFER
                              + 1
     end
 
     local white_pixels_top = 0
     if #white_rows ~= 0 then
-        local white_pixels_top = find_successor(white_rows, 1) - BUFFER
+        white_pixels_top = find_successor(white_rows, 1) - BUFFER
     end
 
     local white_pixels_bottom = 0
     if white_rows[#white_rows] == height - 1 then
         white_pixels_bottom =   #white_rows
                               - find_antecessor(white_rows, #white_rows)
+                              - BUFFER
                               + 1
     end
 
