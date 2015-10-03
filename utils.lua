@@ -6,6 +6,18 @@
 
 ]]
 
+
+function image_fits_image (small_image, large_image)
+    if  small_image:getWidth()  <= large_image:getWidth()
+    and small_image:getHeight() <= large_image:getHeight()
+    then
+        return true
+    else
+        return false
+    end
+end
+
+
 function count_pixel_color (image, count_white)
     local pixel_color = 0
     if count_white then pixel_color = 255 end
@@ -31,7 +43,7 @@ end
 -- (Date retrieved: September 1st, 2015)
 --
 -- @params:  r, g, b: R, G, B values
---                    @type: number
+--           |__|__|__@type: number
 -- @returns: A number from 0 to 255.
 --           @type: number
 function rgb2grey (r, g, b)
@@ -45,7 +57,7 @@ end
 -- closure!
 --
 -- @params:  value: The threshold value
---                  @type: number
+--           |__@type: number
 -- @returns: A threshold function
 --           @type: function
 function threshold (value)
@@ -65,9 +77,9 @@ end
 -- threshold_image:
 -- Takes an image and creates a binary image out of it.
 --
--- @params: image: The image to be thresholded
---                 @type: Image (love2d's image format)
--- @returns: @type: Image (love2d's image format)
+-- @params:  image: The image to be thresholded
+--           |__@type: Image
+-- @returns: @type: Image
 function threshold_image (image)
     local width, height = image:getWidth(), image:getHeight()
     local image_data    = love.image.newImageData(width, height)
@@ -80,7 +92,10 @@ end
 -- Cuts away white pixels that make up an image's border.
 --
 -- @params:  image: An image
---                  @type: Image
+--           |__@type: Image
+--           white_pixels_buffer: How many pixels should be left as a
+--           |                    border
+--           |__@type: number
 -- @returns: @type: Image
 function trim_image (image, white_pixels_buffer)
     local function all_white (t)
@@ -124,10 +139,8 @@ function trim_image (image, white_pixels_buffer)
         end --inner if
     end --for
 
-    -- Keep a buffer of n white pixels
+    -- Keep a buffer of n white pixels, set to 1 by default
     local BUFFER = white_pixels_buffer or 1
-
-    print(inspect(white_rows))
 
     local white_pixels_left = 0
     if #white_columns ~= 0 then
@@ -176,7 +189,7 @@ end
 --
 -- @params:  t @type: table
 --           i: The index from which to start counting. Defaults to 1.
---              @type: number
+--           |__@type: number
 -- @returns: @type: number
 function find_successor (t, i)
     local i = i or 1
@@ -195,7 +208,7 @@ end
 --
 -- @params:  t @type: table
 --           i: The index from which to start counting. Defaults to #t.
---              @type: number
+--           |__@type: number
 -- @returns: @type: number
 function find_antecessor (t, i)
     local i = i or #t
@@ -222,10 +235,11 @@ end
 --     key @type: number
 --     max @type: number
 function max_pair (t)
-    local key, max = 1, t[1]
+    local max = 0
+    local key
 
-    for k, v in ipairs(t) do
-        if t[k] > max then
+    for k, v in pairs(t) do
+        if v > max then
             key, max = k, v
         end --inner if
     end
@@ -237,7 +251,7 @@ end
 -- invert_table:
 -- Creates a new table from a given table, swapping every key-value
 -- pair.
--- @params: t @type: table
+-- @params:  t @type: table
 -- @returns: @type: table
 function invert_table (t)
     local s = {}
@@ -262,12 +276,11 @@ end
 -- Credit: http://richard.warburton.it/
 -- (Date retrieved: September 1st, 2015)
 --
--- @params: div, str
---     div: The dividing string.
---          @type: string
---     str: The string to be divided.
---          @type: string
--- @returns: : table
+-- @params:  div: The dividing string.
+--           |__@type: string
+--           str: The string to be divided.
+--           |__@type: string
+-- @returns: @type: table
 function explode (div, str)
     if (div == "") then return false end
     local pos, arr = 0, {}
