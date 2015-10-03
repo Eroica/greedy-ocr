@@ -44,6 +44,8 @@ Segments.Recognition = tiny.processingSystem({isUpdateSystem = true, active = fa
 function Segments.Recognition:process (entity, dt)
     local match = LEXICON:lookup(tostring(entity))
 
+    -- As a precaution: From the list of matches, remove those who have
+    -- less letters than the number of Components.
     for i=#match, 1, -1 do
         if #match[i] < #entity.components then
             table.remove(match, i)
@@ -52,8 +54,7 @@ function Segments.Recognition:process (entity, dt)
 
     if #match == 1 then
         if config.DEBUG then
-            print("This segment was succesfully recognized:")
-            print(tostring(entity), match[1])
+            print(tostring(entity), "succesfully recognized as:", match[1])
         end
 
         local match_copy = match[1]
@@ -94,17 +95,8 @@ function Segments.Recognition:process (entity, dt)
         end
 
         for j=1, #match_components do
-            local comp = match_components[j]
-
-            -- local all_prototype_strings = {}
-            -- for _, prot in pairs(PROTOTYPES.entities) do
-            --     all_prototype_strings[prot.string] = true
-            -- end
-
-            -- if all_prototype_strings[comp.string] == nil then
-                local image = trim_image(comp.image)
-                local prot = Entities.Prototype(comp.string, image)
-            -- end
+            local component = match_components[j]
+            Entities.Prototype(component.string, component.image)
         end
 
         entity.isNotRecognized = nil
