@@ -6,12 +6,18 @@ function Components.sharedComponents:filter (entity)
     return entity.isComponent ~= nil
 end
 
-function Components.sharedComponents:splitComponents ()
 
-end
+-- function Components.sharedComponents:onAdd (entity)
+--     for _, cluster in pairs(self.clusters) do
+--         for i, comp in pairs(cluster) do
+--             -- check if components are similar in width
+--             if math.abs(comp.image:getWidth() - entity.image:getWidth() <= 3 then
+--                 -- check which image can be put over the other one
+
+-- end
 
 function Components.sharedComponents:onAdd (entity)
-    self.world:addEntity(entity)
+    -- self.world:addEntity(entity)
 
     -- Add letter frequencies to the component behind `index'
     if  entity.string ~= ".*"
@@ -97,28 +103,5 @@ end
 function Components.DrawRange:filter (entity)
     return entity.isSegment ~= nil
 end
-
-
-Components.Splitting = tiny.processingSystem({isUpdateSystem = true,
-                                                      active = false})
-function Components.Splitting:process (entity, dt)
-end
-
-function Components.Splitting:activate ()
-    local prototype = PROTOTYPES.entities[4]
-
-    for _, comp in pairs(self.entities) do
-        if  prototype.image:getWidth()  <= comp.image:getWidth()
-        and prototype.image:getHeight() <= comp.image:getHeight() then
-            comp:overlay(prototype)
-        end
-    end
-end
-
-function Components.Splitting:filter (entity)
-    return     entity.isComponent ~= nil
-           and entity.string      == ".*"
-end
-
 
 return Components
