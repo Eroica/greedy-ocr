@@ -11,6 +11,6 @@
 #   occurs in it.
 
 #!/usr/bin/bash
-cat mercurius_1st_half.txt | tr -cs "[:alpha:]" "\n" | sort | uniq > raw_lexicon.txt
-LC_ALL="de" sort -fd raw_lexicon.txt | uniq > lexicon_1st_half.txt
-cat mercurius_1st_half.txt | fold -w1 | sort | uniq -c | sort -k 1nr > letter_frequencies.txt
+cat mercurius_until_april.txt | tr -cs "[:alpha:]" "\n" | sort | uniq > raw_lexicon.txt
+LC_ALL="de" sort -fd raw_lexicon.txt | uniq > lexicon_until_april.txt
+cat mercurius_until_april.txt | fold -w1 | sort | uniq -c | sort -k 1nr > letter_frequencies.txt
