@@ -14,8 +14,8 @@ Entities.Prototype = class("Prototype")
 function Entities.Prototype:init (literal, image)
     self.isPrototype = true
     self.string = literal
-    self.image = image
-    self.image_bw = threshold_image(image)
+    self.image = trim_image(image)
+    self.image_bw = threshold_image(self.image)
 
     getmetatable(self).__tostring = function (t)
         return t.string
