@@ -7,6 +7,61 @@
 ]]
 
 
+-- round:
+-- Rounds a number.
+-- @params:  number @type: number
+-- @returns: @type: number
+function round (number)
+    if number < 0 then
+        return math.ceil(number - 0.5)
+    else
+        return math.floor(number + 0.5)
+    end
+end
+
+function generate_prototype_image (cluster)
+    local width, height = 0, 0
+
+    for i=1, #cluster do
+        local prototype = cluster[i]
+        width = width + prototype.image_bw:getWidth()
+        height = height + prototype.image_bw:getHeight()
+    end
+
+    width = round(width/#cluster)
+    height = round(height/#cluster)
+
+    local image_data = love.image.newImageData(width, height)
+
+    local pixel_color = 0
+    for i=0, width - 1 do
+        for j=0, height - 1 do
+            for n=1, #cluster do
+                local prototype = cluster[n]
+                local width_scalar = prototype.image_bw:getWidth()/width
+                local height_scalar = prototype.image_bw:getHeight()/height
+
+                -- Generate the average color
+                pixel_color =   pixel_color
+                              + prototype.image_bw:getData()
+                                                  :getPixel(i*width_scalar,
+                                                            j*height_scalar)
+
+            end
+
+            pixel_color = round(pixel_color/#cluster)
+            image_data:setPixel(i, j, pixel_color, pixel_color, pixel_color, 255)
+            pixel_color = 0
+        end
+    end
+
+    local image = love.graphics.newImage(image_data)
+
+    return image, threshold_image(image)
+end
+
+
+
 function image_fits_image (small_image, large_image)
     if  small_image:getWidth()  <= large_image:getWidth()
     and small_image:getHeight() <= large_image:getHeight()

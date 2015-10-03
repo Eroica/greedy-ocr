@@ -8,6 +8,7 @@ function Prototypes.sharedPrototypes:onAddToWorld (world)
     self.prototype_ranking = config.prototype_ranking
     self._inverse_prototype_ranking = invert_table(self.prototype_ranking)
     self.clusters = {}
+    self._clusters_images = {}
     -- self.prototype_images = {}
 end
 
@@ -26,6 +27,7 @@ function Prototypes.sharedPrototypes:onAdd (entity)
     end
 
     table.insert(self.clusters[entity.string], entity)
+    self._clusters_images[entity.string] = generate_prototype_image(self.clusters[entity.string])
 end
 
 function Prototypes.sharedPrototypes:compare (e1, e2)
