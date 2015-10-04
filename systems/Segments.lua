@@ -67,13 +67,18 @@ function Segments.Recognition:process (entity, dt)
             end
         end
 
+        print(inspect(recognized_components))
+
         table.sort(recognized_components, function (a, b) return #a > #b end)
 
         for j=1, #recognized_components do
-            match_copy = string.gsub(match_copy, recognized_components[j], "#")
+            match_copy = string.gsub(match_copy, recognized_components[j], "#", 1)
         end
 
+        print(match_copy)
+
         local match_substring = explode("#", match_copy)
+        print(inspect(match_substring))
         local match_table = {}
         for j=1, #match_substring do
             if match_substring[j] ~= "" then
@@ -87,6 +92,9 @@ function Segments.Recognition:process (entity, dt)
                 table.insert(match_components, entity.components[j])
             end
         end
+
+        print ("____")
+        print(inspect(match_substring))
 
         -- assert(#match_table == #match_components)
 
