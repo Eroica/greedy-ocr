@@ -14,8 +14,8 @@ local BIGRAM_FILE = config.corpus_filename
 --
 -- @params:
 -- @returns:
-function load_prototypes ()
-    local function create_prototype (filename)
+
+local function create_prototype (filename)
         if  love.filesystem.isFile(PROTOTYPE_DIR .. "/" .. filename)
         and filename:sub(1, 1) ~= "."
         and filename:sub(1, 1) ~= "_" then
@@ -28,6 +28,7 @@ function load_prototypes ()
         end
     end
 
+function load_prototypes ()
     love.filesystem.getDirectoryItems(PROTOTYPE_DIR, create_prototype)
 
     for _, prototype in pairs(config.additional_prototypes) do

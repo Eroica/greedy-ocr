@@ -67,8 +67,6 @@ comp_images = {}
 function love.update(dt)
     lovebird.update()
     WORLD:update(dt, tiny.requireAll("isUpdateSystem"))
-
-
 end
 
 function love.draw()
