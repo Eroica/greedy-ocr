@@ -48,16 +48,19 @@ function Entities.Page:init (image, bounding_boxes)
 end
 
 
-Entities.Segment = class("Segment")
-function Entities.Segment:init (l, t, width, height, parent)
-    local function all_white (t)
-        for i=1, #t do
-            if t[i] ~= 255 then return false end
-        end
-
-        return true
+-- all_white:
+-- A helper function that checks whether every value in a table is
+-- `255' (white).
+local function all_white (t)
+    for i=1, #t do
+        if t[i] ~= 255 then return false end
     end
 
+    return true
+end
+
+Entities.Segment = class("Segment")
+function Entities.Segment:init (l, t, width, height, parent)
     self.parent = parent
     self.isSegment = true
     self.isNotRecognized = true
@@ -152,29 +155,61 @@ function Entities.Segment:recognize ()
 
         -- local range = #self.components
         for i=1, #self.components do
-            for j=1, #PROTOTYPES.entities do
+            for prototype in PROTOTYPES:uniquePrototypes() do
+            -- for j=1, #PROTOTYPES.entities do
                 local component = self.components[i]
-                local prototype = PROTOTYPES.entities[j]
 
                 if  config.UNKNOWN_COMPONENTS[component.string]
                 and image_fits_image(prototype.image, component.image) then
-
                     if config.DEBUG then print("Checking component", i) end
 
-                    local ratio, split_x = component:overlay(prototype)
+                    local ratio, split_x = component:overlay({image_bw = PROTOTYPES._clusters_images[prototype.string], string = prototype.string})
+                    local split_threshold
 
-                    if ratio >= config.SPLIT_THRESHOLD then
+                    if config.high_confidence[prototype.string] then
+                        split_threshold = config.HIGH_SPLIT_THRESHOLD
+                    else
+                        split_threshold = config.SPLIT_THRESHOLD
+                    end
+
+                    if ratio >= split_threshold then
                         component:split(split_x,
                                         split_x + prototype.image:getWidth() - 1,
                                         prototype.string)
                         WORLD:update()
+                        goto continue
                     end
                 end
             end --for: j
         end --for: i
+        ::continue::
+
         post_string = tostring(self)
 
     until pre_string == post_string
+end
+
+
+function Entities.Segment:split (prototype)
+    for i=1, #self.components do
+        local component = self.components[i]
+
+        if  config.UNKNOWN_COMPONENTS[component.string]
+        and image_fits_image(prototype.image_bw, component.image) then
+            if config.DEBUG then print("Checking component", i) end
+
+            local ratio, split_x = component:overlay(prototype)
+            print(ratio, split_x)
+            local split_threshold = config.SPLIT_THRESHOLD
+
+            if ratio >= split_threshold then
+                component:split(split_x,
+                                split_x + prototype.image_bw:getWidth() - 1,
+                                prototype.string)
+                WORLD:update()
+            end
+        end
+    end
 end
 
 
@@ -321,9 +356,8 @@ function Entities.Component:overlay (prototype)
     local split_x = max_ratio_index % max_x
 
     if config.DEBUG then
-        print("Overlaying:", max_ratio_index, max_ratio,
-                             split_x, split_x + sub_image:getWidth() - 1,
-                             prototype.string)
+        print("Overlaying:", prototype.string, max_ratio_index, max_ratio,
+                             split_x, split_x + sub_image:getWidth() - 1)
     end
 
 
