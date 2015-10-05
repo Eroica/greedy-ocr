@@ -1,5 +1,6 @@
 local Page = {}
 
+local config = require "_config"
 
 Page.DrawPage = tiny.processingSystem({isDrawSystem = true})
 function Page.DrawPage:process (entity, dt)
@@ -15,17 +16,17 @@ end
 
 local HUD_HEIGHT     = 44
 local HUD_PADDING    = 4
-local HUD_COLOR      = {53, 69, 81}
-local HUD_LINE_COLOR = {42, 48, 52}
+local HUD_COLOR      = {unpack(config.HUD_COLOR)}
+local HUD_LINE_COLOR = {unpack(config.HUD_LINE_COLOR)}
 
 Page.DrawHUD = tiny.system({isDrawSystem = true})
 function Page.DrawHUD:update (dt)
     local width, height = love.graphics.getDimensions()
     local x, y = CAMERA:toWorld(love.mouse.getPosition())
 
-    love.graphics.setColor(unpack(HUD_COLOR))
+    love.graphics.setColor(unpack(config.HUD_COLOR))
     love.graphics.rectangle("fill", 0, height - HUD_HEIGHT, width, height)
-    love.graphics.setColor(unpack(HUD_LINE_COLOR))
+    love.graphics.setColor(unpack(config.HUD_LINE_COLOR))
     love.graphics.line(0, height - HUD_HEIGHT - 1, width, height - HUD_HEIGHT - 1)
 
     love.graphics.setColor(255, 255, 255)
@@ -88,10 +89,10 @@ function Page.DrawButtons:update (dt)
         love.graphics.translate(0, height - BUTTON_HEIGHT - HUD_HEIGHT - HUD_PADDING - 2)
 
         -- Button 1 ("Export")
-        love.graphics.setColor(unpack(HUD_LINE_COLOR))
+        love.graphics.setColor(unpack(config.HUD_LINE_COLOR))
         love.graphics.rectangle("line", width - BUTTON_1.width - HUD_PADDING - 1, 0, BUTTON_1.width + 2, BUTTON_HEIGHT + 2)
 
-        love.graphics.setColor(unpack(HUD_COLOR))
+        love.graphics.setColor(unpack(config.HUD_COLOR))
         love.graphics.rectangle("fill", width - BUTTON_1.width - HUD_PADDING, 1, BUTTON_1.width, BUTTON_HEIGHT)
 
         love.graphics.setColor(255, 255, 255)
@@ -102,10 +103,10 @@ function Page.DrawButtons:update (dt)
 
 
         -- Button 2
-        love.graphics.setColor(unpack(HUD_LINE_COLOR))
+        love.graphics.setColor(unpack(config.HUD_LINE_COLOR))
         love.graphics.rectangle("line", width - BUTTON_1.width - BUTTON_2.width - HUD_PADDING * 3 - 1, 0, BUTTON_2.width + 2, BUTTON_HEIGHT + 2)
 
-        love.graphics.setColor(unpack(HUD_COLOR))
+        love.graphics.setColor(unpack(config.HUD_COLOR))
         love.graphics.rectangle("fill", width - BUTTON_1.width - BUTTON_2.width - HUD_PADDING * 3, 1, BUTTON_2.width, BUTTON_HEIGHT)
 
         love.graphics.setColor(255, 255, 255)

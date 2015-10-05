@@ -11,9 +11,11 @@ local Segments = {}
 
 Segments.DrawString = tiny.processingSystem({isDrawSystem = true})
 function Segments.DrawString:process (entity, dt)
-    love.graphics.setColor(0, 0, 0)
     CAMERA:draw(function(l, t, w, h)
-        love.graphics.print(tostring(entity), entity.position.l, math.floor(entity.position.t + entity.size.height))
+        love.graphics.setColor(249, 38, 114, 127)
+        love.graphics.rectangle("fill", entity.position.l, entity.position.t, entity.size.width, 16)
+        love.graphics.setColor(39, 40, 34)
+        love.graphics.printf(tostring(entity), entity.position.l + 1, entity.position.t, entity.size.width, "center")
     end)
     love.graphics.setColor(255, 255, 255)
 end
@@ -28,7 +30,7 @@ function Segments.DrawBoundingBox:process (entity, dt)
     local position = entity.position
     local size = entity.size
 
-    love.graphics.setColor(255, 137, 115)
+    love.graphics.setColor(unpack(config.SEGMENT_COLOR))
     CAMERA:draw(function(l, t, w, h)
         love.graphics.rectangle("line", position.l, position.t, size.width, size.height)
     end)

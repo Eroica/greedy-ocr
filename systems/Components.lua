@@ -59,7 +59,7 @@ function Components.DrawLines:process (entity, dt)
     local position = entity.parent.position
     local size     = entity.parent.size
 
-    love.graphics.setColor(174, 154, 211)
+    love.graphics.setColor(unpack(config.COMPONENT_COLOR))
 
     do love.graphics.push()
         love.graphics.translate(position.l, position.t)
