@@ -15,8 +15,8 @@ end
 
 local HUD_HEIGHT     = 44
 local HUD_PADDING    = 4
-local HUD_COLOR      = {32, 40, 63}
-local HUD_LINE_COLOR = {56, 61, 81}
+local HUD_COLOR      = {53, 69, 81}
+local HUD_LINE_COLOR = {42, 48, 52}
 
 Page.DrawHUD = tiny.system({isDrawSystem = true})
 function Page.DrawHUD:update (dt)
