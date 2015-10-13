@@ -46,14 +46,20 @@ config.additional_prototypes = {
     {"D", "_prototypes/_d_c.png"},
 }
 
-config.UNKNOWN_COMPONENTS = {[".*"] = true, [".?"] = true}
+config.punctuation = {
+    ["."] = true,
+    ["-"] = true,
+    ["/"] = true
+}
+
+config.UNKNOWN_COMPONENTS = {[".*"] = true, [".+"] = true, ["."] = true}
 
 -- Colors.
 config.BACKGROUND_COLOR = {127, 127, 127}
-config.FONT_COLOR = {249, 248, 245}
-config.HUD_COLOR = {56, 56, 48}
-config.HUD_LINE_COLOR = {39, 40, 34}
-config.SEGMENT_COLOR = {249, 38, 114}
-config.COMPONENT_COLOR = {102, 217, 239}
+config.FONT_COLOR = {150, 152, 150}
+config.HUD_COLOR = {42, 42, 42}
+config.HUD_LINE_COLOR = {66, 66, 66}
+config.SEGMENT_COLOR = {213, 78, 83}
+config.COMPONENT_COLOR = {122, 166, 218}
 
 return config
