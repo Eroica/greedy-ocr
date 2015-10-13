@@ -1,4 +1,5 @@
 function love.conf(t)
+    t.window.title = "Greedy-OCR"
     t.modules.audio = false
     t.modules.joystick = false
     t.modules.physics = false
