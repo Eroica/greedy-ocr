@@ -24,11 +24,11 @@ function generate_prototype_image (cluster)
 
     for i=1, #cluster do
         local prototype = cluster[i]
-        width = width + prototype.image_bw:getWidth()
+        width  = width  + prototype.image_bw:getWidth()
         height = height + prototype.image_bw:getHeight()
     end
 
-    width = round(width/#cluster)
+    width  = round(width/#cluster)
     height = round(height/#cluster)
 
     local image_data = love.image.newImageData(width, height)
@@ -38,26 +38,23 @@ function generate_prototype_image (cluster)
         for j=0, height - 1 do
             for n=1, #cluster do
                 local prototype = cluster[n]
-                local width_scalar = prototype.image_bw:getWidth()/width
-                local height_scalar = prototype.image_bw:getHeight()/height
+				local prototype_data = prototype.image_bw:getData()
+                local width_scalar   = prototype.image_bw:getWidth()/width
+                local height_scalar  = prototype.image_bw:getHeight()/height
 
-                -- Generate the average color
+                -- Calculate the average color
                 pixel_color =   pixel_color
-                              + prototype.image_bw:getData()
-                                                  :getPixel(i*width_scalar,
-                                                            j*height_scalar)
-
-            end
+                              + prototype_data:getPixel(i*width_scalar,
+                                                        j*height_scalar)
+            end --for: n
 
             pixel_color = round(pixel_color/#cluster)
             image_data:setPixel(i, j, pixel_color, pixel_color, pixel_color, 255)
             pixel_color = 0
-        end
-    end
+		end --for: j
+	end --for: i
 
-    local image = love.graphics.newImage(image_data)
-
-    return image, threshold_image(image)
+    return love.graphics.newImage(image_data)
 end
 
 
