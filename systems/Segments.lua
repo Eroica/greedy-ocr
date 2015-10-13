@@ -12,9 +12,9 @@ local Segments = {}
 Segments.DrawString = tiny.processingSystem({isDrawSystem = true})
 function Segments.DrawString:process (entity, dt)
     CAMERA:draw(function(l, t, w, h)
-        love.graphics.setColor(249, 38, 114, 127)
+        love.graphics.setColor(213, 78, 83, 127)
         love.graphics.rectangle("fill", entity.position.l, entity.position.t, entity.size.width, 16)
-        love.graphics.setColor(39, 40, 34)
+        love.graphics.setColor(0, 0, 0)
         love.graphics.printf(tostring(entity), entity.position.l + 1, entity.position.t, entity.size.width, "center")
     end)
     love.graphics.setColor(255, 255, 255)
@@ -63,8 +63,8 @@ function Segments.Recognition:process (entity, dt)
 
         local recognized_components = {}
         for j, component in pairs(entity.components) do
-            if  component.string ~= ".*"
-            and component.string ~= ".?" then
+            if  component.string ~= ".+"
+            and component.string ~= "." then
                 table.insert(recognized_components, component.string)
             end
         end
@@ -86,7 +86,7 @@ function Segments.Recognition:process (entity, dt)
 
         local match_components = {}
         for j=1, #entity.components do
-            if entity.components[j].string == ".*" or entity.components[j].string == ".?" then
+            if entity.components[j].string == ".+" or entity.components[j].string == "." then
                 table.insert(match_components, entity.components[j])
             end
         end

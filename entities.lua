@@ -218,7 +218,7 @@ function Entities.Component:init (start, e, parent)
     self.parent = parent
     self.isComponent = true
     self.range = {start, e}
-    self.string = ".*"
+    self.string = ".+"
     self.letter_frequencies = {}
 
     local width = e - start + 1
@@ -230,7 +230,7 @@ function Entities.Component:init (start, e, parent)
 
     -- TODO: Write function that checks whether a component consists
     -- of a single character or more than one.
-    if width <= 30 then self.string = ".?" end
+    if width <= 30 then self.string = "." end
 
     getmetatable(self).__tostring = function (t)
         return t.string
