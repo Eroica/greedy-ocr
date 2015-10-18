@@ -39,10 +39,10 @@ function Page.DrawHUD:update (dt)
             local size = e.size
             if  x >= l and x < l + size.width
             and y >= t and y < t + size.height then
-                love.graphics.print(   "Segment "       .. tostring(_)
-                                    .. " Coordinates: " .. tostring(x - l)
-                                    .. "|"              .. tostring(y - t)
-                                    .. " String: "      .. tostring(e), 0, 0)
+                love.graphics.print(   "Coordinates: " .. tostring(x - l)
+                                    .. "|"             .. tostring(y - t)
+                                    .. " Segment: "    .. tostring(_)
+                                    .. ", String: "    .. tostring(e), 0, 0)
             end
         end
 
@@ -61,6 +61,7 @@ function Page.DrawHUD:update (dt)
                              .. tostring(y), width - 208, 0, 200, "right")
 
     end love.graphics.pop()
+    love.graphics.setColor(255, 255, 255)
 end
 
 function Page.DrawHUD:filter (entity)
@@ -72,13 +73,13 @@ local BUTTON_HEIGHT = 24
 local BUTTON_1 = {
     width  = 48,
     height = BUTTON_HEIGHT,
-    text   = "Export"
+    text   = "Export (E)"
 }
 
 local BUTTON_2 = {
     width  = 148,
     height = BUTTON_HEIGHT,
-    text   = "Show all Prototypes"
+    text   = "Show all Prototypes (P)"
 }
 
 Page.DrawButtons = tiny.system({isDrawSystem = true})
@@ -116,6 +117,7 @@ function Page.DrawButtons:update (dt)
         end love.graphics.pop()
 
     end love.graphics.pop()
+    love.graphics.setColor(255, 255, 255)
 end
 
 
