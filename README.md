@@ -29,7 +29,7 @@ This system is based on the algorithms that appear in these two papers:
 1.  Tao Hong and Jonathan J. Hull, ["Character Segmentation Using Visual Inter-word Constraints in a Text Page"](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.55.7481&rep=rep1&type=pdf)
 2.  Andrew Kae et al., ["Learning on the fly: a font-free approach toward multilingual OCR"](http://link.springer.com/article/10.1007%2Fs10032-011-0164-6)
 
-## About the project 
+## About this project 
 
 This project is part of my Bachelor's thesis at the Institute for Computational Linguistics at Heidelberg University in Germany. The main goal was to improve the character recognition of German *Fraktur*, especially for *Early New High German* (Frühneuhochdeutsch) texts.
 
@@ -124,9 +124,14 @@ Without document-specific images, you would have to
 For my Bachelor's thesis, for instance, I took Prototypes from page #190 of [this book](http://brema.suub.uni-bremen.de/zeitungen17/periodical/thumbview/992516) and recognized a part of page #270.
 
 
-### Configuration with `config.lua`
+### Configuration
 
-# 3rd-party libraries
+# License
+The original code in this repository is licensed under the **zlib** license. Code from 3rd-party libraries and the LÖVE framework are copyrighted by their respective authors.
+
+When I used code snippets from other sites, I tried my best to find the original source, and linked to it (specified in the comments above the code). No copyright theft was intended.
+
+## 3rd-party libraries
 
 **greedy-ocr** uses the following 3rd-party libraries (located in `lib/`):
 
