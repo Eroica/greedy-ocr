@@ -26,19 +26,17 @@ function Components.sharedComponents:onAdd (entity)
         local components = entity.parent.components
         local index = invert_table(entity.parent.components)[entity]
 
-        -- Stop if `index' is the last component of a segment (that
-        -- means there is now component after `index').
+        -- Stop if `index' is the last or first component of a segment
         if index == #components then return end
 
-        if components[index+1].string == ".+"
-        or components[index+1].string == "." then
+        if components[index+1].string == "." then
             components[index+1].letter_frequencies = {}
 
             local recognized_letter = entity.string
             local sum_frequency = BIGRAM[recognized_letter]._count
 
             for letter, frequency in pairs(BIGRAM[recognized_letter]) do
-                if letter ~= "_count" and letter ~= "class" then
+                if letter ~= "_count" and letter ~= "class" and letter ~= " " then
                     components[index+1].letter_frequencies[letter] = frequency/sum_frequency
                 end
             end
