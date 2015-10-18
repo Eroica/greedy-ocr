@@ -11,8 +11,6 @@
     `setup.lua'.
 ]]
 
-#!/usr/bin/env lua
-
 inspect = require "inspect"
 local LanguageModel = require "LanguageModel"
 local config = require "_config"
