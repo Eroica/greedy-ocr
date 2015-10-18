@@ -141,19 +141,16 @@ function Entities.Segment:init (l, t, width, height, parent)
             table.insert(str, component.string)
         end
 
-        return table.concat(str)
+        return self.string or table.concat(str)
     end
 
     WORLD:addEntity(self)
 end
 
 function Entities.Segment:recognize ()
-    local pre_string, post_string = tostring(self), tostring(self)
-
     repeat
-        pre_string = post_string
+        local pre_string = tostring(self)
 
-        -- local range = #self.components
         for i=1, #self.components do
             for prototype in PROTOTYPES:uniquePrototypes() do
             -- for j=1, #PROTOTYPES.entities do
@@ -172,21 +169,22 @@ function Entities.Segment:recognize ()
                         split_threshold = config.SPLIT_THRESHOLD
                     end
 
+                    split_threshold = split_threshold - 0.01 * #PROTOTYPES.clusters[prototype.string]
+
                     if ratio >= split_threshold then
                         component:split(split_x,
                                         split_x + prototype.image:getWidth() - 1,
                                         prototype.string)
-                        WORLD:update()
+                        -- WORLD:update()
+                        print("Splitting component", i, "with", prototype.string, pre_string, "->", tostring(self))
                         goto continue
                     end
                 end
             end --for: j
         end --for: i
         ::continue::
-
-        post_string = tostring(self)
-
-    until pre_string == post_string
+        -- RECOGNITION:update(dt)
+    until pre_string == tostring(self)
 end
 
 
