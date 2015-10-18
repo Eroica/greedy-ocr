@@ -8,7 +8,6 @@
 
 local Segments = {}
 
-
 Segments.DrawString = tiny.processingSystem({isDrawSystem = true})
 function Segments.DrawString:process (entity, dt)
     CAMERA:draw(function(l, t, w, h)
@@ -42,17 +41,9 @@ function Segments.DrawBoundingBox:filter (entity)
 end
 
 
-Segments.Recognition = tiny.processingSystem({isUpdateSystem = true, active = false})
-function Segments.Recognition:process (entity, dt)
+Segments.Lookup = tiny.processingSystem({isUpdateSystem = true, active = true, interval=30})
+function Segments.Lookup:process (entity, dt)
     local match = LEXICON:lookup(tostring(entity))
-
-    -- As a precaution: From the list of matches, remove those who have
-    -- less letters than the number of Components.
-    for i=#match, 1, -1 do
-        if #match[i] < #entity.components then
-            table.remove(match, i)
-        end
-    end
 
     if #match == 1 then
         if config.DEBUG then
@@ -61,46 +52,38 @@ function Segments.Recognition:process (entity, dt)
 
         local match_copy = match[1]
 
-        local recognized_components = {}
-        for j, component in pairs(entity.components) do
-            if  component.string ~= ".+"
-            and component.string ~= "." then
-                table.insert(recognized_components, component.string)
-            end
-        end
-
-        table.sort(recognized_components, function (a, b) return #a > #b end)
-
-        for j=1, #recognized_components do
-            match_copy = string.gsub(match_copy, recognized_components[j], "#", 1)
-        end
-
-        local match_substring = explode("#", match_copy)
-        print(inspect(match_substring))
-        local match_table = {}
-        for j=1, #match_substring do
-            if match_substring[j] ~= "" then
-                table.insert(match_table, match_substring[j])
-            end
-        end
-
-        local match_components = {}
+        local component
         for j=1, #entity.components do
-            if entity.components[j].string == ".+" or entity.components[j].string == "." then
-                table.insert(match_components, entity.components[j])
+            component = entity.components[j]
+            if component.string == ".+" and entity.components[j+1].string == ".+" then
+                entity.string = match
+                goto recognition_end
             end
         end
 
-        -- assert(#match_table == #match_components)
+        do
+            local letter_count = 0
+            for j=1, #entity.components do
+                component = entity.components[j]
 
-        for j=1, #match_table do
-            match_components[j].string = match_table[j]
+                if component.string == "." then
+                    component.string = match_copy:sub(j, j)
+                    Entities.Prototype(component.string, component.image)
+                end
+
+                if component.string == ".+" then
+                    if not config.UNKNOWN_COMPONENTS[entity.components[j+1].string]
+                        or entity.components[j+1].string == "." then
+                        component.string = match_copy:sub(letter_count + 1, j+1)
+                        Entities.Prototype(component.string, component.image)
+                    end
+                end
+
+                letter_count = letter_count + #tostring(component)
+            end
         end
 
-        for j=1, #match_components do
-            local component = match_components[j]
-            Entities.Prototype(component.string, component.image)
-        end
+        ::recognition_end::
 
         entity.isNotRecognized = nil
         -- Refresh this entity's components
@@ -108,8 +91,8 @@ function Segments.Recognition:process (entity, dt)
     end
 end
 
-function Segments.Recognition:filter (entity)
-    return entity.isNotRecognized ~= nil
+function Segments.Lookup:filter (entity)
+    return (entity.isNotRecognized ~= nil and #tostring(entity) ~= ".+")
 end
 
 
