@@ -46,14 +46,15 @@ function love.load()
 
     WORLD:addSystem(Systems.Page.DrawPage)
     WORLD:addSystem(Systems.Segments.DrawBoundingBox)
-    WORLD:addSystem(Systems.Segments.DrawString)
-    WORLD:addSystem(Systems.Components.DrawRange)
     WORLD:addSystem(Systems.Components.DrawLines)
+    WORLD:addSystem(Systems.Segments.DrawString)
+    -- WORLD:addSystem(Systems.Segments.Recognize)
+    -- WORLD:addSystem(Systems.Components.DrawRange)
     WORLD:addSystem(Systems.Page.DrawHUD)
     WORLD:addSystem(Systems.Page.DrawButtons)
     WORLD:addSystem(draw_prototypes_system)
 
-    RECOGNITION = WORLD:addSystem(Systems.Segments.Recognition)
+    LOOKUP = WORLD:addSystem(Systems.Segments.Lookup)
     PROTOTYPES = WORLD:addSystem(Systems.Prototypes.sharedPrototypes)
     COMPONENTS = WORLD:addSystem(Systems.Components.sharedComponents)
 
@@ -120,5 +121,20 @@ function love.mousereleased(x, y, button)
     if button == "l" then
         WORLD:removeSystem(Systems.Page.CreateRectangles)
         WORLD:removeSystem(Systems.Page.CameraPosition)
+    end
+
+    if button == "r" then
+        local width, height = love.graphics.getDimensions()
+        local x, y = CAMERA:toWorld(love.mouse.getPosition())
+
+        for _, e in pairs(PAGE.segments) do
+            local pos  = e.position
+            local l, t = pos.l, pos.t
+            local size = e.size
+            if  x >= l and x < l + size.width
+            and y >= t and y < t + size.height then
+                e:recognize()
+            end
+        end
     end
 end

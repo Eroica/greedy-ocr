@@ -51,7 +51,7 @@ function Components.sharedComponents:onModify (dt)
     -- This currently breaks a System's autarky, and will need to be
     -- changed!
     -- TODO: Remove global `RECOGNITION'
-    RECOGNITION:update(dt)
+    -- RECOGNITION:update(dt)
 end
 
 
