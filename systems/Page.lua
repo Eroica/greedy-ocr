@@ -71,15 +71,21 @@ end
 
 local BUTTON_HEIGHT = 24
 local BUTTON_1 = {
-    width  = 48,
+    width  = 72,
     height = BUTTON_HEIGHT,
     text   = "Export (E)"
 }
 
 local BUTTON_2 = {
-    width  = 148,
+    width  = 160,
     height = BUTTON_HEIGHT,
     text   = "Show all Prototypes (P)"
+}
+
+local BUTTON_3 = {
+    width  = 176,
+    height = BUTTON_HEIGHT,
+    text   = "Recognize all Segments (S)"
 }
 
 Page.DrawButtons = tiny.system({isDrawSystem = true})
@@ -114,6 +120,20 @@ function Page.DrawButtons:update (dt)
         do love.graphics.push()
             love.graphics.translate(width - BUTTON_1.width - BUTTON_2.width - HUD_PADDING * 3, 1 + HUD_PADDING)
             love.graphics.printf(BUTTON_2.text, 0, 0, BUTTON_2.width, "center")
+        end love.graphics.pop()
+
+
+        -- Button 3
+        love.graphics.setColor(unpack(config.HUD_LINE_COLOR))
+        love.graphics.rectangle("line", width - BUTTON_1.width - BUTTON_2.width - BUTTON_3.width - HUD_PADDING * 5 - 1, 0, BUTTON_3.width + 2, BUTTON_HEIGHT + 2)
+
+        love.graphics.setColor(unpack(config.HUD_COLOR))
+        love.graphics.rectangle("fill", width - BUTTON_1.width - BUTTON_2.width - BUTTON_3.width - HUD_PADDING * 5, 1, BUTTON_3.width, BUTTON_HEIGHT)
+
+        love.graphics.setColor(255, 255, 255)
+        do love.graphics.push()
+            love.graphics.translate(width - BUTTON_1.width - BUTTON_2.width - BUTTON_3.width - HUD_PADDING * 5, 1 + HUD_PADDING)
+            love.graphics.printf(BUTTON_3.text, 0, 0, BUTTON_3.width, "center")
         end love.graphics.pop()
 
     end love.graphics.pop()
