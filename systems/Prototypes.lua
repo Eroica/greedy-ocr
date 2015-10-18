@@ -17,12 +17,7 @@ function Prototypes.sharedPrototypes:onAddToWorld (world)
 end
 
 function Prototypes.sharedPrototypes:update (dt)
-    -- local prototype_images = {}
-    -- for i=1, #self.entities do
-    --     prototype_images[#prototype_images + 1] = self.entities[i].image_bw
-    -- end
 
-    -- self.prototype_images = prototype_images
 end
 
 function Prototypes.sharedPrototypes:onAdd (entity)
@@ -34,12 +29,15 @@ function Prototypes.sharedPrototypes:onAdd (entity)
     -- Add to existing cluster
     table.insert(self.clusters[entity.string], entity)
 
-    -- (Re-)Generate the average cluster image
-    if config.DEBUG then
-        print("Updating cluster image for", entity.string)
+    if not config.separate_clusters[entity.string] then
+        -- (Re-)Generate the average cluster image
+        if config.DEBUG then
+            print("Updating cluster image for", entity.string)
+        end
+
+        local cluster_image = generate_prototype_image(self.clusters[entity.string])
+        self.clusters[entity.string]._image = threshold_image(cluster_image)
     end
-    local cluster_image = generate_prototype_image(self.clusters[entity.string])
-    self._clusters_images[entity.string] = threshold_image(cluster_image)
 end
 
 
@@ -49,9 +47,9 @@ function Prototypes.sharedPrototypes:uniquePrototypes ()
     return function ()
         local prototype
         for i=1, #self.entities do
-            prototype = self.entities[i]
-            if used_prototypes[prototype.string] == nil then
-                used_prototypes[prototype.string] = true
+            prototype = self.entities[i].string
+            if used_prototypes[prototype] == nil then
+                used_prototypes[prototype] = true
                 return prototype
             end
         end
@@ -59,25 +57,7 @@ function Prototypes.sharedPrototypes:uniquePrototypes ()
     end
 end
 
--- function Prototypes.sharedPrototypes:onModify (dt)
---         local prototype_strings = {}
---     local prototype_order = {}
---     print("___________")
 
---     for i=1, #self.entities do
---         local prototype = self.entities[i]
---         print(prototype.string)
---         if prototype_strings[prototype.strings] == nil then
---             prototype_strings[prototype.string] = true
---             prototype_order[#prototype_order + 1] = prototype.string
---         end
---     end
-
---     -- print(inspect(prototype_strings))
---     -- print(inspect(prototype_order))
-
---     self.prototype_order = prototype_order
--- end
 function Prototypes.sharedPrototypes:compare (e1, e2)
     local area_1 = e1.image:getWidth() * e1.image:getHeight()
     local area_2 = e2.image:getWidth() * e2.image:getHeight()
@@ -130,14 +110,16 @@ function Prototypes.OverlayPrototypes:update (dt)
     next_y = next_y + 100
 
     for prototype in PROTOTYPES:uniquePrototypes() do
-        image = PROTOTYPES._clusters_images[prototype.string]
+        if PROTOTYPES.clusters[prototype]._image then
+            image = PROTOTYPES.clusters[prototype]._image
 
-        love.graphics.draw(image, next_x, next_y)
-        next_x = next_x + image:getWidth() + padding
+            love.graphics.draw(image, next_x, next_y)
+            next_x = next_x + image:getWidth() + padding
 
-        if  next_x + padding + 100 > width then
-            next_x = padding
-            next_y = next_y + padding + 100
+            if  next_x + padding + 100 > width then
+                next_x = padding
+                next_y = next_y + padding + 100
+            end
         end
     end
 end
