@@ -78,34 +78,24 @@ end
 
 --     self.prototype_order = prototype_order
 -- end
-
 function Prototypes.sharedPrototypes:compare (e1, e2)
     local area_1 = e1.image:getWidth() * e1.image:getHeight()
     local area_2 = e2.image:getWidth() * e2.image:getHeight()
 
-    if self._inverse_prototype_ranking[e1.string] == nil
-    or self._inverse_prototype_ranking[e2.string] == nil then
-        if area_1 > area_2 then
-            return true
-        else
-            return false
-        end
-    else
-        local index_1 = self._inverse_prototype_ranking[e1.string]
-        local index_2 = self._inverse_prototype_ranking[e2.string]
+    if  self._inverse_prototype_ranking[e1.string] == nil
+    and self._inverse_prototype_ranking[e2.string] == nil then
+        return area_1 > area_2
+    elseif not (self._inverse_prototype_ranking[e1.string] and self._inverse_prototype_ranking[e2.string]) then
 
-        if index_1 < index_2 then
-            return true
-        else
-            return false
-        end
+        return (self._inverse_prototype_ranking[e1.string] or 2) < (self._inverse_prototype_ranking[e2.string] or 1)
+    else
+        return self._inverse_prototype_ranking[e1.string] < self._inverse_prototype_ranking[e2.string]
     end
 end
 
 function Prototypes.sharedPrototypes:filter (entity)
     return entity.isPrototype ~= nil
 end
-
 
 
 Prototypes.OverlayPrototypes = tiny.system({isDrawSystem = true, active = false})
