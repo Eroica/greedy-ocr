@@ -29,7 +29,7 @@ config.prototype_ranking = {
 }
 
 config.high_confidence = {
-     l = true, i = true, u = true, r = true, t = true, d = true, o = true
+     l = true, i = true, u = true, r = true, t = true, m = true, d = true, o = true
 }
 
 config.separate_clusters = {s = true, i = true}
