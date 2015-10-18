@@ -72,7 +72,7 @@ function Entities.Segment:init (l, t, width, height, parent)
     self.image = love.graphics.newImage(image_data)
 
     self.components = {}
-    local image_bw = threshold_image(self.image)
+    self.image_bw = threshold_image(self.image)
 
     -- Automatically split Segment into smaller components when
     -- specified so in `_config.lua'
@@ -92,6 +92,7 @@ function Entities.Segment:init (l, t, width, height, parent)
         end
 
         return self.string or table.concat(str)
+        --return table.concat(str)
     end
 
     WORLD:addEntity(self)
@@ -103,89 +104,164 @@ function Entities.Segment:split_at_whitespace ()
     local search_black = true
     local num_white_rows = 0
 
-    for column_idx=0, image_bw:getWidth() - 1 do
+    local white_columns = {}
+    for column_idx=0, self.image_bw:getWidth() - 1 do
         local colors = {}
 
-        for row_idx=0, image_bw:getHeight() - 1 do
-            local r, g, b = image_bw:getData():getPixel(column_idx, row_idx)
+        for row_idx=0, self.image_bw:getHeight() - 1 do
+            local r, g, b = self.image_bw:getData():getPixel(column_idx, row_idx)
             table.insert(colors, rgb2grey(r, g, b))
         end
 
-        if not all_white(colors) then
-            if search_black then
-                table.insert(component_edges, math.max(column_idx - 1, 0))
-                search_black = false
-            end
-        else
-            if search_black then
-                goto continue
-            else
-                num_white_rows = num_white_rows + 1
+        if all_white(colors) then
+            table.insert(white_columns, column_idx)
+        end
+    end
 
-                -- TODO: Magic number `3'---this is the minimum
-                -- amount of white pixels between components
-                if num_white_rows == 3 then
-                    search_black = true
-                    table.insert(component_edges, column_idx - 1)
-                    num_white_rows = 0
+    for i, white_col in pairs(white_columns) do
+        local start = white_col - 2
+        if start < 0 then start = 0 end
+
+        local _end = white_col + 2
+        if _end >= self.image_bw:getWidth() then _end = self.image_bw:getWidth() - 1 end
+
+        for j=start, _end do
+            local colors = {}
+
+            for row_idx=0, self.image_bw:getHeight() - 1 do
+                local r, g, b = self.image_bw:getData():getPixel(j, row_idx)
+                table.insert(colors, rgb2grey(r, g, b))
+            end
+
+            if not all_white(colors) then
+                white_columns[i] = nil
+                goto white_column_removed
+            end
+        end
+        ::white_column_removed::
+    end
+
+    local component_edges = {0}
+    for i, col in pairs(white_columns) do
+        if col ~= nil then
+            table.insert(component_edges, col)
+        end
+    end
+
+    table.insert(component_edges, self.image:getWidth() - 1)
+
+    for i=1, #component_edges do
+        if  i ~= #component_edges and component_edges[i+1] - component_edges[i] > 2 then
+            table.insert(self.components, Entities.Component(component_edges[i], component_edges[i+1], self))
+        end
+    end
+
+    if next(self.components) == nil then
+        table.insert(self.components, Entities.Component(0, self.image:getWidth() - 1, self))
+    end
+end
+
+
+
+
+local function check_every_cluster_member(cluster, component, i)
+    for cluster_idx=1, #cluster do
+        local member = cluster[cluster_idx]
+        if image_fits_image(member.image, component.image) then
+            if config.DEBUG then print("Checking component", i, "with MEMBER IMAGE", member.string) end
+
+            local ratio, split_x = component:overlay({image_bw = member.image_bw, string = member.string})
+            local split_threshold
+
+            if config.high_confidence[member.string] then
+                split_threshold = config.HIGH_SPLIT_THRESHOLD
+            else
+                split_threshold = config.SPLIT_THRESHOLD
+            end
+
+            if ratio >= split_threshold then
+                component:split(split_x, split_x + member.image:getWidth(), member.string)
+                print("Splitting component", i, "with", member.string, pre_string, "->", tostring(self))
+                return true
+
+            elseif ratio < split_threshold and ratio >= 0.75 then
+                local letter, _ = max_pair(component.letter_frequencies)
+                if member.string == letter then
+                    component:split(split_x, split_x + member.image:getWidth(), member.string)
+                    print("Splitting component", i, "with", member.string, pre_string, "->", tostring(self))
+                    return true
                 end
             end
         end
-        ::continue::
     end
 
-    for i=1, #component_edges, 2 do
-        local start = component_edges[i] - 3
-        if start < 0 then start = 0 end
+    return false
+end
 
-        local _end
-        if i+1 == #component_edges then
-            _end = image_bw:getWidth()
+
+local function overlay_with_cluster_image(prototype, component, i)
+    if image_fits_image(prototype.image_bw, component.image) then
+        if config.DEBUG then print("Checking component", i, "with CLUSTER IMAGE", prototype.string) end
+
+        local ratio, split_x = component:overlay(prototype)
+        local split_threshold
+
+        if config.high_confidence[prototype.string] then
+            split_threshold = config.HIGH_SPLIT_THRESHOLD
         else
-            _end = component_edges[i+1] or image_bw:getWidth()
+            split_threshold = config.SPLIT_THRESHOLD
         end
 
-        table.insert(self.components, Entities.Component(start, _end, self))
+        if ratio >= split_threshold then
+            component:split(split_x, split_x + prototype.image_bw:getWidth(), prototype.string)
+
+            return true
+
+        elseif ratio < split_threshold and ratio >= 0.75 then
+            local letter, _ = max_pair(component.letter_frequencies)
+            if prototype.string == letter then
+                component:split(split_x, split_x + prototype.image_bw:getWidth(), prototype.string)
+
+                return true
+            end
+        elseif ratio < 0.75 and ratio >= 0.70 then
+            return check_every_cluster_member(PROTOTYPES.clusters[prototype.string], component, i)
+        end
     end
+
+    return false
 end
+
+
 
 function Entities.Segment:recognize ()
     repeat
         local pre_string = tostring(self)
+        local component
 
         for i=1, #self.components do
-            for prototype in PROTOTYPES:uniquePrototypes() do
-            -- for j=1, #PROTOTYPES.entities do
-                local component = self.components[i]
-
-                if  config.UNKNOWN_COMPONENTS[component.string]
-                and image_fits_image(prototype.image, component.image) then
-                    if config.DEBUG then print("Checking component", i) end
-
-                    local ratio, split_x = component:overlay({image_bw = PROTOTYPES._clusters_images[prototype.string], string = prototype.string})
-                    local split_threshold
-
-                    if config.high_confidence[prototype.string] then
-                        split_threshold = config.HIGH_SPLIT_THRESHOLD
+            local component = self.components[i]
+            if config.UNKNOWN_COMPONENTS[component.string] then
+                for prototype in PROTOTYPES:uniquePrototypes() do
+                    if PROTOTYPES.clusters[prototype]._image then
+                        local did_split = overlay_with_cluster_image({image_bw = PROTOTYPES.clusters[prototype]._image, string = prototype}, component, i)
+                        if did_split then
+                            print("Splitting component", i, "with", prototype, pre_string, "->", tostring(self))
+                            goto continue
+                        end
                     else
-                        split_threshold = config.SPLIT_THRESHOLD
-                    end
-
-                    split_threshold = split_threshold - 0.01 * #PROTOTYPES.clusters[prototype.string]
-
-                    if ratio >= split_threshold then
-                        component:split(split_x,
-                                        split_x + prototype.image:getWidth() - 1,
-                                        prototype.string)
-                        -- WORLD:update()
-                        print("Splitting component", i, "with", prototype.string, pre_string, "->", tostring(self))
-                        goto continue
+                        local did_split = check_every_cluster_member(PROTOTYPES.clusters[prototype], component, i)
+                        if did_split then
+                            print("Splitting component", i, "with", prototype, pre_string, "->", tostring(self))
+                            goto continue
+                        end
                     end
                 end
-            end --for: j
-        end --for: i
-        ::continue::
-        -- RECOGNITION:update(dt)
+            end
+        end
+
+    ::continue::
+
     until pre_string == tostring(self)
 end
 
@@ -230,7 +306,7 @@ function Entities.Component:init (start, e, parent)
 
     -- TODO: Write function that checks whether a component consists
     -- of a single character or more than one.
-    if width <= 30 then self.string = "." end
+    if width <= 35 then self.string = "." end
 
     getmetatable(self).__tostring = function (t)
         return t.string
