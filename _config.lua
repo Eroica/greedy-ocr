@@ -10,24 +10,29 @@ local config = {}
 
 config.DEBUG = true
 
+config.use_lexicon = true
+config.use_bigram = true
+
 config.lexicon_filename = "_share/lexicon_until_april.txt"
 config.corpus_filename  = "_share/mercurius_until_april.txt"
 
 config.prototypes_directory = "_prototypes"
 config.pages_directory      = "_pages"
 
-config.automatically_split_segments = false
+config.automatically_split_segments = true
 config.MINIMUM_COMPONENT_WIDTH = 10
-config.SPLIT_THRESHOLD = 0.81
-config.HIGH_SPLIT_THRESHOLD = 0.81
+config.SPLIT_THRESHOLD = 0.80
+config.HIGH_SPLIT_THRESHOLD = 0.85
 
 config.prototype_ranking = {
-    "u", "m", "n", "l", "i", "t"
+    "b", "d", "u", "m", "n", "r", "o", "l", "i", "t"
 }
 
 config.high_confidence = {
-    l = true, i = true, u = true, n = true, t = true
+     l = true, i = true, u = true, r = true, t = true, d = true, o = true
 }
+
+config.separate_clusters = {s = true, i = true}
 
 config.additional_prototypes = {
     {"M", "_prototypes/_m_c.png"},
@@ -46,19 +51,15 @@ config.additional_prototypes = {
     {"D", "_prototypes/_d_c.png"},
 }
 
-config.punctuation = {
-    ["."] = true,
-    ["-"] = true,
-    ["/"] = true
-}
+config.punctuation = {["."] = true, ["-"] = true, ["/"] = true}
 
-config.UNKNOWN_COMPONENTS = {[".*"] = true, [".+"] = true, ["."] = true}
+config.UNKNOWN_COMPONENTS = {[".*"] = true, [".+"] = true, ["."] = true, [".?"] = true}
 
 -- Colors.
 config.BACKGROUND_COLOR = {127, 127, 127}
 config.FONT_COLOR = {150, 152, 150}
-config.HUD_COLOR = {42, 42, 42}
-config.HUD_LINE_COLOR = {66, 66, 66}
+config.HUD_COLOR = {66, 66, 66}
+config.HUD_LINE_COLOR = {42, 42, 42}
 config.SEGMENT_COLOR = {213, 78, 83}
 config.COMPONENT_COLOR = {122, 166, 218}
 
