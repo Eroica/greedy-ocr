@@ -14,22 +14,39 @@ local BIGRAM_FILE = config.corpus_filename
 --
 -- @params:
 -- @returns:
+function load_prototypes ()
+    local content = love.filesystem.getDirectoryItems(PROTOTYPE_DIR)
+    local prototypes = {}
+    for _, directory in pairs(content) do
+        if love.filesystem.isDirectory(PROTOTYPE_DIR .. "/" .. directory)
+        and directory:sub(1, 1) ~= "."
+        and directory:sub(1, 1) ~= "_" then
+            table.insert(prototypes, directory)
+        end
 
-local function create_prototype (filename)
-        if  love.filesystem.isFile(PROTOTYPE_DIR .. "/" .. filename)
-        and filename:sub(1, 1) ~= "."
-        and filename:sub(1, 1) ~= "_" then
-            local image = love.graphics.newImage(PROTOTYPE_DIR .. "/" .. filename)
-
-            -- Get the part before the `.'
-            local literal = explode(".", filename)[1]
-
-            Entities.Prototype(literal, image)
+        if directory == "_capitals" then
+            local capitals = love.filesystem.getDirectoryItems(PROTOTYPE_DIR .. "/_capitals")
+            for _, prototype in pairs(capitals) do
+                if prototype:sub(1, 1) ~= "." and prototype:sub(1, 1) ~= "_" then
+                    print(prototype)
+                    local prot_image = love.graphics.newImage(PROTOTYPE_DIR .. "/_capitals/" .. prototype)
+                    local literal = explode(".", prototype)[1]
+                    Entities.Prototype(literal, prot_image)
+                end
+            end
         end
     end
 
-function load_prototypes ()
-    love.filesystem.getDirectoryItems(PROTOTYPE_DIR, create_prototype)
+         local images = {}
+        for _, prototype in pairs(prototypes) do
+            images = love.filesystem.getDirectoryItems(PROTOTYPE_DIR .. "/" .. prototype)
+             for _, image in pairs(images) do
+                if image:sub(1, 1) ~= "." and image:sub(1, 1) ~= "_" then
+                    local prot_image = love.graphics.newImage(PROTOTYPE_DIR .. "/" .. prototype .. "/" .. image)
+                    Entities.Prototype(prototype, prot_image)
+                end
+            end
+        end
 
     for _, prototype in pairs(config.additional_prototypes) do
         Entities.Prototype(prototype[1], love.graphics.newImage(prototype[2]))
