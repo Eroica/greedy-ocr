@@ -150,15 +150,14 @@ end
 --           |__@type: number
 -- @returns: @type: Image
 local function all_white (t)
-        for i=1, #t do
-            if t[i] ~= 255 then return false end
-        end --inner for
+    for i=1, #t do
+        if t[i] ~= 255 then return false end
+    end --inner for
 
-        return true
-    end
+    return true
+end
+
 function trim_image (image, white_pixels_buffer)
-
-
     local image_bw = threshold_image(image)
     local width    = image_bw:getWidth()
     local height   = image_bw:getHeight()
