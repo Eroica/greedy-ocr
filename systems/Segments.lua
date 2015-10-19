@@ -41,7 +41,7 @@ function Segments.DrawBoundingBox:filter (entity)
 end
 
 
-Segments.Lookup = tiny.processingSystem({isUpdateSystem = true, active = true, interval=30})
+Segments.Lookup = tiny.processingSystem({isUpdateSystem = true, active = false, interval=30})
 function Segments.Lookup:process (entity, dt)
     local match = LEXICON:lookup(tostring(entity))
 
@@ -55,7 +55,7 @@ function Segments.Lookup:process (entity, dt)
         local component
         for j=1, #entity.components do
             component = entity.components[j]
-            if component.string == ".+" and entity.components[j+1].string == ".+" then
+            if j == #entity.components or (component.string == ".+" and entity.components[j+1].string == ".+") then
                 entity.string = match
                 goto recognition_end
             end
