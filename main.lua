@@ -10,8 +10,8 @@ class    = require "lib/30log"
 tiny     = require "lib/tiny"
 lovebird = require "lib/lovebird"
 inspect  = require "lib/inspect"
-lurker   = require "lib/lurker"
-lurker.postswap = function (f) print("File " .. f .. " was swapped") end
+-- lurker   = require "lib/lurker"
+-- lurker.postswap = function (f) print("File " .. f .. " was swapped") end
 
 local gamera = require "lib/gamera"
 
@@ -37,7 +37,7 @@ function love.load()
     WORLD  = tiny.world()
     PAGE   = load_image()
     BIGRAM = load_bigram()
-    BIGRAM_REVERSE = load_bigram(true)
+    -- BIGRAM_REVERSE = load_bigram(true)
     load_prototypes()
 
     CAMERA = gamera.new(0, 0, PAGE.image:getWidth(),
@@ -87,9 +87,9 @@ function love.keypressed(key)
         love.event.quit()
     end
 
-    if key == "." then
-        lurker.scan()
-    end
+    -- if key == "." then
+    --     lurker.scan()
+    -- end
 
     if key == "p" then
         draw_prototypes_system.active = not draw_prototypes_system.active
