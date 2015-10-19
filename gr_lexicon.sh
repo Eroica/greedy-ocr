@@ -5,7 +5,7 @@
 #   gr_lexicon.sh
 #
 #   This bash script was used to extract some statistical information
-#   from the Mercurius document (the first half, in this case).
+#   from the Mercurius document (the first quarter, in this case).
 #   The first 2 lines create a lexicon containing every word that exists
 #   in document, and the 3rd line extracts how often a specific letter
 #   occurs in it.
