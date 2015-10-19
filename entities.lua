@@ -165,8 +165,8 @@ end
 
 
 local function check_every_cluster_member(cluster, component, i)
-    for cluster_idx=1, #cluster do
-        local member = cluster[cluster_idx]
+    for cluster_idx=1, math.min(5, #cluster) do
+        local member = cluster[math.random(1, #cluster)]
         if image_fits_image(member.image, component.image) then
             if config.DEBUG then print("Checking component", i, "with MEMBER IMAGE", member.string) end
 
@@ -178,6 +178,7 @@ local function check_every_cluster_member(cluster, component, i)
             else
                 split_threshold = config.SPLIT_THRESHOLD
             end
+            if config.very_high_confidence[member.string] then split_threshold = config.VERY_HIGH_SPLIT_THRESHOLD end
 
             if ratio >= split_threshold then
                 component:split(split_x, split_x + member.image:getWidth(), member.string)
@@ -211,20 +212,24 @@ local function overlay_with_cluster_image(prototype, component, i)
         else
             split_threshold = config.SPLIT_THRESHOLD
         end
+        if config.very_high_confidence[prototype.string] then split_threshold = config.VERY_HIGH_SPLIT_THRESHOLD end
 
         if ratio >= split_threshold then
             component:split(split_x, split_x + prototype.image_bw:getWidth(), prototype.string)
 
             return true
 
-        elseif ratio < split_threshold and ratio >= 0.75 then
+        elseif ratio < split_threshold and ratio >= split_threshold - 0.05 then
             local letter, _ = max_pair(component.letter_frequencies)
             if prototype.string == letter then
                 component:split(split_x, split_x + prototype.image_bw:getWidth(), prototype.string)
 
                 return true
             end
-        elseif ratio < 0.75 and ratio >= 0.70 then
+
+            return check_every_cluster_member(PROTOTYPES.clusters[prototype.string], component, i)
+
+        elseif ratio < split_threshold - 0.05 and ratio >= split_threshold - 0.1 and #PROTOTYPES.clusters[prototype.string] > 1 then
             return check_every_cluster_member(PROTOTYPES.clusters[prototype.string], component, i)
         end
     end
@@ -243,11 +248,19 @@ function Entities.Segment:recognize ()
             local component = self.components[i]
             if config.UNKNOWN_COMPONENTS[component.string] then
                 for prototype in PROTOTYPES:uniquePrototypes() do
-                    if PROTOTYPES.clusters[prototype]._image then
-                        local did_split = overlay_with_cluster_image({image_bw = PROTOTYPES.clusters[prototype]._image, string = prototype}, component, i)
-                        if did_split then
-                            print("Splitting component", i, "with", prototype, pre_string, "->", tostring(self))
-                            goto continue
+                    if  PROTOTYPES.clusters[prototype]._image then
+                        if image_fits_image(PROTOTYPES.clusters[prototype]._image, component.image) then
+                            local did_split = overlay_with_cluster_image({image_bw = PROTOTYPES.clusters[prototype]._image, string = prototype}, component, i)
+                            if did_split then
+                                print("Splitting component", i, "with", prototype, pre_string, "->", tostring(self))
+                                goto continue
+                            end
+                        else
+                            local did_split = check_every_cluster_member(PROTOTYPES.clusters[prototype], component, i)
+                            if did_split then
+                                print("Splitting component", i, "with", prototype, pre_string, "->", tostring(self))
+                                goto continue
+                            end
                         end
                     else
                         local did_split = check_every_cluster_member(PROTOTYPES.clusters[prototype], component, i)
