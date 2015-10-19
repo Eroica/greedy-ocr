@@ -21,34 +21,60 @@ config.pages_directory      = "_pages"
 
 config.automatically_split_segments = true
 config.MINIMUM_COMPONENT_WIDTH = 10
-config.SPLIT_THRESHOLD = 0.80
-config.HIGH_SPLIT_THRESHOLD = 0.85
+config.SPLIT_THRESHOLD = 0.75
+config.HIGH_SPLIT_THRESHOLD = 0.82
+config.VERY_HIGH_SPLIT_THRESHOLD = 0.85
 
 config.prototype_ranking = {
-    "b", "d", "u", "m", "n", "r", "o", "l", "i", "t"
+    "h", "b", "d", "u", "m", "n", "r", "o", "l", "i", "c", "t"
 }
 
 config.high_confidence = {
-     l = true, i = true, u = true, r = true, t = true, m = true, d = true, o = true
+    u = true, r = true, m = true, n = true, d = true, o = true, a = true
 }
 
-config.separate_clusters = {s = true, i = true}
+config.very_high_confidence = {
+    l = true, e = true, i = true, t = true, c = true
+}
+
+config.separate_clusters = {s = true, st = true, v = true}
 
 config.additional_prototypes = {
-    {"M", "_prototypes/_m_c.png"},
-    {"J", "_prototypes/_j_c.png"},
-    {"P", "_prototypes/_p_c.png"},
-    {"ß", "_prototypes/_sz.png"},
-    {"T", "_prototypes/_t_c.png"},
-    {"N", "_prototypes/_n_c.png"},
-    {"B", "_prototypes/_b_c.png"},
-    {"i", "_prototypes/_i_2.png"},
-    {"S", "_prototypes/_s_c.png"},
-    {"F", "_prototypes/_f_c.png"},
-    {"V", "_prototypes/_v_c.png"},
-    {"C", "_prototypes/_c_c.png"},
-    {"R", "_prototypes/_r_c.png"},
-    {"D", "_prototypes/_d_c.png"},
+    -- {"ä", "_prototypes/_a_u.png"},
+    -- {"ö", "_prototypes/_o_u.png"},
+    -- {"ü", "_prototypes/_u_u.png"},
+    -- {"A", "_prototypes/_a_c_2.png"},
+    -- {"B", "_prototypes/_b_c_2.png"},
+    -- {"D", "_prototypes/_d_c_2.png"},
+    -- {"F", "_prototypes/_f_c_2.png"},
+    -- {"H", "_prototypes/_h_c_2.png"},
+    -- {"S", "_prototypes/_s_c_2.png"},
+    -- {"S", "_prototypes/_s_c_3.png"},
+    -- {"T", "_prototypes/_t_c_2.png"},
+
+
+    -- Pages 266-269
+    {"ä", "_prototypes/_a_u.png"},
+    {"ä", "_prototypes/_a_u_2.png"},
+    {"ö", "_prototypes/_o_u.png"},
+    {"A", "_prototypes/_a_c_2.png"},
+    {"B", "_prototypes/_b_c_2.png"},
+    {"B", "_prototypes/_b_c_3.png"},
+    {"D", "_prototypes/_d_c_2.png"},
+    {"D", "_prototypes/_d_c_3.png"},
+    {"F", "_prototypes/_f_c_2.png"},
+    {"F", "_prototypes/_f_c_3.png"},
+    {"G", "_prototypes/_g_c_2.png"},
+    {"H", "_prototypes/_h_c_2.png"},
+    {"H", "_prototypes/_h_c_3.png"},
+    {"K", "_prototypes/_k_c_2.png"},
+    {"L", "_prototypes/_l_c_2.png"},
+    {"L", "_prototypes/_l_c_3.png"},
+    {"P", "_prototypes/_p_c_2.png"},
+    {"S", "_prototypes/_s_c_2.png"},
+    {"Sch", "_prototypes/_Sch_c.png"},
+    {"Sch", "_prototypes/_Sch_c_2.png"},
+
 }
 
 config.punctuation = {["."] = true, ["-"] = true, ["/"] = true}
