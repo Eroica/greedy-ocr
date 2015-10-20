@@ -40,20 +40,6 @@ config.very_high_confidence = {
 config.separate_clusters = {s = true, st = true, v = true}
 
 config.additional_prototypes = {
-    -- {"ä", "_prototypes/_a_u.png"},
-    -- {"ö", "_prototypes/_o_u.png"},
-    -- {"ü", "_prototypes/_u_u.png"},
-    -- {"A", "_prototypes/_a_c_2.png"},
-    -- {"B", "_prototypes/_b_c_2.png"},
-    -- {"D", "_prototypes/_d_c_2.png"},
-    -- {"F", "_prototypes/_f_c_2.png"},
-    -- {"H", "_prototypes/_h_c_2.png"},
-    -- {"S", "_prototypes/_s_c_2.png"},
-    -- {"S", "_prototypes/_s_c_3.png"},
-    -- {"T", "_prototypes/_t_c_2.png"},
-
-
-    -- Pages 266-269
     {"ä", "_prototypes/_a_u.png"},
     {"ä", "_prototypes/_a_u_2.png"},
     {"ö", "_prototypes/_o_u.png"},
@@ -67,14 +53,16 @@ config.additional_prototypes = {
     {"G", "_prototypes/_g_c_2.png"},
     {"H", "_prototypes/_h_c_2.png"},
     {"H", "_prototypes/_h_c_3.png"},
+    {"H", "_prototypes/_h_c_4.png"},
     {"K", "_prototypes/_k_c_2.png"},
+    {"K", "_prototypes/_k_c_3.png"},
     {"L", "_prototypes/_l_c_2.png"},
     {"L", "_prototypes/_l_c_3.png"},
     {"P", "_prototypes/_p_c_2.png"},
     {"S", "_prototypes/_s_c_2.png"},
+    {"T", "_prototypes/_s_c_2.png"},
     {"Sch", "_prototypes/_Sch_c.png"},
     {"Sch", "_prototypes/_Sch_c_2.png"},
-
 }
 
 config.punctuation = {["."] = true, ["-"] = true, ["/"] = true}
