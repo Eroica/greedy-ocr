@@ -19,6 +19,11 @@ function round (number)
     end
 end
 
+-- generate_prototype_image:
+-- Creates an image by averaging size and pixel color across all images
+-- in `cluster'.
+-- @params: cluster @type: table
+-- @returns: @type Image
 function generate_prototype_image (cluster)
     local width, height = 0, 0
 
@@ -58,7 +63,11 @@ function generate_prototype_image (cluster)
 end
 
 
-
+-- image_fits_image:
+-- Checks whether the first image fits into the second.
+-- @params: small_image @type: Image
+--          large_image @type: Image
+-- @returns: @type: boolean
 function image_fits_image (small_image, large_image)
     if  small_image:getWidth()  <= large_image:getWidth()
     and small_image:getHeight() <= large_image:getHeight()
@@ -70,6 +79,11 @@ function image_fits_image (small_image, large_image)
 end
 
 
+-- count_pixel_color:
+-- Counts how many black/white pixels in an image appear.
+-- @params: image @type: Image
+--          count_white @type: boolean
+-- @returns: @type: number
 function count_pixel_color (image, count_white)
     local pixel_color = 0
     if count_white then pixel_color = 255 end
@@ -282,10 +296,9 @@ end
 -- Traverses a table and looks for the highest value. Returns this
 -- value and the corresponding index (key).
 --
--- @params: t @type: table
--- @returns:
---     key @type: number
---     max @type: number
+-- @params:   t @type: table
+-- @returns: key @type: number
+--           max @type: number
 function max_pair (t)
     local max = 0
     local key
@@ -304,7 +317,7 @@ end
 -- Creates a new table from a given table, swapping every key-value
 -- pair.
 -- @params:  t @type: table
--- @returns: @type: table
+-- @returns:   @type: table
 function invert_table (t)
     local s = {}
     for k, v in pairs(t) do

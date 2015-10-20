@@ -37,16 +37,16 @@ function load_prototypes ()
         end
     end
 
-         local images = {}
-        for _, prototype in pairs(prototypes) do
-            images = love.filesystem.getDirectoryItems(PROTOTYPE_DIR .. "/" .. prototype)
-             for _, image in pairs(images) do
-                if image:sub(1, 1) ~= "." and image:sub(1, 1) ~= "_" then
-                    local prot_image = love.graphics.newImage(PROTOTYPE_DIR .. "/" .. prototype .. "/" .. image)
-                    Entities.Prototype(prototype, prot_image)
-                end
+    local images = {}
+    for _, prototype in pairs(prototypes) do
+        images = love.filesystem.getDirectoryItems(PROTOTYPE_DIR .. "/" .. prototype)
+         for _, image in pairs(images) do
+            if image:sub(1, 1) ~= "." and image:sub(1, 1) ~= "_" then
+                local prot_image = love.graphics.newImage(PROTOTYPE_DIR .. "/" .. prototype .. "/" .. image)
+                Entities.Prototype(prototype, prot_image)
             end
         end
+    end
 
     for _, prototype in pairs(config.additional_prototypes) do
         Entities.Prototype(prototype[1], love.graphics.newImage(prototype[2]))
