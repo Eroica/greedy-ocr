@@ -101,9 +101,9 @@ Here is an example of a `.lua` file describing bounding boxes:
 
 ### Prototypes
 
-Each image file inside the `_prototypes` directory gets parsed automatically by `greedy-ocr`. Just put an image of a letter inside `_prototypes`, and rename the file to the character(s) it contains.
+For every Prototype letter, set up a folder of that letter inside `prototypes/`, and move any amount of images of that letter into this new folder. Each image file inside this folder gets parsed automatically by `greedy-ocr`.
 
-Since most file systems are case-insensitive, you cannot put an `E.png` prototype along with an `e.png` inside `_prototypes`. This is one situation where you need to use the `_config.lua` file (see below).
+Since most file systems are case-insensitive, you cannot put an `E/` folder along with an `e/` inside `_prototypes`. This is one situation where you need to use the `_config.lua` file to set up Prototypes (see below).
 
 #### Isn't taking characters from the page you want to recognize like cheating?
 
@@ -121,10 +121,22 @@ Without document-specific images, you would have to
 *   correct the errors,
 *   re-train, and so forth.
 
-For my Bachelor's thesis, for instance, I took Prototypes from page #190 of [this book](http://brema.suub.uni-bremen.de/zeitungen17/periodical/thumbview/992516) and recognized a part of page #270.
+For my Bachelor's thesis, for instance, I took Prototypes from page #266 to #269 of [this book](http://brema.suub.uni-bremen.de/zeitungen17/periodical/thumbview/992516) and recognized a part of page #270.
 
 
 ### Configuration
+
+Take a look at the `_config.lua' file to tweak the parameters of the recognition, and setup other Prototypes that cannot be set up by putting them inside the `_prototypes/` directory.
+
+## Starting & Recognizing
+
+If everythig is set up correctly, you can start this program either by running `love [this-folder]` from the command-line or dragging and dropping this folder on the *LOVE* application (`.app/.exe`).
+
+*   You can move around the document by holding `Space` and left-clicking with the mouse.
+*   For a list of all Prototypes and cluster images available, press `P` on the keyboard.
+    *   To see the binary images of these Prototypes, press `X`.
+*   Right-click on a Segment to attempt to recognize it.
+    *   IMPORTANT: This currently blocks the drawing thread, and the program will seem as if it was not responding. Depending on the size of the Segment, this process may take a long time (i.e. several minutes)!
 
 # License
 The original code in this repository is licensed under the **zlib** license. Code from 3rd-party libraries and the LÖVE framework are copyrighted by their respective authors.
