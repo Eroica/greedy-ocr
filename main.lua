@@ -26,7 +26,7 @@ require "utils"
 require "setup"
 config        = require "_config"
 LanguageModel = require "LanguageModel"
-Entities      = require "Entities"
+Entities      = require "entities"
 
 
 local draw_prototypes_system = Systems.Prototypes.OverlayPrototypes
