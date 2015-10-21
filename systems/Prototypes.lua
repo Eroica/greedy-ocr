@@ -1,12 +1,20 @@
+--[[
+    greedy-ocr
+    Original Work Copyright (c) 2015 Sebastian Spaar
+------------------------------------------------------------------------
+    systems/Prototypes.lua
+
+]]
+
 local Prototypes = {}
 
 -- This system provides a wrapper for all existing prototypes by sorting
 -- them according to their size (larger Prototypes come before smaller
--- ones).
+-- ones, but still regarding prototype_ranking in `_config.lua').
 Prototypes.sharedPrototypes = tiny.sortedSystem({isUpdateSystem = true})
 function Prototypes.sharedPrototypes:onAddToWorld (world)
     -- Get the list of ranking according to `_config.lua'. This means
-    -- that Prototypes that are to the beginning of this ranking are
+    -- that Prototypes that are at the beginning of this ranking are
     -- also placed at the beginning of `self.entities' (and then after
     -- their image size).
     self.prototype_ranking = config.prototype_ranking
@@ -21,7 +29,8 @@ function Prototypes.sharedPrototypes:update (dt)
 end
 
 function Prototypes.sharedPrototypes:onAdd (entity)
-    -- Create a new cluster if the Prototype's string is new
+    -- Create a new cluster if there is no cluster for the
+    -- Prototype's string.
     if self.clusters[entity.string] == nil then
         self.clusters[entity.string] = {}
     end
@@ -41,6 +50,8 @@ function Prototypes.sharedPrototypes:onAdd (entity)
 end
 
 
+-- This method provides an iterator on all unique Prototypes, that is,
+-- a list of strings of all available Prototypes.
 function Prototypes.sharedPrototypes:uniquePrototypes ()
     local used_prototypes = {}
 
@@ -50,6 +61,8 @@ function Prototypes.sharedPrototypes:uniquePrototypes ()
             prototype = self.entities[i].string
             if used_prototypes[prototype] == nil then
                 used_prototypes[prototype] = true
+
+                -- This will return a string, NOT a Prototype!
                 return prototype
             end
         end
@@ -57,7 +70,9 @@ function Prototypes.sharedPrototypes:uniquePrototypes ()
     end
 end
 
-
+-- This function makes sure that Prototypes are ordered according to
+-- their image's size, and according to `prototype_ranking' in
+-- `_config.lua'.
 function Prototypes.sharedPrototypes:compare (e1, e2)
     local area_1 = e1.image:getWidth() * e1.image:getHeight()
     local area_2 = e2.image:getWidth() * e2.image:getHeight()
@@ -66,7 +81,6 @@ function Prototypes.sharedPrototypes:compare (e1, e2)
     and self._inverse_prototype_ranking[e2.string] == nil then
         return area_1 > area_2
     elseif not (self._inverse_prototype_ranking[e1.string] and self._inverse_prototype_ranking[e2.string]) then
-
         return (self._inverse_prototype_ranking[e1.string] or 2) < (self._inverse_prototype_ranking[e2.string] or 1)
     else
         return self._inverse_prototype_ranking[e1.string] < self._inverse_prototype_ranking[e2.string]
@@ -78,6 +92,7 @@ function Prototypes.sharedPrototypes:filter (entity)
 end
 
 
+-- This system draws all Prototypes and cluster images on the screen
 Prototypes.OverlayPrototypes = tiny.system({isDrawSystem = true, active = false})
 function Prototypes.OverlayPrototypes:update (dt)
     local width, height = love.graphics.getDimensions()

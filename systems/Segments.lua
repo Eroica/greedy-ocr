@@ -2,12 +2,14 @@
     greedy-ocr
     Original Work Copyright (c) 2015 Sebastian Spaar
 ------------------------------------------------------------------------
-    systems.lua
+    systems/Segments.lua
 
 ]]
 
 local Segments = {}
 
+
+-- This system draws every Segment's string (symbolic value).
 Segments.DrawString = tiny.processingSystem({isDrawSystem = true})
 function Segments.DrawString:process (entity, dt)
     CAMERA:draw(function(l, t, w, h)
@@ -24,6 +26,7 @@ function Segments.DrawString:filter (entity)
 end
 
 
+-- This system draws every Segment's bounding box.
 Segments.DrawBoundingBox = tiny.processingSystem({isDrawSystem = true})
 function Segments.DrawBoundingBox:process (entity, dt)
     local position = entity.position
@@ -41,10 +44,15 @@ function Segments.DrawBoundingBox:filter (entity)
 end
 
 
+-- This system checks whether a Segment can be recognized using the
+-- lexicon.
 Segments.Lookup = tiny.processingSystem({isUpdateSystem = true, active = false, interval=30})
 function Segments.Lookup:process (entity, dt)
+    -- TODO: Remove global `LEXICON' dependency.
     local match = LEXICON:lookup(tostring(entity))
 
+    -- Check if `match' is unique, then proceed to "recognize" the
+    -- Segment.
     if #match == 1 then
         if config.DEBUG then
             print(tostring(entity), "succesfully recognized as:", match[1])
@@ -55,12 +63,19 @@ function Segments.Lookup:process (entity, dt)
         local component
         for j=1, #entity.components do
             component = entity.components[j]
+
+            -- This condition cancels the recognition of every,
+            -- and set ups a segment.string instead. The reason behind
+            -- that is if a Segment's string is, say, "Ambassa.+.+r",
+            -- and the matching word is "Ambassadeur", no one can know
+            -- where the first `.+' begins and ends.
             if j == #entity.components or (component.string == ".+" and entity.components[j+1].string == ".+") then
                 entity.string = match
                 goto recognition_end
             end
         end
 
+        -- Create a block so we can use goto above.
         do
             local letter_count = 0
             for j=1, #entity.components do

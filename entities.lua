@@ -10,6 +10,15 @@ local config = require "_config"
 
 local Entities = {}
 
+
+-- Creates a `Prototype' entity. A Prototype doesn't need many helper
+-- methods, so this is basically a list of fields.
+--
+-- @params: literal: The Prototype string
+--          |__@type: string
+--          image: The Prototype image
+--          |__@type: Image
+-- @returns: @type: Prototype
 Entities.Prototype = class("Prototype")
 function Entities.Prototype:init (literal, image)
     self.isPrototype = true
@@ -25,6 +34,15 @@ function Entities.Prototype:init (literal, image)
 end
 
 
+-- Creates a `Page' entity. A Page represents a document (image) that
+-- should be recognized, and is parent to `Segment' entities.
+--
+-- @params: image: The Page image
+--          |__@type: Image
+--          bounding_boxes: A table of bounding boxes that contain words
+--          |               on that page.
+--          |__@type: table
+-- @returns: @type: Page
 Entities.Page = class("Page")
 function Entities.Page:init (image, bounding_boxes)
     self.isPage = true
@@ -32,8 +50,10 @@ function Entities.Page:init (image, bounding_boxes)
     self.image_bw = threshold_image(image)
     self.position = {l = 0, t = 0}
 
+    -- This Page's Segments (words)
     self.segments = {}
 
+    -- Iterate over `bounding_boxes' and create Segments.
     for _, box in ipairs(bounding_boxes) do
         local l = box[1]
         local t = box[2]
@@ -59,6 +79,21 @@ local function all_white (t)
     return true
 end
 
+
+-- Creates a `Segment' entity. A Segment represents a word that should
+-- be recognized, and consists of individual `Components'.
+--
+-- @params: l: Left position on the page
+--          |__@type: number
+--          t: Top position on the page
+--          |__@type: number
+--          width: Width of the bounding box
+--          |__@type: number
+--          height: Height of the bounding box
+--          |__@type: number
+--          parent: The Page entity on which this Segment is
+--          |__@type: Page *
+-- @returns: @type: Segment
 Entities.Segment = class("Segment")
 function Entities.Segment:init (l, t, width, height, parent)
     self.parent = parent
@@ -98,12 +133,15 @@ function Entities.Segment:init (l, t, width, height, parent)
     WORLD:addEntity(self)
 end
 
+-- This helper method splits a Segment into smaller Components, and
+-- should be used in the beginning of Segment initialization.
 function Entities.Segment:split_at_whitespace ()
     local lines = {}
     local component_edges = {}
     local search_black = true
     local num_white_rows = 0
 
+    -- Check where columns of white pixels are in this Segment's image.
     local white_columns = {}
     for column_idx=0, self.image_bw:getWidth() - 1 do
         local colors = {}
@@ -118,6 +156,9 @@ function Entities.Segment:split_at_whitespace ()
         end
     end
 
+    -- Check if the neighbors of this white columns are also white.
+    -- It will serve as a starting/ending point for a Component only if
+    -- these white columns are "large" enough.
     for i, white_col in pairs(white_columns) do
         local start = white_col - 2
         if start < 0 then start = 0 end
@@ -141,6 +182,7 @@ function Entities.Segment:split_at_whitespace ()
         ::white_column_removed::
     end
 
+    -- Set an initial Component to begin at x coordinate 0.
     local component_edges = {0}
     for i, col in pairs(white_columns) do
         if col ~= nil then
@@ -161,9 +203,9 @@ function Entities.Segment:split_at_whitespace ()
     end
 end
 
-
-
-
+-- check_every_cluster_member:
+-- Checks whether a cluster member (i.e. Prototype) is part of this
+-- Segment. Called by `Segment:recognize()'.
 local function check_every_cluster_member(cluster, component, i)
     for cluster_idx=1, math.min(5, #cluster) do
         local member = cluster[math.random(1, #cluster)]
@@ -199,7 +241,9 @@ local function check_every_cluster_member(cluster, component, i)
     return false
 end
 
-
+-- overlay_with_cluster_image:
+-- Checks whether a cluster image is part of this Segment.
+-- Called by `Segment:recognize()'.
 local function overlay_with_cluster_image(prototype, component, i)
     if image_fits_image(prototype.image_bw, component.image) then
         if config.DEBUG then print("Checking component", i, "with CLUSTER IMAGE", prototype.string) end
@@ -237,24 +281,42 @@ local function overlay_with_cluster_image(prototype, component, i)
     return false
 end
 
-
-
+-- Segment:recognize:
+-- Attemps to recognize a Segment by checking which Prototypes are part
+-- of it. Pardon that messy code, it's not structured very well and
+-- has lots of redundancies, but for the evaluation, I needed to set up
+-- a function like that ... I try my best describe each step.
 function Entities.Segment:recognize ()
+
+    -- First of all, set up a `repeat ... while' loop that gets exited
+    -- when no new Prototype has been found in this Segment.
     repeat
+        -- Save the string of this Segment BEFORE recognition, so that
+        -- it can be compared to the string AFTER recognition.
         local pre_string = tostring(self)
         local component
 
+        -- Check every Component for Prototypes ...
         for i=1, #self.components do
             local component = self.components[i]
+
+            -- ... but only if it hasn't been recognized yet.
             if config.UNKNOWN_COMPONENTS[component.string] then
+
+                -- Get the list of all available, unique Prototypes.
                 for prototype in PROTOTYPES:uniquePrototypes() do
+
+                    -- See whether a cluster image for this Prototype exists ...
                     if  PROTOTYPES.clusters[prototype]._image then
+                        -- ... and whether it fits into this Component
                         if image_fits_image(PROTOTYPES.clusters[prototype]._image, component.image) then
+                            -- If yes, try to find this Prototype (from line 305)
                             local did_split = overlay_with_cluster_image({image_bw = PROTOTYPES.clusters[prototype]._image, string = prototype}, component, i)
                             if did_split then
                                 print("Splitting component", i, "with", prototype, pre_string, "->", tostring(self))
                                 goto continue
                             end
+                        -- If it doesn't fit, iterate over all Prototypes in that cluster
                         else
                             local did_split = check_every_cluster_member(PROTOTYPES.clusters[prototype], component, i)
                             if did_split then
@@ -262,6 +324,7 @@ function Entities.Segment:recognize ()
                                 goto continue
                             end
                         end
+                    -- If no cluster image exists, iterate over all Prototypes in that cluster
                     else
                         local did_split = check_every_cluster_member(PROTOTYPES.clusters[prototype], component, i)
                         if did_split then
@@ -274,34 +337,22 @@ function Entities.Segment:recognize ()
         end
 
     ::continue::
-
+    -- TODO: There is a bug in this abort condition. Sometimes it
+    --       cancels recognition, even though there are still Components
+    --       that can be recognized.
     until pre_string == tostring(self)
 end
 
 
-function Entities.Segment:split (prototype)
-    for i=1, #self.components do
-        local component = self.components[i]
-
-        if  config.UNKNOWN_COMPONENTS[component.string]
-        and image_fits_image(prototype.image_bw, component.image) then
-            if config.DEBUG then print("Checking component", i) end
-
-            local ratio, split_x = component:overlay(prototype)
-            print(ratio, split_x)
-            local split_threshold = config.SPLIT_THRESHOLD
-
-            if ratio >= split_threshold then
-                component:split(split_x,
-                                split_x + prototype.image_bw:getWidth() - 1,
-                                prototype.string)
-                WORLD:update()
-            end
-        end
-    end
-end
-
-
+-- Creates a `Component' entity. A Component represents a small part of
+-- a word, containing any amount of letters, but at least 1.
+-- @params:  start: Beginning of the Component (x axis)
+--           |__@type: number
+--           e: End of the Component (x axis)
+--           |__@type: number
+--           parent: Which Segment this Component is part of
+--           |__@type: Segment *
+-- @returns: @type: Component
 Entities.Component = class("Component")
 function Entities.Component:init (start, e, parent)
     self.parent = parent
@@ -318,7 +369,7 @@ function Entities.Component:init (start, e, parent)
     self.image_bw = threshold_image(self.image)
 
     -- TODO: Write function that checks whether a component consists
-    -- of a single character or more than one.
+    --       of a single character or more than one.
     if width <= 35 then self.string = "." end
 
     getmetatable(self).__tostring = function (t)
@@ -328,6 +379,15 @@ function Entities.Component:init (start, e, parent)
     WORLD:addEntity(self)
 end
 
+-- Component:split:
+-- Splits a Component into smaller ones.
+-- @params:  start: The beginning of the split
+--           |__@type: number
+--           e: The end of the split
+--           |__@type: number
+--           str: The letter this Component shall contain after splitting
+--           |__@type: string
+-- @returns:
 function Entities.Component:split (start, e, str)
     local width = self.range[2] - self.range[1] + 1
     local start = math.max(0, start)
@@ -449,20 +509,7 @@ function Entities.Component:overlay (prototype)
                              split_x, split_x + sub_image:getWidth() - 1)
     end
 
-
-    -- if self.letter_frequencies[prototype.string] ~= nil then
-    --     if prototype.string == max_pair(self.letter_frequencies) then
-    --         local frequency = self.letter_frequencies[prototype.string]
-    --         max_ratio = max_ratio + frequency * 20
-    --         print(max_ratio)
-    --     end
-    -- end
-
     return max_ratio, split_x
-
-    -- if max_ratio >= config.SPLIT_THRESHOLD then
-    --     self:split(split_x, split_x + sub_image:getWidth() - 1, prototype.string)
-    -- end
 end
 
 return Entities

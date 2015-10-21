@@ -1,6 +1,12 @@
 --[[
     greedy-ocr
-    Original Work Copyright (c) 2015 Sebastian Spaar
+
+    This script's content is mainly obtained from
+    Roberto Ierusalimschy's "Programming in Lua."
+
+    Source: http://www.lua.org/pil/7.1.html
+    (Date retrieved: September 1st, 2015)
+
 ------------------------------------------------------------------------
     gr_ngram.lua
 

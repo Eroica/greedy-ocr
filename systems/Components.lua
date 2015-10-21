@@ -1,25 +1,24 @@
+--[[
+    greedy-ocr
+    Original Work Copyright (c) 2015 Sebastian Spaar
+------------------------------------------------------------------------
+    systems/Components.lua
+
+]]
+
 local Components = {}
 
-
+-- This systems registers all available Components, a little bit like
+-- a Singleton object.
 Components.sharedComponents = tiny.system({isUpdateSystem = true})
 function Components.sharedComponents:filter (entity)
     return entity.isComponent ~= nil
 end
 
-
--- function Components.sharedComponents:onAdd (entity)
---     for _, cluster in pairs(self.clusters) do
---         for i, comp in pairs(cluster) do
---             -- check if components are similar in width
---             if math.abs(comp.image:getWidth() - entity.image:getWidth() <= 3 then
---                 -- check which image can be put over the other one
-
--- end
-
 function Components.sharedComponents:onAdd (entity)
-    -- self.world:addEntity(entity)
-
     -- Add letter frequencies to the component behind `index'
+
+    -- First check if `entity' is a recognized component.
     if  entity.string ~= ".+"
     and entity.string ~= "."
     and #entity.string == 1 then
@@ -27,8 +26,12 @@ function Components.sharedComponents:onAdd (entity)
         local index = invert_table(entity.parent.components)[entity]
 
         -- Stop if `index' is the last or first component of a segment
+        -- (so that there is no component after it)
         if index == #components then return end
 
+        -- Check if the component after `entity' is not recognized
+        -- AND a single character. This limit can probably be lifted
+        -- some day.
         if components[index+1].string == "." then
             components[index+1].letter_frequencies = {}
 
@@ -48,11 +51,12 @@ function Components.sharedComponents:onModify (dt)
     -- Check if a Segment has been recognized
     -- This currently breaks a System's autarky, and will need to be
     -- changed!
-    -- TODO: Remove global `RECOGNITION'
-    -- RECOGNITION:update(dt)
+    -- TODO: Remove global `LOOKUP'
+    LOOKUP:update(dt)
 end
 
 
+-- This system draws the Components ranges.
 Components.DrawLines = tiny.processingSystem({isDrawSystem = true})
 function Components.DrawLines:process (entity, dt)
     local position = entity.parent.position
@@ -76,6 +80,8 @@ function Components.DrawLines:filter (entity)
 end
 
 
+-- This system (named a little bit unclear, unfortunately) draws the
+-- Component's ranges in numbers.
 Components.DrawRange = tiny.system({isDrawSystem = true})
 function Components.DrawRange:update (dt)
     local x, y = CAMERA:toWorld(love.mouse.getPosition())

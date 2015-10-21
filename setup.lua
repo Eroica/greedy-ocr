@@ -1,3 +1,11 @@
+--[[
+    greedy-ocr
+    Original Work Copyright (c) 2015 Sebastian Spaar
+------------------------------------------------------------------------
+    setup.lua
+
+]]
+
 local config = require "_config"
 
 local PROTOTYPE_DIR = config.prototypes_directory
@@ -9,8 +17,8 @@ local BIGRAM_FILE = config.corpus_filename
 -- creates a Prototype for each image found.
 -- IMPORTANT: Files that start with a `.' or an `_' are ignored. This
 -- is to ignore hidden files, e.g. `.DS_Store', and to enable the user
--- to put images inside Prototypes directory that get loaded at another
--- place.
+-- to put images inside the Prototypes directory that get loaded at
+-- elsewhere at another time.
 --
 -- @params:
 -- @returns:

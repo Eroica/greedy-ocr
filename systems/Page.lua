@@ -1,7 +1,19 @@
-local Page = {}
+--[[
+    greedy-ocr
+    Original Work Copyright (c) 2015 Sebastian Spaar
+------------------------------------------------------------------------
+    systems/Page.lua
+
+]]
 
 local config = require "_config"
 
+local Page = {}
+
+-- This system draws the document image. Theoretically, sinc each
+-- `page'/`document' is also an entity, support for multiple documents
+-- to be recognized can be supported, but is not implemented well
+-- currently.
 Page.DrawPage = tiny.processingSystem({isDrawSystem = true})
 function Page.DrawPage:process (entity, dt)
     CAMERA:draw(function(l, t, w, h)
@@ -14,11 +26,13 @@ function Page.DrawPage:filter (entity)
 end
 
 
+-- The HUD's appearance.
 local HUD_HEIGHT     = 44
 local HUD_PADDING    = 4
 local HUD_COLOR      = {unpack(config.HUD_COLOR)}
 local HUD_LINE_COLOR = {unpack(config.HUD_LINE_COLOR)}
 
+-- This system draws the HUD.
 Page.DrawHUD = tiny.system({isDrawSystem = true})
 function Page.DrawHUD:update (dt)
     local width, height = love.graphics.getDimensions()
@@ -69,6 +83,8 @@ function Page.DrawHUD:filter (entity)
 end
 
 
+-- Some buttons and their content/appearance. Should be moved to another
+-- file some day.
 local BUTTON_HEIGHT = 24
 local BUTTON_1 = {
     width  = 72,
@@ -88,6 +104,8 @@ local BUTTON_3 = {
     text   = "Recognize all Segments (S)"
 }
 
+
+-- This system draws the buttons.
 Page.DrawButtons = tiny.system({isDrawSystem = true})
 function Page.DrawButtons:update (dt)
     local width, height = love.graphics.getDimensions()
@@ -122,7 +140,6 @@ function Page.DrawButtons:update (dt)
             love.graphics.printf(BUTTON_2.text, 0, 0, BUTTON_2.width, "center")
         end love.graphics.pop()
 
-
         -- Button 3
         -- love.graphics.setColor(unpack(config.HUD_LINE_COLOR))
         -- love.graphics.rectangle("line", width - BUTTON_1.width - BUTTON_2.width - BUTTON_3.width - HUD_PADDING * 5 - 1, 0, BUTTON_3.width + 2, BUTTON_HEIGHT + 2)
@@ -141,8 +158,13 @@ function Page.DrawButtons:update (dt)
 end
 
 
+-- This system allows a user to draw rectangles on the screen. While
+-- not implemented right now, these rectangles would allow the user
+-- to create/correct bounding boxes.
 Page.CreateRectangles = tiny.system({isDrawSystem = true, l = 0, t = 0})
 function Page.CreateRectangles:update (dt)
+    -- Do not create rectangles when the space key is pressed
+    -- (since another system relies on that).
     if not love.keyboard.isDown(" ") then
         self.dx, self.dy = love.mouse.getPosition()
 
@@ -159,11 +181,11 @@ function Page.CreateRectangles:onAddToWorld (world)
     self.l, self.t = love.mouse.getPosition()
 end
 
-function Page.CreateRectangles:onRemoveFromWorld (world)
+-- function Page.CreateRectangles:onRemoveFromWorld (world)
+-- end
 
-end
 
-
+-- This system allows a user to navigate around the page/document.
 Page.CameraPosition = tiny.system({isUpdateSystem = true})
 function Page.CameraPosition:onAddToWorld (world)
     self.x, self.y = love.mouse.getPosition()
@@ -171,6 +193,7 @@ function Page.CameraPosition:onAddToWorld (world)
 end
 
 function Page.CameraPosition:update (dt)
+    -- Check if space key is pressed, then setup new coordinates.
     if love.keyboard.isDown(" ") then
         local current_x, current_y = love.mouse.getPosition()
         local dx, dy = current_x - self.x, current_y - self.y
