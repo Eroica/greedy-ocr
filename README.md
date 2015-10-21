@@ -39,6 +39,8 @@ After my Bachelor's thesis has finished, I will halt development on the `0.9` br
 
 ## Recognizing characters
 
+Letters are recognized by comparing their visual similarity according to this formula:
+
                   Σi Σj (Aij && Bij)
         r(A, B) = -------------------
                   Σi Σj (Aij || Bij)
@@ -50,9 +52,17 @@ After my Bachelor's thesis has finished, I will halt development on the `0.9` br
              && := logical AND
              || := logical OR
 
-
+For large word images, a prototype letter is being found by *sliding* the image along the x and y axis. This results in a point P where the prototype image is the most similar to the word image.
 
 ## Obtaining new character shapes
+
+You don't need a prototype image for each character---`greedy-ocr` can obtain prototype images itself using a lexicon. The process works like this:
+
+*   Let's say there are prototype images for the letters `o`, `n` and `d`, and the word to be recognized is `London`.
+*   After every prototype has been found, the segment representing `London` looks like this: `?ondon`.
+*   This "word" will get searched for inside a lexicon, and the only matching word is `London`.
+*   `greedy-ocr` will then know that the originally unknown `?` must be an `L`, and thereby knows how an `L` looks like.
+*   This image of an `L` is a new prototype that can be searched for in other words.
 
 # Getting started
 
