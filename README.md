@@ -8,7 +8,7 @@
 
 Every letter in this document has been printed using the same *type* (most of the time). If we tell the OCR system that an `e` looks like this:
 
-![e](_prototypes/e.png)
+![e](_share/e.png)
 
 Then it can find this `e` in a word by looking for the position of the closest, graphical similarity:
 
