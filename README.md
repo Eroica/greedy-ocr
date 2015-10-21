@@ -68,7 +68,13 @@ You don't need a prototype image for each character---`greedy-ocr` can obtain pr
 
 You will need the [LÖVE framework](https://love2d.org/) to be able to run `greedy-ocr`. Binaries for Windows and OS X are available from the website. For Linux, it's best to install LÖVE using your distribution's package manager.
 
-If you want to run the same recognition process that I used in my Bachelor's thesis, download the `0.9` release from the [Releases]() page (a `.love` file) and run that file.
+If you want to run the same recognition process that I used in my Bachelor's thesis, download the `0.1` release from the [Releases](https://github.com/Eroica/greedy-ocr/releases) page (a `.love` file) and run that file:
+
+		/path/to/love greedy-ocr.love
+
+For instance on OS X, if you moved *love.app* to /Applications:
+
+		/Applications/love.app/Contents/MacOS/love greedy-ocr.love
 
 If you want to run an own recognition process, clone/download this repository and read the following instructions.
 
@@ -140,7 +146,7 @@ Take a look at the `_config.lua' file to tweak the parameters of the recognition
 
 ## Starting & Recognizing
 
-If everythig is set up correctly, you can start this program either by running `love [this-folder]` from the command-line or dragging and dropping this folder on the *LOVE* application (`.app/.exe`).
+If everythig is set up correctly, you can start this program by running `love [this-folder]` from the command-line.
 
 *   You can move around the document by holding `Space` and left-clicking with the mouse.
 *   For a list of all Prototypes and cluster images available, press `P` on the keyboard.
