@@ -33,7 +33,7 @@ This system is based on the algorithms that appear in these two papers:
 
 This project is part of my Bachelor's thesis at the Institute for Computational Linguistics at Heidelberg University in Germany. The main goal was to improve the character recognition of German *Fraktur*, especially for *Early New High German* (Frühneuhochdeutsch) texts.
 
-After my Bachelor's thesis has finished, I will halt development on the `0.9` branch to mirror the development status during my thesis. This way, you should be able to reproduce the experiments described in my thesis.
+Since my Bachelor's thesis is finished, I halted development on the `0.1` branch to mirror the development status during my thesis. This way, you should be able to reproduce the experiments described in my thesis.
 
 # Methods
 
@@ -142,7 +142,7 @@ For my Bachelor's thesis, for instance, I took Prototypes from page #266 to #269
 
 ### Configuration
 
-Take a look at the `_config.lua' file to tweak the parameters of the recognition, and setup other Prototypes that cannot be set up by putting them inside the `_prototypes/` directory.
+Take a look at the `_config.lua` file to tweak the parameters of the recognition, and setup other Prototypes that cannot be set up by putting them inside the `_prototypes/` directory.
 
 ## Starting & Recognizing
 
