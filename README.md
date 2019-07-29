@@ -1,5 +1,9 @@
 ![License: zlib](https://img.shields.io/badge/License-zlib-blue.svg)
 
+# Notice
+
+Changes in LÖVE 11.0 made the current code incompatible. I'm looking into updating the code to run with the current version of LÖVE, but for the time being you would need to use LÖVE 0.9.2 to run the program: https://bitbucket.org/rude/love/downloads/
+
 # greedy-ocr
 
 `greedy-ocr`  is a *document-specific* OCR engine that works by looking for *prototype* letters on a given document. Consider the following document (just an extract, not a full page):
